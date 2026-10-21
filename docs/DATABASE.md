@@ -4,7 +4,7 @@
 
 The running foundation uses PostgreSQL 18 with PostGIS 3.6. The initial Alembic migration establishes the PostGIS prerequisite and records its revision in `alembic_version`. **The business tables below are the Phase 0 design; they are not created in Phase 1.** They will be introduced, with tests, in the phases that use them.
 
-The PostGIS Docker image normally enables PostGIS in its initial database. The migration still uses `CREATE EXTENSION IF NOT EXISTS postgis` so a newly created database can be prepared consistently. A downgrade must not blindly drop the extension: it might predate the migration, and later spatial columns depend on it. Alembic autogeneration must inspect our application models, while excluding extension-owned objects such as `spatial_ref_sys`, topology objects and extension schemas. Do not treat extension tables as application tables to remove.
+The PostGIS Docker image normally enables PostGIS in its initial database. The migration still uses `CREATE EXTENSION IF NOT EXISTS postgis` so a newly created database can be prepared consistently. A downgrade must not blindly drop the extension: it might predate the migration, and later spatial columns depend on it. Application tables belong to `public`. The migration environment sets `SET LOCAL search_path TO public` during its transaction, preventing visible `tiger`/`topology` extension tables from entering application comparisons; it separately excludes PostGIS-owned `spatial_ref_sys`. Future business models must be imported into the migration environment before autogeneration. Do not treat extension tables as application tables to remove.
 
 ## Conventions
 
@@ -340,7 +340,7 @@ Index `(customer_id, created_at DESC, id)` and `(vendor_id, created_at DESC, id)
 | `last_seen_at` | `timestamptz` | required, `now()` | Last authenticated registration/refresh |
 | `disabled_at` | `timestamptz` | nullable | Logout, invalid provider token or account restriction |
 
-**Constraints and indexes:** checks on app/platform/provider allowlists. Unique `(installation_id, app_kind)` prevents multiple active rows for the same installation. Unique `(id, user_id)` supports the outbox's composite ownership FK. Index `(user_id) WHERE disabled_at IS NULL` for fanout. Authenticated upsert transfers ownership on account switching, disables old queued deliveries and prevents a previous account receiving another account's alerts.
+**Constraints and indexes:** checks on app/platform/provider allowlists. Unique `(installation_id, app_kind)` prevents duplicate registrations for the same installation. Unique `(id, user_id)` supports the outbox's composite ownership FK. Index `(user_id) WHERE disabled_at IS NULL` for fanout. Authenticated upsert transfers ownership on account switching and removes old-account delivery records for that token before the transfer, so a previous account cannot receive another account's alerts.
 
 **Retention:** disable immediately on logout/account deletion and on permanent provider rejection. Purge disabled/stale registrations after 30 days; do not reuse a disabled token without fresh authenticated registration. Database access controls and encrypted backups protect token values; add application-level encryption if the threat assessment requires it. Device tokens are delivery addresses, not access tokens.
 
@@ -382,7 +382,7 @@ Index `(customer_id, created_at DESC, id)` and `(vendor_id, created_at DESC, id)
 
 **Constraints and indexes:** FK `(device_token_id, recipient_user_id)` → `device_tokens(id, user_id)` ensures the target belonged to the intended recipient. Unique `(request_event_id, device_token_id, channel)` prevents duplicate enqueueing. Check allowed statuses/channel, `attempts >= 0` and JSON object payload. Terminal statuses require `completed_at`; nonterminal ones have none. Index `(next_attempt_at, id)` for pending/receipt work and `locked_until` for abandoned leases, using partial predicates matching dispatcher queries. Index `recipient_user_id` supports deletion cleanup.
 
-**Delivery behavior:** enqueue only for registered, enabled, currently authorized devices. Before send, recheck token ownership, enabled state, account status and event relevance; a cancelled visit can make an old arrival notification obsolete. Token transfer must delete/retarget old-account pending rows before changing ownership, within one transaction. A single-instance polling loop can process a small batch with `FOR UPDATE SKIP LOCKED`, assign short leases, commit, call Expo outside the transaction, and record results. Retries use bounded exponential backoff. Expired leases recover after crashes. Ticket acceptance is not proof of device delivery; poll receipts and handle permanent token errors.
+**Delivery behavior:** enqueue only for registered, enabled, currently authorized devices. Before send, recheck token ownership, enabled state, account status and event relevance; a cancelled visit can make an old arrival notification obsolete. Token transfer must remove **all** old-account outbox rows referencing that token before changing its owner, within one transaction; retain only sanitized aggregate counts if needed. A single-instance polling loop can process a small batch with `FOR UPDATE SKIP LOCKED`, assign short leases, commit, call Expo outside the transaction, and record results. Retries use bounded exponential backoff. Expired leases recover after crashes. Ticket acceptance is not proof of device delivery; poll receipts and handle permanent token errors. Here `DELIVERED` means a successful provider receipt/handoff, not proof that the device displayed the alert or the person read it.
 
 **Retention:** remove completed payloads after 7 days during the pilot, retain sanitized aggregate success/failure metrics, and cap retry age/attempts. Purge on account/token deletion as appropriate. Cascading history purges remove completed outbox rows before their source events. Exactly-once delivery across PostgreSQL and an external push provider is not guaranteed: a crash after sending but before recording can cause a retry. Stable notification IDs let the client ignore duplicate in-app handling; an operating system can still show duplicate alerts.
 
@@ -394,10 +394,10 @@ All transitions run in the backend, not in mobile component state.
 |---|---|---|
 | `PENDING` | `ACCEPTED` | Target vendor, before expiry |
 | `PENDING` | `DECLINED` | Target vendor |
-| `PENDING` | `CANCELLED` | Owning customer |
+| `PENDING` | `CANCELLED` | Owning customer or target vendor |
 | `PENDING` | `EXPIRED` | Backend when pending deadline passes |
-| `ACCEPTED` | `APPROACHING` | Target vendor |
-| `ACCEPTED`, `APPROACHING` | `ARRIVED` | Backend after fresh accurate proximity checks |
+| `ACCEPTED` | `APPROACHING` | Target vendor or backend distance evaluation using fresh accurate fixes |
+| `APPROACHING` | `ARRIVED` | Backend after fresh accurate proximity checks |
 | `ACCEPTED`, `APPROACHING`, `ARRIVED` | `CANCELLED` | Either participant, with reason |
 | `ACCEPTED`, `APPROACHING`, `ARRIVED` | `EXPIRED` | Backend when active visit deadline passes |
 | `ARRIVED` | `COMPLETED` | Vendor confirms visit completion |
@@ -409,7 +409,7 @@ For each transition:
 
 1. Begin a transaction and load the request with a row lock, then verify actor ownership, current state, expiry and the client's expected `version`.
 2. Update status and increment the version. Concurrent transitions serialize; a stale expected version receives `409 Conflict` rather than silently overwriting another action.
-3. Insert one `request_events` record for the resulting version and any authorized device `notification_outbox` rows.
+3. Insert one `request_events` record for the resulting version. Starting in Phase 7, insert authorized device `notification_outbox` rows in this same transaction; Phase 5 does not create the notification table early.
 4. Commit all changes together. Rollback leaves all of them unchanged. Publish live WebSocket updates only after commit.
 
 An arrival processor uses the same transition path and event uniqueness to prevent repeated fixes generating repeated arrival events. A customer/vendor pair's active unique index also handles two simultaneous create requests. Use a consistent lock order when a transaction also locks vendor availability or a device token. On deadlock or serialization errors, retry only a bounded, idempotent transaction; do not replay an external push call inside it. PostgreSQL documents both [row-lock behavior](https://www.postgresql.org/docs/18/explicit-locking.html) and [partial unique indexes](https://www.postgresql.org/docs/18/indexes-partial.html).
@@ -468,7 +468,7 @@ The query deliberately returns no precise coordinates. `ST_DWithin` narrows the 
 
 For cursor pagination, use `(distance_band_start_m, vendor_id)` with an opaque signed cursor bound to the normalized search origin, radius and filters. Locations move between pages, so results are best-effort and must be deduplicated by vendor ID. Reset the cursor when the search changes. Do not expose all rows to the phone for client-side distance filtering.
 
-Arrival checks load the one authorized request and compare its meeting point with the latest eligible vendor position. Use a configurable pilot threshold, fresh accuracy checks and repeated consistent fixes; reported GPS accuracy can be too poor to make an arrival claim. The backend creates one transition/event rather than treating every nearby GPS update as a new arrival.
+Arrival checks load the one authorized request and compare its meeting point with the latest eligible vendor position. Pilot defaults require two consistent fixes at least 5 seconds apart, each within 50 metres of the meeting point, no older than 30 seconds and with reported accuracy no worse than 30 metres. These thresholds are configurable; reported GPS accuracy can be too poor to make an arrival claim. Keep only the first qualifying candidate's timestamp/position in short-lived process memory, resetting it on disconnect, stale data or restart; this is not a route-history store. Recheck all conditions against the active request on the second fix. The backend creates one transition/event rather than treating every nearby GPS update as a new arrival.
 
 ## Migration and database verification policy
 

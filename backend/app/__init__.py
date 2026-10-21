@@ -1,0 +1,1 @@
+"""MyStreetVendor backend foundation."""

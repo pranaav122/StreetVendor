@@ -1,6 +1,6 @@
 # Development and deployment
 
-Status: Phase 0 design. The Phase 1 commands below describe the intended foundation and will be verified and updated during implementation. Production deployment is a Phase 10 design, not a currently provisioned service.
+Status: Phase 0 design and implemented Phase 1 local foundation. See [VERIFICATION.md](VERIFICATION.md) for executed checks. Production deployment is a Phase 10 design, not a currently provisioned service.
 
 ## Windows prerequisites
 
@@ -35,7 +35,7 @@ Avoid pasting `.env`, resolved Compose output, SQL connection strings, or raw ex
 
 ## Container workflow
 
-The final Phase 1 workflow will be:
+The Phase 1 workflow is:
 
 ```powershell
 docker compose --env-file .env -f infrastructure/compose.yaml config --quiet
@@ -61,7 +61,7 @@ docker compose --env-file .env -f infrastructure/compose.yaml down
 
 ## Tests
 
-Unit tests will work without a running database. Integration tests will be opt-in and use a uniquely named disposable PostgreSQL database on the local development server. They must never downgrade or drop the development database. The test account needs permission to create and remove its own test database; this is a development capability, not a production API privilege.
+Unit tests work without a running database. Integration tests are opt-in and use uniquely named disposable PostgreSQL databases on the local development server. They never downgrade or drop the development database. The test account needs permission to create and remove its own test databases; this is a development capability, not a production API privilege. The development image includes the test dependencies; a production image without development tools is a Phase 10 task.
 
 ```powershell
 docker compose --env-file .env -f infrastructure/compose.yaml run --rm api python -m pytest
@@ -145,5 +145,6 @@ Use a new restore-check name if that database already exists. Inspect restored r
 
 - [Docker Compose startup order and readiness](https://docs.docker.com/compose/how-tos/startup-order/)
 - [PostGIS container versions, initialization and volume paths](https://github.com/postgis/docker-postgis)
-- [SQLAlchemy PostgreSQL Psycopg dialect](https://docs.sqlalchemy.org/en/20/dialects/postgresql.html#module-sqlalchemy.dialects.postgresql.psycopg)
+- [SQLAlchemy PostgreSQL Psycopg dialect](https://docs.sqlalchemy.org/en/21/dialects/postgresql.html#module-sqlalchemy.dialects.postgresql.psycopg)
+- [Starlette TestClient and its HTTPX2 dependency](https://starlette.dev/testclient/)
 - [Alembic tutorial](https://alembic.sqlalchemy.org/en/latest/tutorial.html)

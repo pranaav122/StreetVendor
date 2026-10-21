@@ -1,6 +1,6 @@
 # Debugging the foundation yourself
 
-Status: Phase 0 runbook; the implementation and verification report will record what was actually exercised. Future-feature sections are guidance for later phases, not claims of current functionality.
+Status: Phase 1 runbook. [VERIFICATION.md](VERIFICATION.md) records what was actually exercised. Future-feature sections are guidance for later phases, not claims of current functionality.
 
 ## Start with evidence
 
@@ -39,6 +39,14 @@ docker compose --env-file .env -f infrastructure/compose.yaml exec db sh -c 'psq
 ```
 
 In the interactive SQL shell, use `\dt` to list tables, `\dx` to list extensions, `\d alembic_version` for its structure and `\q` to exit. Business tables do not exist in Phase 1. Extension-owned spatial tables are expected; they are not application entities. `pg_isready` proves the server accepts connections; a SQL query using the real application credentials is the stronger application connectivity check.
+
+For a longer SQL statement containing quoted values, pass it through standard input with a PowerShell here-string. This avoids nesting SQL quotes inside another shell's quotes:
+
+```powershell
+@'
+SELECT datname FROM pg_database WHERE datname LIKE 'msv_test_%';
+'@ | docker compose --env-file .env -f infrastructure/compose.yaml exec -T db sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"'
+```
 
 ```powershell
 docker compose --env-file .env -f infrastructure/compose.yaml run --rm api alembic -c alembic.ini current
@@ -99,4 +107,10 @@ Expected: 503 during the outage and 200 after recovery. SQLAlchemy `pool_pre_pin
 
 The read-only environment inspection found Docker installed per-user but absent from PATH. Calling its full path returned both client and Linux server versions successfully. The temporary PATH command fixes shell discovery without reinstalling Docker or changing global settings.
 
-Implementation issues and executed results will be added to the verification report with their evidence. Do not treat the expected outputs in this runbook as executed results.
+The same PATH omission initially prevented image downloads: Docker could not find `docker-credential-desktop`. Adding the whole executable directory to the session PATH resolved both CLI and credential-helper discovery.
+
+The image sets the database search path to include `topology` and `tiger`. The first Alembic comparison consequently mistook geocoder tables for removed application tables. No changes were applied by that comparison. The migration environment now sets a transaction-local search path of `public`, and excludes the extension-owned `spatial_ref_sys` table. The regression test includes a visible `tiger` table and proves it survives a clean schema comparison. Future business models must be imported into the migration environment when added, so their metadata is visible to Alembic.
+
+The initial dependency selection produced a Starlette warning about the old HTTPX package. The current documented HTTPX2 test client dependency is now pinned and tested. Container tests initially could not write their optional Pytest cache under `/app`; the Dockerfile grants the non-root user access to that cache directory only.
+
+Do not treat the expected outputs in this runbook as executed results; consult the verification report for final outcomes.
