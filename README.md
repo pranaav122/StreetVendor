@@ -8,6 +8,8 @@ Phase 0 documents the whole system. Phase 1 builds only the backend foundation: 
 
 ## Design documents
 
+For a guided explanation of everything built so far, read the [foundation handbook](docs/FOUNDATION_HANDBOOK.md) or its [PDF edition](output/pdf/MyStreetVendor_Foundation_Handbook.pdf). It includes code walkthroughs, exercises, a glossary and an answer key before Phase 2.
+
 - [Architecture and diagrams](docs/ARCHITECTURE.md)
 - [Database design and ER diagram](docs/DATABASE.md)
 - [REST and WebSocket contracts](docs/API.md)

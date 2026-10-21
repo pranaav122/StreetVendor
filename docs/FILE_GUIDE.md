@@ -19,6 +19,8 @@ This guide covers all maintained files in the Phase 0/1 repository. No customer/
 | `docs/ROADMAP.md` | Ordered phases, acceptance criteria, pilot plan, scaling evidence and learning questions. |
 | `docs/FILE_GUIDE.md` | This file: an implementation walkthrough and file reference. |
 | `docs/VERIFICATION.md` | Actual test/check results and the boundary between verified local behavior and future work. |
+| `docs/FOUNDATION_HANDBOOK.md` | Extended learning edition explaining the Phase 0/1 foundation, with code walkthroughs, exercises and answers. |
+| `output/pdf/MyStreetVendor_Foundation_Handbook.pdf` | Printable reading edition of that handbook, with contents and chapter bookmarks. |
 
 ## Backend source
 

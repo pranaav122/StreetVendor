@@ -7,3 +7,4 @@
 *.mako text eol=lf
 *.lock text eol=lf
 Dockerfile text eol=lf
+*.pdf binary
