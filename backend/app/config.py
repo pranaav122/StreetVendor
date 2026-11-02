@@ -35,6 +35,7 @@ class Settings(BaseSettings):
     smtp_starttls: bool = True
     public_customer_url: str = "http://127.0.0.1:8081"
     public_vendor_url: str = "http://127.0.0.1:8082"
+    service_area_geojson: str | None = None
 
     @property
     def database_url(self) -> URL:

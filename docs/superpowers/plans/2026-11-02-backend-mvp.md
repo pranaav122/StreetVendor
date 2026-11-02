@@ -34,7 +34,7 @@ All constraints in [the complete plan](2026-11-02-complete-mvp.md) apply, includ
 - [ ] Re-run focused cases plus foundation tests, fresh migration upgrade and schema check. Exercise configured mail through a test SMTP transport and record real mail as a separate release check.
 - [ ] Commit and push the verified authentication/account change; compare local/remote SHA.
 
-Published migration ruling: account recovery is a separate verified checkpoint, so `0003_mail_tokens` follows `0002_accounts`. The later migrations are now `0004_vendors_and_locations`, `0005_visits_and_reports` and `0006_notifications`; do not rewrite the published account migration.
+Published migration ruling: account recovery is a separate verified checkpoint, so `0003_mail_tokens` follows `0002_accounts`. The later migrations are now `0004_vendors_locations`, `0005_visits_reports` and `0006_notifications`; do not rewrite the published account migration.
 
 ## Task 2 Vendor profiles categories and administration
 

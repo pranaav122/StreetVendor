@@ -54,9 +54,13 @@ CurrentUser = Annotated[User, Depends(get_current_user)]
 
 
 def require_role(*roles):
-    def authorized(user: CurrentUser) -> User:
+    def authorized(request: Request, user: CurrentUser) -> User:
         if user.role not in roles:
             raise problem(403, "FORBIDDEN", "This action is not available to your account.")
+        # Local onboarding is usable with Mailpit; public customer/vendor operations
+        # require proven email ownership. Operators are bootstrapped locally by CLI.
+        if request.app.state.settings.environment == "production" and user.role != "admin" and user.email_verified_at is None:
+            raise problem(403, "EMAIL_VERIFICATION_REQUIRED", "Confirm your email before using this feature.")
         return user
     return authorized
 

@@ -10,7 +10,7 @@ from app.config import Settings
 
 
 class Base(DeclarativeBase):
-    """Future business models share this metadata; none exist in Phase 1."""
+    """All application models share this metadata for migration comparison."""
 
 
 def create_db_engine(settings: Settings) -> Engine:

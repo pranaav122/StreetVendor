@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Request
 from sqlalchemy import delete, update
+from sqlalchemy import select
 
 from app.auth.dependencies import CurrentUser, Db, require_recent_auth
 from app.auth.schemas import UserResponse
@@ -7,6 +8,9 @@ from app.auth.security import utcnow
 from app.auth.service import lock_user
 from app.models.accounts import RefreshSession, UserCredential
 from app.users.schemas import DeleteInput, ProfileInput
+from app.models.vendors import VendorProfile, VendorVerification
+from app.vendors.service import hide_vendor
+from app.models.mail_tokens import MailToken
 
 router = APIRouter(prefix="/api/v1/users", tags=["accounts"])
 
@@ -35,6 +39,12 @@ def delete_me(payload: DeleteInput, request: Request, user: CurrentUser, session
     # Keep a nonidentifying row for future visit foreign keys, but revoke access immediately.
     user.status, user.email, user.display_name = "DELETED", None, "Deleted account"
     user.deleted_at = user.updated_at = utcnow()
+    vendor = session.scalar(select(VendorProfile).where(VendorProfile.user_id == user.id).with_for_update())
+    if vendor:
+        hide_vendor(session, vendor, anonymize=True)
+        session.execute(update(VendorVerification).where(VendorVerification.vendor_id == vendor.id)
+                        .values(evidence_note="Erased on account deletion"))
+    session.execute(delete(MailToken).where(MailToken.user_id == user.id))
     session.execute(delete(UserCredential).where(UserCredential.user_id == user.id))
     session.execute(update(RefreshSession).where(RefreshSession.user_id == user.id)
                     .values(revoked_at=utcnow()))

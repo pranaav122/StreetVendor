@@ -19,9 +19,16 @@ def main(argv=None) -> int:
     admin = commands.add_parser("create-admin")
     admin.add_argument("--email", required=True)
     admin.add_argument("--name", default="Operator")
+    commands.add_parser("seed-categories")
     args = parser.parse_args(argv)
     engine = create_db_engine(Settings())
     try:
+        if args.command == "seed-categories":
+            from app.vendors.service import seed_categories
+            with Session(engine) as session:
+                seed_categories(session)
+            print("Category seed complete")
+            return 0
         # Read interactively so the secret is absent from process lists and shell history.
         payload = RegisterInput(email=args.email, display_name=args.name, password=getpass("Admin password: "))
         with Session(engine) as session:

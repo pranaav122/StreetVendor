@@ -1,0 +1,42 @@
+from typing import Annotated, Literal
+from uuid import UUID
+
+from fastapi import APIRouter, Depends, Query
+from sqlalchemy import select
+
+from app.admin.schemas import ReasonInput, ReviewInput, SuspensionInput
+from app.admin.service import review_vendor, suspend_account, suspend_vendor
+from app.auth.dependencies import Db, require_role
+from app.models.accounts import User
+from app.models.vendors import VendorProfile, VendorVerification
+
+router = APIRouter(prefix="/api/v1/admin", tags=["administration"])
+Admin = Annotated[User, Depends(require_role("admin"))]
+
+
+@router.get("/verifications")
+def verifications(session: Db, user: Admin, status: Literal["PENDING", "VERIFIED", "REJECTED"] = "PENDING",
+                  limit: int = Query(default=20, ge=1, le=100), cursor: UUID | None = None):
+    query = select(VendorVerification, VendorProfile.display_name).join(VendorProfile).where(VendorVerification.status == status)
+    if cursor:
+        query = query.where(VendorVerification.id > cursor)
+    rows = session.execute(query.order_by(VendorVerification.id).limit(limit+1)).all()
+    return {"items": [{"id": row.id, "vendor_id": row.vendor_id, "display_name": name,
+                       "status": row.status, "evidence_note": row.evidence_note, "submitted_at": row.submitted_at}
+                      for row, name in rows[:limit]],
+            "next_cursor": str(rows[limit-1][0].id) if len(rows)>limit else None}
+
+
+@router.post("/vendors/{vendor_id}/verification")
+def verification(vendor_id: UUID, payload: ReviewInput, session: Db, user: Admin):
+    return review_vendor(session, user, vendor_id, payload)
+
+
+@router.post("/vendors/{vendor_id}/suspension")
+def vendor_suspension(vendor_id: UUID, payload: ReasonInput, session: Db, user: Admin):
+    return suspend_vendor(session, user, vendor_id, payload.reason)
+
+
+@router.post("/users/{user_id}/suspension")
+def user_suspension(user_id: UUID, payload: SuspensionInput, session: Db, user: Admin):
+    return suspend_account(session, user, user_id, payload)
