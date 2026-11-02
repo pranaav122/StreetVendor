@@ -6,6 +6,8 @@ On 2 November 2026, the user authorized completing the remaining project. Earlie
 
 Use Windows PowerShell commands. Keep code and explanations understandable to someone learning full-stack development. Report actual verification results and identify work that requires real devices, provider credentials or server access.
 
+Comment the necessary decisions: explain why security checks, transaction boundaries, privacy rules and cleanup exist. Keep ordinary statements readable through names rather than repeating them in comments.
+
 ## Git checkpoints
 
 The user requires a commit and push after every coherent change.
