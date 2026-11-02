@@ -1,6 +1,6 @@
 """Read configuration from process variables or the root .env file."""
 
-from pydantic import Field, SecretStr
+from pydantic import EmailStr, Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.engine import URL
 from typing import Literal
@@ -26,6 +26,15 @@ class Settings(BaseSettings):
     auth_recent_seconds: int = Field(default=300, ge=1, le=600)
     environment: Literal["development", "test", "production"] = "development"
     jobs_enabled: bool = False
+    smtp_host: str | None = None
+    smtp_port: int = Field(default=587, ge=1, le=65535)
+    smtp_from: EmailStr | None = None
+    smtp_username: str | None = None
+    smtp_password: SecretStr | None = None
+    smtp_ssl: bool = False
+    smtp_starttls: bool = True
+    public_customer_url: str = "http://127.0.0.1:8081"
+    public_vendor_url: str = "http://127.0.0.1:8082"
 
     @property
     def database_url(self) -> URL:

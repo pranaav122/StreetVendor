@@ -30,6 +30,10 @@ services:
       POSTGRES_PORT: 5432
       DB_CONNECT_TIMEOUT_SECONDS: ${DB_CONNECT_TIMEOUT_SECONDS:-3}
       JWT_SECRET: ${JWT_SECRET:?Set an independent JWT_SECRET in .env}
+      SMTP_HOST: mail
+      SMTP_PORT: 1025
+      SMTP_FROM: noreply@example.com
+      SMTP_STARTTLS: "false"
     ports:
       - "127.0.0.1:${API_PORT:-8000}:8000"
     depends_on:
@@ -41,6 +45,16 @@ services:
       timeout: 10s
       retries: 6
       start_period: 10s
+    restart: unless-stopped
+
+  # Development inbox captures mail locally; it does not relay to real recipients.
+  mail:
+    image: axllent/mailpit:v1.33.0
+    ports:
+      - "127.0.0.1:8025:8025"
+      - "127.0.0.1:1025:1025"
+    environment:
+      MP_MAX_MESSAGES: 200
     restart: unless-stopped
 
 volumes:
