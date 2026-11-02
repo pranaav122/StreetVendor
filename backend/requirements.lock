@@ -1,11 +1,15 @@
-# Exact resolved dependency constraints for Python 3.13; generated after installation.
-# Install: python -m pip install -c backend/requirements.lock -e "./backend[test]"
+# Exact resolved dependency constraints for Python 3.13.
 alembic==1.20.0
 annotated-doc==0.0.5
 annotated-types==0.8.0
 anyio==4.15.1
+argon2-cffi==25.1.0
+argon2-cffi-bindings==26.1.0
+cffi==2.1.1
 click==8.5.0
 colorama==0.4.6
+dnspython==2.9.1
+email-validator==2.3.0
 fastapi==0.157.0
 h11==0.16.0
 httpcore2==2.16.0
@@ -19,10 +23,13 @@ packaging==26.3
 pluggy==1.7.0
 psycopg==3.3.6
 psycopg-binary==3.3.6
+pwdlib==0.3.1
+pycparser==3.12
 pydantic==2.14.1
 pydantic-settings==2.16.1
 pydantic_core==2.50.1
 Pygments==2.21.0
+PyJWT==2.15.1
 pytest==9.1.1
 python-dotenv==1.2.4
 SQLAlchemy==2.1.5

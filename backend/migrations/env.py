@@ -7,6 +7,7 @@ from sqlalchemy import Connection
 
 from app.config import Settings
 from app.database import Base, create_db_engine
+import app.models  # Register model metadata before any Alembic comparison.
 
 config = context.config
 if config.config_file_name is not None:

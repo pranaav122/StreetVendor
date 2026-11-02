@@ -3,6 +3,7 @@
 from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.engine import URL
+from typing import Literal
 
 
 class Settings(BaseSettings):
@@ -16,6 +17,15 @@ class Settings(BaseSettings):
     postgres_host: str = Field(default="127.0.0.1", min_length=1)
     postgres_port: int = Field(default=5432, ge=1, le=65535)
     db_connect_timeout_seconds: int = Field(default=3, ge=1, le=30)
+    # DB/migration tools still work without an auth key; auth itself fails closed.
+    jwt_secret: SecretStr | None = Field(default=None, min_length=32)
+    jwt_issuer: str = "mystreetvendor"
+    jwt_audience: str = "mystreetvendor-apps"
+    auth_login_limit: int = Field(default=5, ge=1, le=100)
+    auth_register_limit: int = Field(default=10, ge=1, le=100)
+    auth_recent_seconds: int = Field(default=300, ge=1, le=600)
+    environment: Literal["development", "test", "production"] = "development"
+    jobs_enabled: bool = False
 
     @property
     def database_url(self) -> URL:

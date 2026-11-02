@@ -4,7 +4,7 @@ MyStreetVendor is a planned neighbourhood platform for discovering street vendor
 
 ## Scope
 
-Phase 0 documents the whole system. Phase 1 builds only the backend foundation: FastAPI, PostgreSQL/PostGIS, Docker Compose, SQLAlchemy, Alembic, `/health`, and automated tests. Authentication and all mobile applications are future phases. See [the roadmap](docs/ROADMAP.md).
+The full MVP build is now approved and in progress. The foundation and core account/session APIs are implemented; see [current implementation status](docs/IMPLEMENTATION_STATUS.md) for tested coverage. The October handbook remains a dated Phase 0/1 learning edition. See [the roadmap](docs/ROADMAP.md) for the full product sequence.
 
 ## Design documents
 
@@ -22,7 +22,7 @@ For a guided explanation of everything built so far, read the [foundation handbo
 
 ## Phase 1 setup
 
-The Phase 1 foundation is implemented. Use **Windows PowerShell** from the repository root. Follow [DEPLOYMENT.md](docs/DEPLOYMENT.md) for first-time environment setup, local Python operation and explanations. The local `.env` created during development contains a generated password and is ignored by Git. On a new checkout, copy `.env.example` to `.env` and replace its password first.
+Use **Windows PowerShell** from the repository root. Follow [DEPLOYMENT.md](docs/DEPLOYMENT.md) for the foundation setup and [AUTHENTICATION.md](docs/AUTHENTICATION.md) for the signing key and account APIs. The local `.env` contains generated private database and signing secrets and is ignored by Git. On a new checkout, copy `.env.example` to `.env` and replace both placeholders first.
 
 ```powershell
 Set-Location 'C:\Users\prana\Desktop\mystreetvendor'
@@ -39,7 +39,7 @@ docker compose --env-file .env -f infrastructure/compose.yaml up -d --wait api
 Invoke-RestMethod -Uri 'http://127.0.0.1:8000/health'
 ```
 
-Open [the local Swagger UI](http://127.0.0.1:8000/docs) after startup. The only application route is `/health`; no authentication/business endpoints exist yet. The generated OpenAPI schema includes its 200 and 503 response models.
+Open [the local Swagger UI](http://127.0.0.1:8000/docs) after startup. It describes the health and implemented account/authentication endpoints. The full business API is being added in the approved sequence.
 
 Run all automated tests inside Linux, including isolated database tests:
 
@@ -47,7 +47,7 @@ Run all automated tests inside Linux, including isolated database tests:
 docker compose --env-file .env -f infrastructure/compose.yaml run --rm -e RUN_DB_TESTS=1 api python -m pytest
 ```
 
-Without `RUN_DB_TESTS=1`, seven unit tests run and three database tests are skipped explicitly. The three integration tests create unique disposable databases and leave the development database intact. See [the actual results](docs/VERIFICATION.md), rather than treating expected output as evidence.
+Without `RUN_DB_TESTS=1`, database-dependent tests are skipped explicitly. Integration tests create unique disposable databases and leave the development database intact. Fresh results are tracked in [implementation status](docs/IMPLEMENTATION_STATUS.md); the [October verification record](docs/VERIFICATION.md) remains historical evidence for the original foundation.
 
 ```powershell
 # Inspect logs or stop the local stack while preserving its data.

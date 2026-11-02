@@ -1,6 +1,6 @@
 # API contracts
 
-Phase 0 design, 21 October 2026. Only the Phase 1 health endpoint is implemented by this milestone. Every `/api/v1/...` route and the WebSocket protocol below is **planned**. Swagger at `/docs` and `/openapi.json` describe the routes actually present in the running server; this document also records future contracts.
+Original design dated 21 October 2026; implementation update 2 November 2026. Health and the core authentication/own-account routes below are implemented. The remaining vendor, spatial, visit, notification and WebSocket contracts are planned until their implementation slices pass. See `IMPLEMENTATION_STATUS.md` and generated Swagger for actual coverage.
 
 ## Phase 1: health
 
@@ -43,7 +43,7 @@ Planned common errors:
 
 A consistent future business error is `{ "error": { "code": "REQUEST_STATE_CONFLICT", "message": "The request has changed.", "request_id": "<trace-id>" } }`. This envelope is **not installed in Phase 1**. Framework-generated validation errors currently follow FastAPI's normal `detail` structure. Future validation errors must redact passwords and tokens rather than echo their submitted values.
 
-## Authentication and accounts — Phase 2 planned
+## Authentication and accounts — core implemented
 
 | Method and path | Actor | Input / validation | Success |
 |---|---|---|---|
