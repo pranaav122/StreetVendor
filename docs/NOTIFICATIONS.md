@@ -44,3 +44,11 @@ Remove-Item Env:RUN_DB_TESTS
 ```
 
 The provider protocol follows the [Expo server guide](https://docs.expo.dev/push-notifications/sending-notifications/). Live integration has not yet been verified.
+
+## Customer app adapter
+
+The Account screen has an explicit Enable notifications action. The adapter checks native development-build support, a physical device and a configured project before asking permission. Android creates its notification channel before requesting permission. A stable SecureStore installation ID survives account changes; the server rebinds it to the live login family and removes old-owner jobs.
+
+Already-permitted registrations are refreshed after sign-in/restoration and native token changes. The lifecycle listener removes its subscriptions on logout/account changes and suppresses foreground alerts without an active account. Notification taps validate bounded UUIDs and fetch the visit through authenticated REST before navigation. Old-account or expired alerts cannot grant access. A bounded in-memory ID set suppresses duplicate taps.
+
+Twenty shared-client tests currently pass, including missing-configuration/no-prompt, denial/no-address and truthful disabled-server registration. The browser unavailable-state case passed against the local API in 13.7 seconds. These use a fake native driver or browser guard. Native permission, secure storage, token rotation, push taps and physical delivery remain unverified until an owner-controlled signed build and device are available. Offline logout cannot recall an alert already accepted by a provider; push text stays generic and REST continues enforcing access.

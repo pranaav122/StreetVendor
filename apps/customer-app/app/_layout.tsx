@@ -9,6 +9,7 @@ import { tokens } from "@mystreetvendor/design-tokens";
 import { SessionProvider } from "../src/session";
 import { MeetingProvider } from "../src/features/discovery/meeting";
 import { RecoveryLinksProvider } from "../src/features/auth/RecoveryLinks";
+import { NotificationLifecycle } from "../src/notifications";
 
 export default function RootLayout() {
   const [loaded, error] = useFonts({
@@ -25,6 +26,7 @@ export default function RootLayout() {
     <SessionProvider>
       <MeetingProvider>
         <RecoveryLinksProvider>
+          <NotificationLifecycle />
           <Stack
             screenOptions={{
               headerShown: false,

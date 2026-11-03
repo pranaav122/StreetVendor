@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { router } from "expo-router";
 import { useSession } from "../../session";
+import { enableNotifications } from "../../notifications";
 import {
   Body,
   Button,
@@ -109,6 +110,22 @@ export function AccountScreen() {
             }}
           />
         ) : null}
+      </Card>
+      <Card>
+        <Body>
+          Visit notifications are optional. Your inbox remains available without
+          them.
+        </Body>
+        <Button
+          label="Enable notifications"
+          disabled={busy}
+          onPress={() => {
+            void run(async () => {
+              const result = await enableNotifications(client);
+              setNotice(result.message);
+            });
+          }}
+        />
       </Card>
       <Button
         label="Sign out"

@@ -56,6 +56,15 @@ test("customer registers, chooses a manual point and signs out", async ({
       fullPage: true,
     });
     await page.getByRole("link", { name: "Account", exact: true }).click();
+    await page
+      .getByRole("button", { name: "Enable notifications", exact: true })
+      .click();
+    await expect(
+      page.getByText(
+        "Remote notifications require a physical device and a native development build.",
+        { exact: true },
+      ),
+    ).toBeVisible();
     await page.getByRole("button", { name: "Sign out", exact: true }).click();
     await expect(
       page.getByRole("button", { name: "Sign in", exact: true }),
