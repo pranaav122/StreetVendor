@@ -8,6 +8,7 @@ import {
 import { tokens } from "@mystreetvendor/design-tokens";
 import { SessionProvider } from "../src/session";
 import { MeetingProvider } from "../src/features/discovery/meeting";
+import { RecoveryLinksProvider } from "../src/features/auth/RecoveryLinks";
 
 export default function RootLayout() {
   const [loaded, error] = useFonts({
@@ -23,14 +24,16 @@ export default function RootLayout() {
   return (
     <SessionProvider>
       <MeetingProvider>
-        <Stack
-          screenOptions={{
-            headerShown: false,
-            headerStyle: { backgroundColor: tokens.color.background },
-            headerTintColor: tokens.color.text,
-            contentStyle: { backgroundColor: tokens.color.background },
-          }}
-        />
+        <RecoveryLinksProvider>
+          <Stack
+            screenOptions={{
+              headerShown: false,
+              headerStyle: { backgroundColor: tokens.color.background },
+              headerTintColor: tokens.color.text,
+              contentStyle: { backgroundColor: tokens.color.background },
+            }}
+          />
+        </RecoveryLinksProvider>
       </MeetingProvider>
     </SessionProvider>
   );

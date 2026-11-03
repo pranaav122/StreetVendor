@@ -64,7 +64,16 @@ def main():
             JOBS_ENABLED="true",
             ENVIRONMENT="development",
             EXPO_ACCESS_TOKEN="",
+            SMTP_HOST="127.0.0.1",
+            SMTP_PORT="1025",
+            SMTP_FROM="noreply@example.com",
+            SMTP_STARTTLS="false",
+            SMTP_SSL="false",
+            PUBLIC_CUSTOMER_URL="http://127.0.0.1:8081",
+            PUBLIC_VENDOR_URL="http://127.0.0.1:8082",
         )
+        api_env.pop("SMTP_USERNAME", None)
+        api_env.pop("SMTP_PASSWORD", None)
         with (workspace / "browser-api.log").open("w", encoding="utf-8") as log:
             server = subprocess.Popen(
                 [
