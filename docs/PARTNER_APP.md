@@ -163,3 +163,16 @@ Run the browser case in PowerShell from the project folder:
 The runner starts both Expo browser servers and a temporary backend. It creates
 and removes only its own randomly named browser-test database. PostgreSQL and
 Mailpit must already be running locally.
+
+The combined suite runs sequentially. An automatic fixture resets rate-counter
+rows before each independent browser case, solely in that generated database.
+Without this isolation, many synthetic logins from the same loopback address
+correctly exhaust the real login protection. Backend limits are unchanged, and
+within each case the actual protection still applies. The privileged helper
+refuses a development/production database name before connecting.
+
+With this isolation, all **21 combined Customer/Partner browser cases passed in
+3.2 minutes**. The earlier run had 11 passes and 10 failures after the shared
+loopback login counter was exhausted. The helper's rejection of the actual
+development database name was also verified, and the automatic fixture passes
+strict standalone TypeScript checking.

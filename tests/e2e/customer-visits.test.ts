@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./test";
 import { API, account, availableVendor, fix } from "./fixtures";
 
 test("customer requests a visit, tracks acceptance and loses tracking at completion", async ({

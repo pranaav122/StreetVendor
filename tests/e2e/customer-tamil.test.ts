@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./test";
 import { API } from "./fixtures";
 
 test("customer can register in Tamil and read a narrow-screen interface", async ({

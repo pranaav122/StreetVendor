@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./test";
 const API = process.env.TEST_API_URL ?? "http://127.0.0.1:8000";
 
 test("customer registers, chooses a manual point and signs out", async ({

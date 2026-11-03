@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./test";
 import { API, account, availableVendor, fix } from "./fixtures";
 test("a concurrent partner decision shows a conflict and reloads server state", async ({
   page,

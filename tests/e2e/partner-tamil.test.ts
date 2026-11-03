@@ -1,5 +1,5 @@
 import { resolve } from "node:path";
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./test";
 import { API, availableVendor } from "./fixtures";
 test("Partner Tamil controls wrap at phone width and preserve the business name", async ({
   page,

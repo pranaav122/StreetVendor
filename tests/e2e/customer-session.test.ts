@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./test";
 import { API, account } from "./fixtures";
 
 test("remote session revocation removes the signed-in customer interface", async ({

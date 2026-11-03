@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./test";
 import { API } from "./fixtures";
 
 test("partner registers, creates a business and submits minimal review details", async ({

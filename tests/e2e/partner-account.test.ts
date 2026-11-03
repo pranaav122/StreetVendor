@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./test";
 import { API, availableVendor } from "./fixtures";
 test("Partner account saves a name, reports browser push limits and hides the business on sign-out", async ({
   page,

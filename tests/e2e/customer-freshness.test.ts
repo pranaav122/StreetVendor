@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./test";
 import { API, account, availableVendor } from "./fixtures";
 test("nearby refresh removes a vendor who stopped sharing", async ({
   page,

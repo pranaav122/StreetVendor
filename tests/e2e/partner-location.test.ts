@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./test";
 import { API, availableVendor } from "./fixtures";
 test("approved partner explicitly shares a location and removes it when going offline", async ({
   page,
