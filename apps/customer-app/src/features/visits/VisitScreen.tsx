@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   activeVisitStatuses,
@@ -18,6 +18,7 @@ import {
   errorMessage,
 } from "../../ui";
 import { trackingFresh } from "./intent";
+import AreaMap from "../../components/AreaMap";
 
 export function VisitScreen({ id }: { id: string }) {
   const { client, realtime } = useSession();
@@ -29,6 +30,7 @@ export function VisitScreen({ id }: { id: string }) {
   );
   const [notice, setNotice] = useState<string | null>(null);
   const [now, setNow] = useState(Date.now());
+  const [mapVisible, setMapVisible] = useState(false);
   const visit = useQuery({
     queryKey: ["visits", id],
     queryFn: async ({ signal }) =>
@@ -50,6 +52,23 @@ export function VisitScreen({ id }: { id: string }) {
       ),
     refetchInterval: trackable ? 10000 : false,
   });
+  const pins = useMemo(
+    () =>
+      tracking.data
+        ? [
+            {
+              id,
+              label: visit.data?.vendor_name ?? "Vendor",
+              point: {
+                latitude: tracking.data.latitude,
+                longitude: tracking.data.longitude,
+              },
+              radiusM: tracking.data.accuracy_m,
+            },
+          ]
+        : [],
+    [id, tracking.data, visit.data?.vendor_name],
+  );
   useEffect(() => {
     const timer = setInterval(() => setNow(Date.now()), 5000);
     return () => clearInterval(timer);
@@ -143,6 +162,21 @@ export function VisitScreen({ id }: { id: string }) {
             Captured {new Date(tracking.data.captured_at).toLocaleTimeString()}{" "}
             · accuracy {Math.round(tracking.data.accuracy_m)} m
           </Body>
+          <Body muted>
+            Opening the map shares the viewed area with the map provider.
+          </Body>
+          <Button
+            label={mapVisible ? "Hide tracking map" : "Show tracking map"}
+            secondary
+            onPress={() => setMapVisible((value) => !value)}
+          />
+          {mapVisible ? (
+            <AreaMap
+              origin={row.meeting_point ?? tracking.data}
+              pins={pins}
+              label="Visit tracking map"
+            />
+          ) : null}
         </Card>
       ) : (
         <Body muted>

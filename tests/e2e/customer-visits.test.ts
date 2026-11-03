@@ -52,6 +52,12 @@ test("customer requests a visit, tracks acceptance and loses tracking at complet
   await expect(
     page.getByText("Vendor location is available.", { exact: true }),
   ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Show tracking map", exact: true })
+    .click();
+  await expect(
+    page.getByRole("region", { name: "Visit tracking map", exact: true }),
+  ).toBeVisible();
   const first = await request.put(`${API}/api/v1/vendors/me/location`, {
     headers: vendor.headers,
     data: fix(),
@@ -78,6 +84,9 @@ test("customer requests a visit, tracks acceptance and loses tracking at complet
   ).toBeVisible({ timeout: 20000 });
   await expect(
     page.getByText("Vendor location is available.", { exact: true }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("region", { name: "Visit tracking map", exact: true }),
   ).toHaveCount(0);
   await page
     .getByLabel("Report details")

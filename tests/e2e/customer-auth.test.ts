@@ -36,6 +36,21 @@ test("customer registers, chooses a manual point and signs out", async ({
       page.getByText("Public test entrance", { exact: true }),
     ).toBeVisible();
     await expect(page.getByText("No available vendors nearby.")).toBeVisible();
+    await page.getByRole("button", { name: "Show map", exact: true }).click();
+    await expect(
+      page.getByRole("region", { name: "Nearby map", exact: true }),
+    ).toBeVisible();
+    await expect
+      .poll(() => page.locator(".leaflet-tile-loaded").count(), {
+        timeout: 15000,
+      })
+      .toBeGreaterThan(0);
+    await page
+      .getByRole("region", { name: "Nearby map", exact: true })
+      .screenshot({
+        path: ".superpowers/sdd/2026-11-02-applications/customer-map-live.png",
+      });
+    await page.getByRole("button", { name: "Show list", exact: true }).click();
     await page.screenshot({
       path: ".superpowers/sdd/2026-11-02-applications/customer-nearby-live.png",
       fullPage: true,

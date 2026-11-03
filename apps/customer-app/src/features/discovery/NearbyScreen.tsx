@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { ScrollView } from "react-native";
 import { Link } from "expo-router";
 import * as Location from "expo-location";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
@@ -20,6 +21,7 @@ import {
   errorMessage,
 } from "../../ui";
 import { useMeeting } from "./meeting";
+import AreaMap from "../../components/AreaMap";
 
 const pageSchema = z.object({
   items: z.array(nearbySchema),
@@ -28,9 +30,15 @@ const pageSchema = z.object({
 export function NearbyScreen() {
   const { client } = useSession();
   const { meeting, setMeeting } = useMeeting();
-  const [latitude, setLatitude] = useState("");
-  const [longitude, setLongitude] = useState("");
-  const [label, setLabel] = useState("");
+  const [latitude, setLatitude] = useState(
+    meeting ? String(meeting.point.latitude) : "",
+  );
+  const [longitude, setLongitude] = useState(
+    meeting ? String(meeting.point.longitude) : "",
+  );
+  const [label, setLabel] = useState(meeting?.label ?? "");
+  const [editing, setEditing] = useState(!meeting);
+  const [mapVisible, setMapVisible] = useState(false);
   const [category, setCategory] = useState<string | null>(null);
   const [problem, setProblem] = useState<string | null>(null);
   const [locating, setLocating] = useState(false);
@@ -85,6 +93,7 @@ export function NearbyScreen() {
       return;
     }
     setMeeting({ point: point.data, label: label.trim() });
+    setEditing(false);
   }
   async function locate() {
     setLocating(true);
@@ -112,46 +121,68 @@ export function NearbyScreen() {
     }
   }
   const items = nearby.data?.pages.flatMap((page) => page.items) ?? [];
+  const pins = useMemo(
+    () =>
+      nearby.data?.pages
+        .flatMap((page) => page.items)
+        .map((item) => ({
+          id: item.vendor_id,
+          label: item.display_name,
+          point: {
+            latitude: item.approximate_location.latitude,
+            longitude: item.approximate_location.longitude,
+          },
+          radiusM: item.approximate_location.radius_m,
+        })) ?? [],
+    [nearby.data],
+  );
   return (
     <Page title="Around your meeting point">
       <Body muted>
         Choose a public place. Your home address is not required. This
         development build uses the Chennai test area.
       </Body>
-      <Card>
-        <Field
-          label="Meeting latitude"
-          keyboardType="decimal-pad"
-          value={latitude}
-          onChangeText={setLatitude}
-        />
-        <Field
-          label="Meeting longitude"
-          keyboardType="decimal-pad"
-          value={longitude}
-          onChangeText={setLongitude}
-        />
-        <Field
-          label="Meeting label"
-          value={label}
-          onChangeText={setLabel}
-          autoCapitalize="sentences"
-          maxLength={250}
-        />
-        <Button label="Set meeting point" onPress={choosePoint} />
-        <Button
-          label={locating ? "Finding location…" : "Use current location"}
-          secondary
-          disabled={locating}
-          onPress={() => {
-            void locate();
-          }}
-        />
-      </Card>
+      {editing || !meeting ? (
+        <Card>
+          <Field
+            label="Meeting latitude"
+            keyboardType="decimal-pad"
+            value={latitude}
+            onChangeText={setLatitude}
+          />
+          <Field
+            label="Meeting longitude"
+            keyboardType="decimal-pad"
+            value={longitude}
+            onChangeText={setLongitude}
+          />
+          <Field
+            label="Meeting label"
+            value={label}
+            onChangeText={setLabel}
+            autoCapitalize="sentences"
+            maxLength={250}
+          />
+          <Button label="Set meeting point" onPress={choosePoint} />
+          <Button
+            label={locating ? "Finding location…" : "Use current location"}
+            secondary
+            disabled={locating}
+            onPress={() => {
+              void locate();
+            }}
+          />
+        </Card>
+      ) : null}
       <Problem message={problem} />
       {meeting ? (
         <Card>
           <Body>{meeting.label}</Body>
+          <Button
+            label="Edit meeting point"
+            secondary
+            onPress={() => setEditing(true)}
+          />
           <Body muted>
             Search within approximately 1.5 km. Vendor positions and distance
             bands are approximate.
@@ -160,19 +191,41 @@ export function NearbyScreen() {
       ) : (
         <Body>Select a meeting point to find nearby vendors.</Body>
       )}
-      <Button
-        label="All categories"
-        secondary={category !== null}
-        onPress={() => setCategory(null)}
-      />
-      {categories.data?.items.map((item) => (
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator
+        contentContainerStyle={{ gap: 8, paddingVertical: 8 }}
+      >
         <Button
-          key={item.id}
-          label={item.name_en}
-          secondary={category !== item.id}
-          onPress={() => setCategory(item.id)}
+          label="All categories"
+          secondary={category !== null}
+          onPress={() => setCategory(null)}
         />
-      ))}
+        {categories.data?.items.map((item) => (
+          <Button
+            key={item.id}
+            label={item.name_en}
+            secondary={category !== item.id}
+            onPress={() => setCategory(item.id)}
+          />
+        ))}
+      </ScrollView>
+      {meeting ? (
+        <>
+          <Body muted>
+            Opening a map shares the viewed area with the map provider. The list
+            works without loading a map.
+          </Body>
+          <Button
+            label={mapVisible ? "Show list" : "Show map"}
+            secondary
+            onPress={() => setMapVisible((value) => !value)}
+          />
+        </>
+      ) : null}
+      {meeting && mapVisible ? (
+        <AreaMap origin={meeting.point} pins={pins} />
+      ) : null}
       {categories.error ? (
         <Problem message={errorMessage(categories.error)} />
       ) : null}
@@ -193,21 +246,23 @@ export function NearbyScreen() {
       {meeting && nearby.isSuccess && items.length === 0 ? (
         <Body>No available vendors nearby.</Body>
       ) : null}
-      {items.map((item) => (
-        <Card key={item.vendor_id}>
-          <Body>{item.display_name}</Body>
-          <Body muted>
-            Available · {item.distance_band_m.min}–{item.distance_band_m.max}{" "}
-            metres away
-          </Body>
-          <Link
-            accessibilityLabel={`View ${item.display_name}`}
-            href={`/vendor/${item.vendor_id}`}
-          >
-            View vendor
-          </Link>
-        </Card>
-      ))}
+      {!mapVisible
+        ? items.map((item) => (
+            <Card key={item.vendor_id}>
+              <Body>{item.display_name}</Body>
+              <Body muted>
+                Available · {item.distance_band_m.min}–
+                {item.distance_band_m.max} metres away
+              </Body>
+              <Link
+                accessibilityLabel={`View ${item.display_name}`}
+                href={`/vendor/${item.vendor_id}`}
+              >
+                View vendor
+              </Link>
+            </Card>
+          ))
+        : null}
       {nearby.hasNextPage ? (
         <Button
           label="More vendors"
