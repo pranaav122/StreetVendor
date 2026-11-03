@@ -32,6 +32,29 @@ Stale updates are visibly degraded after 90 seconds. Native foreground sharing
 stops when the app leaves the foreground unless background sharing was explicitly enabled.
 Complete account recovery and device verification remain in progress.
 
+## Account and notifications checkpoint
+
+Account settings save the user's name and preferred language, request email
+confirmation and expose guarded deletion. Deletion requires typing `DELETE` and
+recent authentication. Local sharing stops before deleting, logging out or
+confirming another login; backend transactions revoke access and erase the point.
+Cleanup attempts the operating-system stop even if keychain removal fails, and
+a cleanup error cannot keep the signed-out user's private query cache visible.
+
+Partner notification registration uses its own installation key and the `vendor`
+app kind. Native permission is requested only on a supported physical build with
+an EAS project configured. Existing granted registration refreshes on login/token
+changes. Tapping an alert validates its UUIDs and checks live visit access through
+REST before navigation; stale or another account's alerts cannot grant access.
+The browser explains that remote delivery is unavailable and keeps the inbox usable.
+Actual remote push delivery and notification taps still need phone/build/provider
+verification. Native resume refreshes the live account before reconnecting sockets.
+
+Account verification: **2 real browser cases passed in 27.9 seconds**, covering
+saved profile data, unavailable browser push, sign-out hiding the business, the
+deletion phrase guard and revoked access. Strict shared/Partner checking and all
+14 Partner policy tests pass. Full email-link recovery is the next checkpoint.
+
 ## Visit management checkpoint
 
 The inbox separates active visits from loaded history and supports pagination.

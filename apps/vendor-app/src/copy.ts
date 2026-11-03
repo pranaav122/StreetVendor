@@ -1,5 +1,36 @@
 export type Language = "en" | "ta";
 const tamil: Readonly<Record<string, string>> = {
+  "Display name": "காட்டப்படும் பெயர்",
+  "Save name": "பெயரைச் சேமிக்கவும்",
+  "Name saved.": "பெயர் சேமிக்கப்பட்டது.",
+  Language: "மொழி",
+  "Your email is not confirmed.": "உங்கள் மின்னஞ்சல் உறுதிப்படுத்தப்படவில்லை.",
+  "Email confirmed.": "மின்னஞ்சல் உறுதிப்படுத்தப்பட்டது.",
+  "Send confirmation email": "உறுதிப்படுத்தும் மின்னஞ்சலை அனுப்பவும்",
+  "Confirmation email requested. Check your inbox.":
+    "உறுதிப்படுத்தும் மின்னஞ்சல் கோரப்பட்டது. உங்கள் இன்பாக்ஸைப் பார்க்கவும்.",
+  "Enable notifications": "அறிவிப்புகளை இயக்கு",
+  "Visit notifications are optional. Your inbox remains available without them.":
+    "சந்திப்பு அறிவிப்புகள் விருப்பமானவை. அறிவிப்புகள் இல்லாமலும் சந்திப்புகளைச் செயலியில் பார்க்கலாம்.",
+  "Remote notifications are unavailable in this preview. Check Visits for updates.":
+    "இந்த முன்னோட்டத்தில் அறிவிப்புகள் கிடைக்காது. புதுப்பிப்புகளுக்குச் சந்திப்புகளைப் பார்க்கவும்.",
+  "Notifications are unavailable in this version. Check Visits for updates.":
+    "இந்தப் பதிப்பில் அறிவிப்புகள் கிடைக்காது. புதுப்பிப்புகளுக்குச் சந்திப்புகளைப் பார்க்கவும்.",
+  "Notification permission is off. You can change it in device settings.":
+    "அறிவிப்பு அனுமதி அணைக்கப்பட்டுள்ளது. சாதன அமைப்புகளில் அதை மாற்றலாம்.",
+  "Device registered. Server notification delivery is disabled.":
+    "சாதனம் பதிவு செய்யப்பட்டது. சேவையக அறிவிப்புகள் அணைக்கப்பட்டுள்ளன.",
+  "Device registered. Notifications depend on your connection and device settings.":
+    "சாதனம் பதிவு செய்யப்பட்டது. அறிவிப்புகள் உங்கள் இணைப்பு மற்றும் சாதன அமைப்புகளைப் பொறுத்தவை.",
+  "Account deletion removes your profile, stops sharing and revokes your sessions. Minimal anonymous workflow history may remain until retention cleanup.":
+    "கணக்கை நீக்கினால் உங்கள் சுயவிவரம் நீக்கப்பட்டு, பகிர்வும் உள்நுழைவுகளும் நிறுத்தப்படும். அடையாளமற்ற குறைந்தபட்ச சந்திப்பு வரலாறு தானியங்கி நீக்கம் வரை இருக்கலாம்.",
+  "Sign in again if asked to confirm a recent login.":
+    "சமீபத்திய உள்நுழைவை உறுதி செய்யக் கேட்டால் மீண்டும் உள்நுழையவும்.",
+  "Confirm password": "கடவுச்சொல்லை உறுதி செய்யவும்",
+  "Confirm recent sign-in": "மீண்டும் உள்நுழைந்து உறுதி செய்யவும்",
+  "Recent sign-in confirmed.": "சமீபத்திய உள்நுழைவு உறுதி செய்யப்பட்டது.",
+  "Type DELETE to delete your account": "கணக்கை நீக்க DELETE என உள்ளிடவும்",
+  "Delete account": "கணக்கை நீக்கவும்",
   "Customer visits": "வாடிக்கையாளர் சந்திப்புகள்",
   "Active visits": "நடப்பு சந்திப்புகள்",
   History: "வரலாறு",

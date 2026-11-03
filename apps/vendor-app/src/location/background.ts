@@ -60,9 +60,13 @@ export async function stopBackgroundSharing(nonce?: string) {
   if (Platform.OS === "web") return;
   // Ignore cleanup for consent already replaced by a new online action.
   if (nonce && (await readBackgroundConsent())?.nonce !== nonce) return;
-  await SecureStore.deleteItemAsync(key);
-  if (await Location.hasStartedLocationUpdatesAsync(task))
-    await Location.stopLocationUpdatesAsync(task);
+  try {
+    await SecureStore.deleteItemAsync(key);
+  } finally {
+    // A keychain error must not skip the operating-system sensor cleanup.
+    if (await Location.hasStartedLocationUpdatesAsync(task))
+      await Location.stopLocationUpdatesAsync(task);
+  }
 }
 export async function allowBackgroundSharing() {
   if (Platform.OS === "web" || !(await TaskManager.isAvailableAsync()))

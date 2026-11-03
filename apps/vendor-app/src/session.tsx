@@ -8,6 +8,7 @@ import {
   type PropsWithChildren,
 } from "react";
 import * as Crypto from "expo-crypto";
+import { AppState, Platform } from "react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ApiClient, ApiError } from "@mystreetvendor/api-client";
 import { apiOrigin, store } from "./auth-store";
@@ -64,7 +65,8 @@ export function SessionProvider({ children }: PropsWithChildren) {
         store,
         allowInsecureDevelopment: __DEV__,
         onSignedOut: async () => {
-          await stopDeviceSharing();
+          // Sensor cleanup failures must not retain private account/query state.
+          await stopDeviceSharing().catch(() => {});
           socketRef.current?.stop();
           // Cancel before clearing so a late request cannot repopulate private data.
           await queries.cancelQueries();
@@ -139,7 +141,31 @@ export function SessionProvider({ children }: PropsWithChildren) {
     void realtime.start();
     return () => realtime.stop();
   }, [user?.id, realtime]);
+  useEffect(() => {
+    if (!user || Platform.OS === "web") return;
+    let mounted = true;
+    const listener = AppState.addEventListener("change", (state) => {
+      if (state !== "active") {
+        realtime.pause();
+        return;
+      }
+      // Recheck the live account before reconnecting after a possibly long pause.
+      void reloadUser()
+        .then(() => {
+          if (!mounted) return;
+          void queries.invalidateQueries();
+          void realtime.start();
+        })
+        .catch(() => {});
+    });
+    return () => {
+      mounted = false;
+      listener.remove();
+    };
+  }, [user?.id, reloadUser, realtime, queries]);
   async function signIn(email: string, password: string) {
+    // A new family needs new sharing consent, including password reconfirmation.
+    await stopDeviceSharing().catch(() => {});
     const tokens = tokenSchema.parse(
       await client.request("/auth/login", {
         method: "POST",
@@ -151,7 +177,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
     await reloadUser();
   }
   async function signOut() {
-    await stopDeviceSharing();
+    await stopDeviceSharing().catch(() => {});
     try {
       await client.request("/auth/logout", { method: "POST" });
     } finally {
