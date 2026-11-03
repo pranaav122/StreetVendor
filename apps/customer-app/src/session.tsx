@@ -7,7 +7,7 @@ import {
   useState,
   type PropsWithChildren,
 } from "react";
-import { Platform } from "react-native";
+import { AppState, Platform } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import * as Crypto from "expo-crypto";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -98,7 +98,16 @@ export function SessionProvider({ children }: PropsWithChildren) {
         createSocket: (url) => new WebSocket(url) as unknown as SocketLike,
         onStatus: setConnection,
         onResync: () => {
-          void queries.invalidateQueries();
+          // Cached coordinates are hidden until REST rechecks current access.
+          void queries
+            .cancelQueries({ queryKey: ["tracking"] })
+            .then(() => {
+              void queries
+                .resetQueries({ queryKey: ["tracking"] })
+                .catch(() => {});
+              void queries.invalidateQueries();
+            })
+            .catch(() => {});
         },
         onMessage: (message) => {
           if ("request_id" in message && message.request_id) {
@@ -155,6 +164,39 @@ export function SessionProvider({ children }: PropsWithChildren) {
     void realtime.start();
     return () => realtime.stop();
   }, [user?.id, realtime]);
+  useEffect(() => {
+    if (!user || Platform.OS === "web") return;
+    let active = true;
+    const listener = AppState.addEventListener("change", (state) => {
+      if (state !== "active") {
+        realtime.pause();
+        return;
+      }
+      // Clear private tracking before refreshing a possibly revoked session.
+      void queries
+        .cancelQueries({ queryKey: ["tracking"] })
+        .then(() => queries.resetQueries({ queryKey: ["tracking"] }))
+        .catch(() => {});
+      void reloadUser()
+        .then(() => {
+          if (!active) return;
+          void queries.invalidateQueries();
+          void realtime.start();
+        })
+        .catch((error) => {
+          if (active)
+            setRestoreError(
+              error instanceof Error
+                ? error.message
+                : "Cannot reconnect. Try again.",
+            );
+        });
+    });
+    return () => {
+      active = false;
+      listener.remove();
+    };
+  }, [user?.id, queries, realtime, reloadUser]);
   async function signIn(email: string, password: string) {
     const tokens = tokenSchema.parse(
       await client.request("/auth/login", {

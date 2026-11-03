@@ -89,11 +89,10 @@ export class RealtimeClient {
     clearTimeout(this.reauthorize);
     this.heartbeat = this.reconnect = this.reauthorize = undefined;
   }
-  stop() {
+  pause() {
     this.running = false;
     this.epoch++;
     this.authenticated = false;
-    this.subscriptions.clear();
     this.clearTimers();
     if (this.socket) {
       this.socket.onopen =
@@ -105,6 +104,11 @@ export class RealtimeClient {
       this.socket = undefined;
     }
     this.config.onStatus?.("disconnected");
+  }
+  stop() {
+    this.pause();
+    // A background pause can resume; sign-out must forget every private subscription.
+    this.subscriptions.clear();
   }
   private async connect() {
     const epoch = ++this.epoch;

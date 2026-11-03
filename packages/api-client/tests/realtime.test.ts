@@ -124,3 +124,48 @@ test("stopping during secure-store read prevents an old connection opening", asy
   await starting;
   assert.equal(opened, 0);
 });
+
+test("background pause preserves desired subscriptions while sign-out forgets them", async (t) => {
+  const sockets: FakeSocket[] = [];
+  const client = new RealtimeClient({
+    baseUrl: "https://api.example.com",
+    session: {
+      session: async () => ({ access_token: "private-token" }),
+      refreshAccess: async () => "rotated",
+    },
+    createSocket: () => {
+      const socket = new FakeSocket();
+      sockets.push(socket);
+      return socket;
+    },
+    makeId: () => requestId,
+    onMessage: () => {},
+    onResync: () => {},
+  });
+  t.after(() => client.stop());
+  client.subscribe(requestId);
+  await client.start();
+  authenticate(sockets[0]!);
+  client.pause();
+  expectClosed(sockets[0]!);
+  await client.start();
+  authenticate(sockets[1]!);
+  assert.equal(
+    sockets[1]!.sent.filter((message) => message.type === "SUBSCRIBE_REQUEST")
+      .length,
+    1,
+  );
+  client.stop();
+  await client.start();
+  authenticate(sockets[2]!);
+  assert.equal(
+    sockets[2]!.sent.filter((message) => message.type === "SUBSCRIBE_REQUEST")
+      .length,
+    0,
+  );
+  client.stop();
+});
+function expectClosed(socket: FakeSocket) {
+  assert.equal(socket.readyState, 3);
+  assert.equal(socket.onmessage, null);
+}
