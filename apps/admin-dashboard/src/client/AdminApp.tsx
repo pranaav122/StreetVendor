@@ -53,8 +53,11 @@ export function AdminApp() {
     queries.clear();
     if (generation === scope.current) setUser(null);
   }
+  const requestScope = scope.current;
   const request: StaffRequest = async (path, options) => {
-    const generation = scope.current;
+    const generation = requestScope;
+    if (generation !== scope.current)
+      throw new ApiError(401, "SESSION_CHANGED", "Sign in again to continue.");
     try {
       const result = await cookieRequest(path, options);
       if (generation !== scope.current)

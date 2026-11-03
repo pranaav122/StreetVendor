@@ -6,8 +6,9 @@ The application now runs on Next.js 16.4.4 with operator sign-in/out, live servi
 counts and protected route handlers. `src/server/core.ts` owns the session/proxy
 rules; `runtime.ts` is marked server-only and shares one registry across route
 bundles. Client components receive user/count responses, never API credentials.
-Business reviews and business suspension/reinstatement are implemented. Report,
-visit-inspection and account-control screens remain in progress.
+Business reviews, business/account controls, reports and audited visit inspection
+are implemented. Public hosting and operational deployment verification remain
+in progress.
 
 The browser receives a random 32-byte opaque cookie. In production it uses the
 `__Host-` prefix, `Secure`, `HttpOnly`, `SameSite=Strict` and `Path=/`, with no
@@ -114,3 +115,29 @@ shared/Next checks and the production build pass. **6 browser cases passed in
 suspension removing sharing, return to pending/offline, and the earlier staff
 session/Origin/revocation cases. Backend results were independently read through
 authenticated HTTP; no business response was mocked.
+
+## Reports, visit inspection and accounts
+
+Reports support open/resolved views, pagination and recorded resolution reasons.
+`Inspect visit` performs an authorized backend read and opens its result in the
+inspector. Manual inspection by UUID is also supported. Inspections are explicit,
+not background polling, because each backend read records a staff audit event.
+The inspector shows identities, states, versions, meeting labels and deadlines;
+it does not display the precise vendor point.
+
+Staff cancellation requires a reason and the last inspected version. A competing
+decision returns a conflict, then the UI reads committed state without retrying
+the write. Cancellation is unavailable for terminal visits. Account controls use
+IDs from reports/inspections: suspension revokes sessions and stops sharing;
+restoration permits a new login but does not restart sharing. The API rejects
+self-suspension, while the still-valid operator session remains usable.
+
+Client requests are bound to the login scope that created them. Old asynchronous
+callbacks cannot start a request under a later operator login. Private queries
+are cancelled and cleared on sign-out or lost staff authorization.
+
+**3 additional browser cases passed in 44.8 seconds** with real Node/FastAPI/
+PostgreSQL: report inspection/cancellation/resolution, account suspension/
+restoration/new login with sharing still off, forbidden self-suspension, and a
+competing vendor acceptance against staff cancellation. Core tests remain **12
+passing** and strict shared/Next checking passes. The production build also passes.
