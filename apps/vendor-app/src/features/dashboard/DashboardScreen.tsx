@@ -42,16 +42,29 @@ export function DashboardScreen() {
       ),
     refetchInterval: 10000,
   });
+  // A stored OS task may still be running while this read fails or is pending.
+  const offlineControl = (
+    <Button
+      label="Go offline"
+      secondary
+      onPress={() => {
+        void controller.offline().catch(() => {});
+      }}
+    />
+  );
   if (profile.isPending)
     return (
       <Page title="Your business today">
         <Loading />
+        {offlineControl}
       </Page>
     );
-  if (profile.error)
+  if (profile.error && !profile.data)
     return (
       <Page title="Your business today">
         <Problem message={errorMessage(profile.error)} />
+        <Problem message={state.message} />
+        {offlineControl}
         <Button
           label="Retry"
           onPress={() => {
@@ -63,12 +76,20 @@ export function DashboardScreen() {
   const row = profile.data;
   return (
     <Page title="Your business today">
+      <Problem
+        message={
+          profile.error
+            ? "Business status could not refresh. Check your connection; you can still go offline."
+            : null
+        }
+      />
       {!row ? (
         <Card>
           <Body copy>
             Create your business profile to request staff review.
           </Body>
           <Link href="/profile">{text("Open business profile")}</Link>
+          {offlineControl}
         </Card>
       ) : (
         <>
@@ -146,13 +167,7 @@ export function DashboardScreen() {
                 />
               </>
             ) : null}
-            <Button
-              label="Go offline"
-              secondary
-              onPress={() => {
-                void controller.offline().catch(() => {});
-              }}
-            />
+            {offlineControl}
           </Card>
           {summary.data ? (
             <Card>

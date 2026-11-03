@@ -9,6 +9,7 @@ import {
 import { AppState, Platform } from "react-native";
 import * as Location from "expo-location";
 import { useQueryClient } from "@tanstack/react-query";
+import { vendorSchema } from "@mystreetvendor/shared-types";
 import { useSession } from "../session";
 import { SharingController, type Fix, type SharingState } from "./controller";
 import { registerSharingCleanup } from "./lifecycle";
@@ -82,7 +83,7 @@ export function SharingProvider({ children }: PropsWithChildren) {
           return () => subscription.remove();
         },
         online: async (location) => {
-          await client.request("/vendors/me/availability", {
+          const response = await client.request("/vendors/me/availability", {
             method: "PATCH",
             body: {
               is_available: true,
@@ -90,6 +91,7 @@ export function SharingProvider({ children }: PropsWithChildren) {
               location,
             },
           });
+          queries.setQueryData(["vendor", "own"], vendorSchema.parse(response));
           await queries.invalidateQueries({ queryKey: ["vendor"] });
         },
         upload: async (location) => {
@@ -100,10 +102,12 @@ export function SharingProvider({ children }: PropsWithChildren) {
         },
         offline: async () => {
           await stopBackgroundSharing();
-          await client.request("/vendors/me/availability", {
+          const response = await client.request("/vendors/me/availability", {
             method: "PATCH",
             body: { is_available: false, location_sharing_enabled: false },
           });
+          // This is the committed PATCH response, usable even if the next GET fails.
+          queries.setQueryData(["vendor", "own"], vendorSchema.parse(response));
           await queries.invalidateQueries({ queryKey: ["vendor"] });
         },
       }),
@@ -149,14 +153,22 @@ export function SharingProvider({ children }: PropsWithChildren) {
           void controller.offline().catch(() => {});
       } else if (next === "active") {
         // Returning to the foreground rechecks live permissions and account state.
-        void Location.getForegroundPermissionsAsync().then((permission) => {
-          if (!permission.granted) {
+        void Location.getForegroundPermissionsAsync()
+          .then((permission) => {
+            if (!permission.granted) {
+              controller.pause(
+                "Location permission was removed. Go online only after enabling it again.",
+              );
+              void stopBackgroundSharing().catch(() => {});
+            }
+          })
+          .catch(() => {
+            // A failed permission read is not consent to continue publishing.
             controller.pause(
-              "Location permission was removed. Go online only after enabling it again.",
+              "Cannot check location permission. Check device settings and go online again.",
             );
             void stopBackgroundSharing().catch(() => {});
-          }
-        });
+          });
         void queries.invalidateQueries();
         void client
           .request<{ is_available: boolean }>("/vendors/me")

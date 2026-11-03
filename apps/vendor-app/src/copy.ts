@@ -1,5 +1,21 @@
 export type Language = "en" | "ta";
 const tamil: Readonly<Record<string, string>> = {
+  "Cannot check location permission. Check device settings and go online again.":
+    "இருப்பிட அனுமதியைச் சரிபார்க்க முடியவில்லை. சாதன அமைப்புகளைச் சரிபார்த்து மீண்டும் ஆன்லைனில் செல்லவும்.",
+  "Location permission was removed. Go online only after enabling it again.":
+    "இருப்பிட அனுமதி நீக்கப்பட்டது. அதை மீண்டும் இயக்கிய பிறகு ஆன்லைனில் செல்லவும்.",
+  "The server stopped sharing. Go online again after checking your account.":
+    "சேவையகம் பகிர்வை நிறுத்தியது. கணக்கைச் சரிபார்த்து மீண்டும் ஆன்லைனில் செல்லவும்.",
+  "Background sharing paused. Check your account and go online again.":
+    "பின்னணிப் பகிர்வு இடைநிறுத்தப்பட்டது. கணக்கைச் சரிபார்த்து மீண்டும் ஆன்லைனில் செல்லவும்.",
+  "Background location permission is required.":
+    "பின்னணி இருப்பிட அனுமதி தேவை.",
+  "Sign in again before starting background sharing.":
+    "பின்னணிப் பகிர்வைத் தொடங்கும் முன் மீண்டும் உள்நுழையவும்.",
+  "Location sharing could not start.":
+    "இருப்பிடப் பகிர்வைத் தொடங்க முடியவில்லை.",
+  "Business status could not refresh. Check your connection; you can still go offline.":
+    "வணிக நிலையைப் புதுப்பிக்க முடியவில்லை. இணைப்பைச் சரிபார்க்கவும்; நீங்கள் இன்னும் ஆஃப்லைனில் செல்லலாம்.",
   "Choose a new password": "புதிய கடவுச்சொல்லைத் தேர்வு செய்யவும்",
   "Confirm your email": "மின்னஞ்சலை உறுதிப்படுத்தவும்",
   "New password": "புதிய கடவுச்சொல்",

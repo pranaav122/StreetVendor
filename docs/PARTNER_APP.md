@@ -191,3 +191,19 @@ The updated lockfile reports **five moderate npm audit findings** through Expo
 build tooling (`glob`/`minimatch` and their dependents). No forced SDK downgrade was
 applied. These findings remain for the final dependency/security review; this is
 not a clean audit or a native release/signing result.
+
+## Offline controls during connection errors
+
+The dashboard keeps `Go offline` available while a business read is pending or
+fails, including a failed first read. When a later refresh fails, it retains the
+previous profile with a visible connection warning. Online/offline PATCH responses
+update the cache only after the server commits, so a failed follow-up GET cannot
+replace confirmed offline state with the old online display. Local sensor cleanup
+still happens before the network request. A native permission-query exception
+also pauses local sharing rather than assuming permission remains granted.
+
+The error-only dashboard regression failed before the fix. The final combined
+suite now passes **23 browser cases in 3.5 minutes**, including both failed-read
+cases, all Customer/Partner flows and controlled GPS arrival. Partner strict
+checking and its web/iOS/Android JavaScript exports pass. Native OS permission and
+background scheduling checks remain unrun.
