@@ -10,6 +10,7 @@ import { SessionProvider } from "../src/session";
 import { LanguageProvider } from "../src/language";
 import { SharingProvider } from "../src/location/provider";
 import { NotificationLifecycle } from "../src/notifications";
+import { RecoveryLinksProvider } from "../src/features/auth/RecoveryLinks";
 
 export default function RootLayout() {
   const [loaded, error] = useFonts({
@@ -26,15 +27,17 @@ export default function RootLayout() {
     <SessionProvider>
       <LanguageProvider>
         <SharingProvider>
-          <NotificationLifecycle />
-          <Stack
-            screenOptions={{
-              headerShown: false,
-              headerStyle: { backgroundColor: tokens.color.background },
-              headerTintColor: tokens.color.text,
-              contentStyle: { backgroundColor: tokens.color.background },
-            }}
-          />
+          <RecoveryLinksProvider>
+            <NotificationLifecycle />
+            <Stack
+              screenOptions={{
+                headerShown: false,
+                headerStyle: { backgroundColor: tokens.color.background },
+                headerTintColor: tokens.color.text,
+                contentStyle: { backgroundColor: tokens.color.background },
+              }}
+            />
+          </RecoveryLinksProvider>
         </SharingProvider>
       </LanguageProvider>
     </SessionProvider>

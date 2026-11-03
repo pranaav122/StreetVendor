@@ -30,7 +30,7 @@ then asks the server to erase the point. Signing out also stops the sensor; the
 backend logout transaction hides the business and removes its exact point.
 Stale updates are visibly degraded after 90 seconds. Native foreground sharing
 stops when the app leaves the foreground unless background sharing was explicitly enabled.
-Complete account recovery and device verification remain in progress.
+Native device verification remains in progress.
 
 ## Account and notifications checkpoint
 
@@ -53,7 +53,21 @@ verification. Native resume refreshes the live account before reconnecting socke
 Account verification: **2 real browser cases passed in 27.9 seconds**, covering
 saved profile data, unavailable browser push, sign-out hiding the business, the
 deletion phrase guard and revoked access. Strict shared/Partner checking and all
-14 Partner policy tests pass. Full email-link recovery is the next checkpoint.
+14 Partner policy tests pass.
+
+## Recovery checkpoint
+
+Partner owns `/reset-password` and `/verify-email`, a root cold/warm-link listener
+and a bounded fragment-token parser. It rejects query/duplicate tokens, unrelated
+paths and the Customer native scheme. The browser removes the fragment from the
+visible URL and keeps it in memory. A masked manual field accepts a different
+link without navigating to it. Tokens are consumed only after explicit confirmation.
+
+Two browser cases using actual loopback SMTP messages passed in **23.8 seconds**.
+They confirm the changed password/revoked old session and the verified email in
+PostgreSQL through authenticated HTTP reads. Partner policy tests now pass **16
+cases**, including native scheme and malformed-link parsing. Strict shared/Partner
+checks pass. Internet mail delivery and native link dispatch remain unverified.
 
 ## Visit management checkpoint
 

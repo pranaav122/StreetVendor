@@ -1,5 +1,27 @@
 export type Language = "en" | "ta";
 const tamil: Readonly<Record<string, string>> = {
+  "Choose a new password": "புதிய கடவுச்சொல்லைத் தேர்வு செய்யவும்",
+  "Confirm your email": "மின்னஞ்சலை உறுதிப்படுத்தவும்",
+  "New password": "புதிய கடவுச்சொல்",
+  "Repeat new password": "புதிய கடவுச்சொல்லை மீண்டும் உள்ளிடவும்",
+  "Save new password": "புதிய கடவுச்சொல்லைச் சேமிக்கவும்",
+  "Confirm email": "மின்னஞ்சலை உறுதிப்படுத்தவும்",
+  "Use email link": "மின்னஞ்சல் இணைப்பைப் பயன்படுத்து",
+  "Email link": "மின்னஞ்சல் இணைப்பு",
+  "Use a different link": "வேறு இணைப்பைப் பயன்படுத்து",
+  "Return to sign in": "உள்நுழைவுக்குத் திரும்பவும்",
+  "Password changed. Sign in with your new password.":
+    "கடவுச்சொல் மாற்றப்பட்டது. புதிய கடவுச்சொல்லுடன் உள்நுழையவும்.",
+  "Email link confirmed. You can return to your account.":
+    "மின்னஞ்சல் இணைப்பு உறுதிப்படுத்தப்பட்டது. உங்கள் கணக்கிற்குத் திரும்பலாம்.",
+  "This link is missing or invalid. Paste the full link from your email.":
+    "இணைப்பு இல்லை அல்லது தவறானது. மின்னஞ்சலில் உள்ள முழு இணைப்பை ஒட்டவும்.",
+  "Confirming this link marks its email address as verified.":
+    "இந்த இணைப்பை உறுதி செய்தால் அதற்கான மின்னஞ்சல் முகவரி சரிபார்க்கப்படும்.",
+  "Use matching passwords with 15 to 128 characters.":
+    "15 முதல் 128 எழுத்துகளுடன் ஒரே கடவுச்சொல்லை இருமுறை உள்ளிடவும்.",
+  "Use the link for this action from your latest email.":
+    "இந்தச் செயலுக்கான சமீபத்திய மின்னஞ்சல் இணைப்பைப் பயன்படுத்தவும்.",
   "Display name": "காட்டப்படும் பெயர்",
   "Save name": "பெயரைச் சேமிக்கவும்",
   "Name saved.": "பெயர் சேமிக்கப்பட்டது.",
