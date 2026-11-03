@@ -91,6 +91,10 @@ export class ApiClient {
     await this.load();
     return this.current;
   }
+  async refreshAccess() {
+    await this.load();
+    return (await this.refresh()).access_token;
+  }
   async setSession(value: TokenPair) {
     const tokens = tokenSchema.parse(value);
     const generation = ++this.generation;

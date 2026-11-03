@@ -20,6 +20,10 @@ npm run test:client
 npm run typecheck
 ```
 
-Current evidence: eleven local tests pass, including concurrent refresh, rejected refresh, sign-out during refresh, bounded retry, cancellation, host protection, temporary provider failure, late 401 handling and an old storage failure racing a new sign-in. These are deterministic client tests, not native storage or phone-network checks.
+Current evidence: sixteen local tests pass, including concurrent refresh, rejected refresh, sign-out during refresh, bounded retry, cancellation, host protection, temporary provider failure, late 401 handling, an old storage failure racing a new sign-in, realtime authentication/subscription cleanup and corrupt stored sessions. These are deterministic client tests, not native storage or phone-network checks.
+
+`RealtimeClient` authenticates with a first frame, sends application heartbeats, renews access through the same HTTP refresh coordinator and reconnects with bounded backoff. Reconnect triggers REST resynchronization. Unsubscribed coordinates are discarded locally; stopping during a pending storage read cannot open an old account's socket. Applications invalidate REST queries instead of treating socket payloads as the source of truth.
+
+Each app owns its session provider and separate SecureStore key. The shared storage adapter accepts a native storage driver; it has no import of a mobile UI library. On native platforms the app configures device-only keychain access after first unlock, allowing authorized background callbacks without transferring sessions through device backups. Actual operating-system storage behavior still needs device testing.
 
 The selected mobile baseline is Expo SDK 58. The current official [workspace guide](https://docs.expo.dev/guides/monorepos/) and [Router installation guide](https://docs.expo.dev/router/installation/) govern package setup; native dependency compatibility is checked with `expo install` for each app.

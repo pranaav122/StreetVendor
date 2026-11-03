@@ -14,6 +14,8 @@ The user approved completing the MVP on 2 November 2026. This file describes cur
 - Staff recovery: audited return from business suspension to pending review, safe inactive-target handling, deleted-owner queue filtering, and role-protected operational/daily visit summaries.
 - Realtime: authenticated bounded WebSockets, PostgreSQL commit hints, participant-only inbox/tracking, send-time live authorization, expiry/revocation/heartbeat checks and REST resynchronization after reconnect.
 - Notifications: session-bound device ownership, transactional outbox, bounded leases/retries, project-separated Expo batches, guarded ticket/receipt processing and privacy cleanup. See [notification delivery](NOTIFICATIONS.md).
+- Application foundation: independent Expo SDK 58 Customer/Partner projects, native SecureStore adapters, memory-only browser sessions, strict response/event contracts, coordinated refresh, bounded realtime transport and per-app session/query providers. Feature screens are still pending.
+- Design: shared accessible tokens and documented bilingual screen states. The Figma draft has known clipping/spacing defects; Starter-plan tool quota blocked the corrective call. See [design handoff](DESIGN.md).
 - Comments explain the reasons for sensitive validation, locking, transaction commits, token hashes and cleanup.
 
 ## Latest executed checks
@@ -34,11 +36,13 @@ The user approved completing the MVP on 2 November 2026. This file describes cur
 - Postman CLI checked the running local `/health`: HTTP 200 with database and PostGIS `ok`, with one passing assertion. This checks the current local service, not public hosting.
 - Final notification checkpoint gate: **28 passed in 58.32 seconds**. The built API applied `0006_notifications` to the development database, restarted healthy and returned database/PostGIS `ok`.
 - `scripts/Test-VisitWorkflow.ps1`: **1 passed in 3.81 seconds**, covering registration/approval, availability, coarse discovery, visit creation, a fake-provider ticket, acceptance, private tracking, two-fix arrival, completion and outsider denial through HTTP handlers with real PostgreSQL. It does not exercise a mobile device or a public server.
+- Application foundation: **16 shared-client tests passed**, strict TypeScript passed for shared packages and both apps, both web exports succeeded, and Expo Doctor passed **20/20 checks per app**. `expo install --check` reports compatible dependencies for each app.
+- npm audit currently reports **11 moderate findings** through Expo's `glob`/`minimatch` build-tool dependency chain. These require dependency/security review; no force downgrade was applied and no claim of a clean dependency audit is made.
 - `scripts/Test-LocalMail.ps1` passed with actual SMTP capture in Mailpit, token consumption, new-password login and synthetic-account deletion. This proves local delivery only.
 - Both location-update/offline and location-update/suspension races passed using actual PostgreSQL row locks. The synthetic planner test used the GiST bitmap index, and PostGIS distances matched the independent WGS84 fixtures within 2 centimetres.
 
 ## Still in progress
 
-Both independent mobile apps; admin dashboard; production configuration, backups/restore and final security review. Live push delivery remains a provider/device verification gate.
+Customer and Partner feature screens; admin dashboard; production configuration, backups/restore and final security review. Live push delivery remains a provider/device verification gate.
 
 No current result proves public deployment, native background GPS, real push delivery or store release. Local development choices remain usable while real owner/provider inputs are pending.
