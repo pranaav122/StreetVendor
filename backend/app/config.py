@@ -6,6 +6,7 @@ from pydantic import EmailStr, Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.engine import URL
 from typing import Literal
+from uuid import UUID
 
 
 class Settings(BaseSettings):
@@ -27,6 +28,10 @@ class Settings(BaseSettings):
     auth_register_limit: int = Field(default=10, ge=1, le=100)
     auth_recent_seconds: int = Field(default=300, ge=1, le=600)
     vendor_active_request_limit: int = Field(default=100, ge=1, le=100)
+    max_devices_per_user: int = Field(default=10, ge=1, le=20)
+    expo_access_token: SecretStr | None = None
+    expo_customer_project_id: UUID | None = None
+    expo_vendor_project_id: UUID | None = None
     ws_auth_timeout_seconds: float = Field(default=5, ge=0.05, le=5)
     ws_idle_timeout_seconds: float = Field(default=60, ge=1, le=60)
     ws_max_connections: int = Field(default=100, ge=1, le=100)

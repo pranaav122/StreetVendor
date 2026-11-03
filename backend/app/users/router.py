@@ -12,6 +12,7 @@ from app.models.vendors import VendorProfile, VendorVerification
 from app.vendors.service import hide_vendor
 from app.models.mail_tokens import MailToken
 from app.visits.privacy import erase_account_visits
+from app.notifications.service import disable_devices
 
 router = APIRouter(prefix="/api/v1/users", tags=["accounts"])
 
@@ -51,6 +52,7 @@ def delete_me(payload: DeleteInput, request: Request, user: CurrentUser, session
             .values(evidence_note="Erased on account deletion")
         )
     ended_visits = erase_account_visits(session, user, vendor)
+    disable_devices(session, user.id)
     session.execute(delete(MailToken).where(MailToken.user_id == user.id))
     session.execute(delete(UserCredential).where(UserCredential.user_id == user.id))
     session.execute(

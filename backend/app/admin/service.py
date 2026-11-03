@@ -126,6 +126,10 @@ def suspend_account(session, actor, user_id, payload):
         utcnow(),
     )
     if payload.suspended:
+        from app.notifications.service import disable_devices
+
+        # Revocation and notification shutdown must commit with the suspension.
+        disable_devices(session, user.id)
         row = session.scalar(
             select(VendorProfile)
             .where(VendorProfile.user_id == user.id)

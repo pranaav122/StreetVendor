@@ -24,6 +24,8 @@ from app.visits.router import router as visits_router
 from app.jobs import run_jobs
 from app.realtime.manager import RealtimeManager
 from app.realtime.router import router as realtime_router
+from app.notifications.provider import ExpoProvider
+from app.notifications.router import router as devices_router
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -54,6 +56,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.engine = engine
     app.state.settings = settings
     app.state.mailer = SMTPMailer(settings)
+    app.state.push_provider = ExpoProvider(settings)
     app.state.arrival_candidates = {}
     app.state.session_factory = sessionmaker(bind=engine, autoflush=False)
     app.state.realtime = RealtimeManager(app)
@@ -67,6 +70,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(admin_router)
     app.include_router(visits_router)
     app.include_router(realtime_router)
+    app.include_router(devices_router)
     app.add_exception_handler(HTTPException, http_error)
     app.add_exception_handler(RequestValidationError, validation_error)
     return app

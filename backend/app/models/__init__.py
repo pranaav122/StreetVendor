@@ -12,5 +12,6 @@ from app.models.vendors import (
 from app.models.locations import VendorLocation
 from app.models.visits import RequestEvent, VisitRequest
 from app.models.reports import VisitReport
+from app.models.notifications import DeviceToken, NotificationOutbox
 
 __all__ = ["RateLimitBucket", "RefreshSession", "User", "UserCredential", "MailToken"]
