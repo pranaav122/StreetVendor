@@ -22,6 +22,7 @@ import {
 } from "../../ui";
 import { useMeeting } from "./meeting";
 import AreaMap from "../../components/AreaMap";
+import { useCopy } from "../../language";
 
 const pageSchema = z.object({
   items: z.array(nearbySchema),
@@ -29,6 +30,7 @@ const pageSchema = z.object({
 });
 export function NearbyScreen() {
   const { client } = useSession();
+  const { language, text } = useCopy();
   const { meeting, setMeeting } = useMeeting();
   const [latitude, setLatitude] = useState(
     meeting ? String(meeting.point.latitude) : "",
@@ -138,7 +140,7 @@ export function NearbyScreen() {
   );
   return (
     <Page title="Around your meeting point">
-      <Body muted>
+      <Body copy muted>
         Choose a public place. Your home address is not required. This
         development build uses the Chennai test area.
       </Body>
@@ -183,13 +185,13 @@ export function NearbyScreen() {
             secondary
             onPress={() => setEditing(true)}
           />
-          <Body muted>
+          <Body copy muted>
             Search within approximately 1.5 km. Vendor positions and distance
             bands are approximate.
           </Body>
         </Card>
       ) : (
-        <Body>Select a meeting point to find nearby vendors.</Body>
+        <Body copy>Select a meeting point to find nearby vendors.</Body>
       )}
       <ScrollView
         horizontal
@@ -204,7 +206,7 @@ export function NearbyScreen() {
         {categories.data?.items.map((item) => (
           <Button
             key={item.id}
-            label={item.name_en}
+            label={language === "ta" ? item.name_ta : item.name_en}
             secondary={category !== item.id}
             onPress={() => setCategory(item.id)}
           />
@@ -212,7 +214,7 @@ export function NearbyScreen() {
       </ScrollView>
       {meeting ? (
         <>
-          <Body muted>
+          <Body copy muted>
             Opening a map shares the viewed area with the map provider. The list
             works without loading a map.
           </Body>
@@ -244,21 +246,21 @@ export function NearbyScreen() {
         </>
       ) : null}
       {meeting && nearby.isSuccess && items.length === 0 ? (
-        <Body>No available vendors nearby.</Body>
+        <Body copy>No available vendors nearby.</Body>
       ) : null}
       {!mapVisible
         ? items.map((item) => (
             <Card key={item.vendor_id}>
               <Body>{item.display_name}</Body>
               <Body muted>
-                Available · {item.distance_band_m.min}–
-                {item.distance_band_m.max} metres away
+                {text("Available")} · {item.distance_band_m.min}–
+                {item.distance_band_m.max} {text("metres away")}
               </Body>
               <Link
                 accessibilityLabel={`View ${item.display_name}`}
                 href={`/vendor/${item.vendor_id}`}
               >
-                View vendor
+                {text("View vendor")}
               </Link>
             </Card>
           ))

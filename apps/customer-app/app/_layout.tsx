@@ -10,6 +10,7 @@ import { SessionProvider } from "../src/session";
 import { MeetingProvider } from "../src/features/discovery/meeting";
 import { RecoveryLinksProvider } from "../src/features/auth/RecoveryLinks";
 import { NotificationLifecycle } from "../src/notifications";
+import { LanguageProvider } from "../src/language";
 
 export default function RootLayout() {
   const [loaded, error] = useFonts({
@@ -24,19 +25,21 @@ export default function RootLayout() {
     );
   return (
     <SessionProvider>
-      <MeetingProvider>
-        <RecoveryLinksProvider>
-          <NotificationLifecycle />
-          <Stack
-            screenOptions={{
-              headerShown: false,
-              headerStyle: { backgroundColor: tokens.color.background },
-              headerTintColor: tokens.color.text,
-              contentStyle: { backgroundColor: tokens.color.background },
-            }}
-          />
-        </RecoveryLinksProvider>
-      </MeetingProvider>
+      <LanguageProvider>
+        <MeetingProvider>
+          <RecoveryLinksProvider>
+            <NotificationLifecycle />
+            <Stack
+              screenOptions={{
+                headerShown: false,
+                headerStyle: { backgroundColor: tokens.color.background },
+                headerTintColor: tokens.color.text,
+                contentStyle: { backgroundColor: tokens.color.background },
+              }}
+            />
+          </RecoveryLinksProvider>
+        </MeetingProvider>
+      </LanguageProvider>
     </SessionProvider>
   );
 }

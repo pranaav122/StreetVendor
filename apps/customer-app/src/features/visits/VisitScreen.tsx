@@ -7,6 +7,7 @@ import {
   visitSchema,
 } from "@mystreetvendor/shared-types";
 import { useSession } from "../../session";
+import { useCopy } from "../../language";
 import {
   Body,
   Button,
@@ -22,6 +23,7 @@ import AreaMap from "../../components/AreaMap";
 
 export function VisitScreen({ id }: { id: string }) {
   const { client, realtime } = useSession();
+  const { language, text } = useCopy();
   const queries = useQueryClient();
   const [reason, setReason] = useState("");
   const [report, setReport] = useState("");
@@ -145,24 +147,35 @@ export function VisitScreen({ id }: { id: string }) {
     <Page title={`Visit ${row.status.toLowerCase()}`}>
       <Card>
         <Body>{row.vendor_name}</Body>
-        <Body>Status: {row.status}</Body>
         <Body>
-          Meeting point: {row.meeting_label ?? "Selected public point"}
+          {text("Status")}: {text(row.status)}
         </Body>
-        <Body muted>Deadline: {new Date(row.expires_at).toLocaleString()}</Body>
+        <Body>
+          {text("Meeting point")}:{" "}
+          {row.meeting_label ?? "Selected public point"}
+        </Body>
+        <Body muted>
+          {text("Deadline")}:{" "}
+          {new Date(row.expires_at).toLocaleString(
+            language === "ta" ? "ta-IN" : "en-IN",
+          )}
+        </Body>
       </Card>
       {fresh ? (
         <Card>
-          <Body>Vendor location is available.</Body>
+          <Body copy>Vendor location is available.</Body>
           <Body>
-            Latitude: {tracking.data.latitude} · Longitude:{" "}
+            {text("Latitude")}: {tracking.data.latitude} · {text("Longitude")}:{" "}
             {tracking.data.longitude}
           </Body>
           <Body muted>
-            Captured {new Date(tracking.data.captured_at).toLocaleTimeString()}{" "}
-            · accuracy {Math.round(tracking.data.accuracy_m)} m
+            {text("Captured")}{" "}
+            {new Date(tracking.data.captured_at).toLocaleTimeString(
+              language === "ta" ? "ta-IN" : "en-IN",
+            )}{" "}
+            · {text("accuracy")} {Math.round(tracking.data.accuracy_m)} m
           </Body>
-          <Body muted>
+          <Body copy muted>
             Opening the map shares the viewed area with the map provider.
           </Body>
           <Button
@@ -179,7 +192,7 @@ export function VisitScreen({ id }: { id: string }) {
           ) : null}
         </Card>
       ) : (
-        <Body muted>
+        <Body copy muted>
           {trackable
             ? "A fresh vendor location is unavailable."
             : "Precise tracking is unavailable for this visit state."}
@@ -210,12 +223,12 @@ export function VisitScreen({ id }: { id: string }) {
         </Card>
       ) : null}
       {row.status === "COMPLETED" ? (
-        <Body muted>
+        <Body copy muted>
           This visit is complete. No purchase or payment was recorded.
         </Body>
       ) : null}
       <Card>
-        <Body>Report a problem with this visit</Body>
+        <Body copy>Report a problem with this visit</Body>
         <Button
           label="Safety"
           secondary={category !== "SAFETY"}
@@ -246,7 +259,7 @@ export function VisitScreen({ id }: { id: string }) {
         <Problem
           message={sendReport.error ? errorMessage(sendReport.error) : null}
         />
-        {notice ? <Body>{notice}</Body> : null}
+        {notice ? <Body copy>{notice}</Body> : null}
       </Card>
     </Page>
   );

@@ -4,25 +4,27 @@ import MapView, { Circle, Marker, PROVIDER_GOOGLE } from "react-native-maps";
 import { tokens } from "@mystreetvendor/design-tokens";
 import type { AreaMapProps } from "./map-types";
 import { Body } from "../ui";
+import { useCopy } from "../language";
 
 export default function AreaMap({
   origin,
   pins,
   label = "Nearby map",
 }: AreaMapProps) {
+  const { text } = useCopy();
   if (
     Platform.OS === "android" &&
     !Constants.expoConfig?.extra?.androidMapsConfigured
   )
     return (
-      <Body muted>
+      <Body copy muted>
         Maps are unavailable in this build. You can still use the vendor list.
       </Body>
     );
   return (
     <MapView
       key={`${origin.latitude}:${origin.longitude}`}
-      accessibilityLabel={label}
+      accessibilityLabel={text(label)}
       provider={Platform.OS === "android" ? PROVIDER_GOOGLE : undefined}
       style={{ height: 300, width: "100%", borderRadius: 16 }}
       initialRegion={{ ...origin, latitudeDelta: 0.03, longitudeDelta: 0.03 }}

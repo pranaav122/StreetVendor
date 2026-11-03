@@ -4,12 +4,14 @@ import "leaflet/dist/leaflet.css";
 import { tokens } from "@mystreetvendor/design-tokens";
 import type { AreaMapProps } from "./map-types";
 import { Body } from "../ui";
+import { useCopy } from "../language";
 
 export default function AreaMap({
   origin,
   pins,
   label = "Nearby map",
 }: AreaMapProps) {
+  const { language, text } = useCopy();
   const container = useRef<HTMLDivElement | null>(null);
   const map = useRef<L.Map | null>(null);
   const markers = useRef<L.LayerGroup | null>(null);
@@ -27,6 +29,13 @@ export default function AreaMap({
       control.style.width = "48px";
       control.style.height = "48px";
       control.style.lineHeight = "48px";
+      const caption = text(
+        control.classList.contains("leaflet-control-zoom-in")
+          ? "Zoom in"
+          : "Zoom out",
+      );
+      control.setAttribute("aria-label", caption);
+      control.title = caption;
     }
     const tiles = L.tileLayer(
       "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
@@ -45,7 +54,7 @@ export default function AreaMap({
       map.current = null;
       markers.current = null;
     };
-  }, [origin.latitude, origin.longitude]);
+  }, [origin.latitude, origin.longitude, language]);
   useEffect(() => {
     if (!map.current || !markers.current) return;
     const layer = markers.current;
@@ -66,13 +75,13 @@ export default function AreaMap({
       content.textContent = pin.label;
       circle.bindPopup(content);
     }
-  }, [pins, origin.latitude, origin.longitude]);
+  }, [pins, origin.latitude, origin.longitude, language]);
   return (
     <>
       <div
         ref={container}
         role="region"
-        aria-label={label}
+        aria-label={text(label)}
         style={{
           height: 300,
           width: "100%",
@@ -84,7 +93,7 @@ export default function AreaMap({
         }}
       />
       {tileError ? (
-        <Body muted>
+        <Body copy muted>
           Some map tiles are unavailable. You can still use the list.
         </Body>
       ) : null}

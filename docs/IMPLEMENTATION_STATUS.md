@@ -21,6 +21,7 @@ The user approved completing the MVP on 2 November 2026. This file describes cur
 - Customer maps: optional coarse-area web/native map adapters, authorized tracking map, native Android configuration fallback, provider disclosure, safe popup text and cleanup. See [map setup](MOBILE_MAPS.md). Push/recovery-confirmation/translation integration remains in progress.
 - Customer recovery: reset/email-confirmation pages, bounded fragment parsing, visible-URL scrubbing, explicit one-use-token confirmation, native cold/warm link listener and masked manual-link fallback. Native link dispatch still needs device verification. Push/translation integration remains in progress.
 - Customer notification adapter: explicit opt-in, physical-build/project/permission checks, stable installation registration, native token refresh and guarded notification-tap navigation. Physical delivery remains unverified; Tamil copy integration remains in progress.
+- Customer language: English/Tamil sign-in choice, registration/account preference, translated controls/headings/static copy/statuses and bilingual server categories. User-entered names/labels remain intact. Tamil wording still needs pilot-user review.
 - Comments explain the reasons for sensitive validation, locking, transaction commits, token hashes and cleanup.
 
 ## Latest executed checks
@@ -50,6 +51,7 @@ The user approved completing the MVP on 2 November 2026. This file describes cur
 - Customer map checkpoint: **5 browser cases passed in 29.8 seconds**, including map removal at completion; a separate real-tile check passed **1 case in 12.6 seconds** and its loaded street-map image was visually inspected. Customer strict checking and web export passed. Native maps remain unverified.
 - Customer recovery: **2 browser cases passed in 14.1 seconds** with actual local Mailpit SMTP capture, reset/revocation/new-password login and email confirmation; fragments were removed before submission. **4 Customer pure tests passed**, including link bounds/query rejection and intent/freshness checks. Shared and Customer strict TypeScript passed.
 - Customer push adapter: **20 shared-client tests passed** and the browser unavailable-state flow passed **1 case in 13.7 seconds**. Shared/Customer strict checks passed. Native driver tests use deterministic stand-ins and do not prove real push delivery.
+- Customer language checkpoint: **8 browser cases passed together in 42.9 seconds**, including Tamil registration and a 390-pixel layout check. The Tamil preview was visually inspected for wrapping. **20 client tests**, **5 Customer pure tests**, shared/Customer strict checking and web export passed. Native text scaling and pilot-user language review remain unrun.
 - `scripts/Test-LocalMail.ps1` passed with actual SMTP capture in Mailpit, token consumption, new-password login and synthetic-account deletion. This proves local delivery only.
 - Both location-update/offline and location-update/suspension races passed using actual PostgreSQL row locks. The synthetic planner test used the GiST bitmap index, and PostGIS distances matched the independent WGS84 fixtures within 2 centimetres.
 

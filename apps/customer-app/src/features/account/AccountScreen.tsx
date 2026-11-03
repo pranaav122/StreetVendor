@@ -2,6 +2,7 @@ import { useState } from "react";
 import { router } from "expo-router";
 import { useSession } from "../../session";
 import { enableNotifications } from "../../notifications";
+import { useCopy } from "../../language";
 import {
   Body,
   Button,
@@ -14,6 +15,7 @@ import {
 
 export function AccountScreen() {
   const { client, user, reloadUser, signIn, signOut } = useSession();
+  const { text } = useCopy();
   const [name, setName] = useState(user?.display_name ?? "");
   const [confirmation, setConfirmation] = useState("");
   const [password, setPassword] = useState("");
@@ -36,7 +38,7 @@ export function AccountScreen() {
     <Page title="Your account">
       <Body>{user?.email}</Body>
       <Problem message={problem} />
-      {notice ? <Body>{notice}</Body> : null}
+      {notice ? <Body copy>{notice}</Body> : null}
       <Card>
         <Field
           label="Display name"
@@ -58,8 +60,9 @@ export function AccountScreen() {
             });
           }}
         />
-        <Body>
-          Language: {user?.preferred_language === "ta" ? "தமிழ்" : "English"}
+        <Body copy>
+          {text("Language")}:{" "}
+          {user?.preferred_language === "ta" ? "தமிழ்" : "English"}
         </Body>
         <Button
           label="English"
@@ -91,7 +94,7 @@ export function AccountScreen() {
         />
       </Card>
       <Card>
-        <Body>
+        <Body copy>
           {user?.email_verified_at
             ? "Email confirmed."
             : "Your email is not confirmed."}
@@ -112,7 +115,7 @@ export function AccountScreen() {
         ) : null}
       </Card>
       <Card>
-        <Body>
+        <Body copy>
           Visit notifications are optional. Your inbox remains available without
           them.
         </Body>
@@ -141,12 +144,12 @@ export function AccountScreen() {
         }}
       />
       <Card>
-        <Body>
+        <Body copy>
           Account deletion removes your profile, stops sharing and revokes your
           sessions. Minimal anonymous workflow history may remain until
           retention cleanup.
         </Body>
-        <Body>Sign in again if asked to confirm a recent login.</Body>
+        <Body copy>Sign in again if asked to confirm a recent login.</Body>
         <Field
           label="Confirm password"
           secureTextEntry

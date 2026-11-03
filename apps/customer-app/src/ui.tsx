@@ -11,20 +11,32 @@ import {
 } from "react-native";
 import { Link } from "expo-router";
 import { tokens } from "@mystreetvendor/design-tokens";
+import { useCopy } from "./language";
 
 export function Body({
   children,
   muted = false,
-}: PropsWithChildren<{ muted?: boolean }>) {
+  copy = false,
+}: PropsWithChildren<{ muted?: boolean; copy?: boolean }>) {
+  const { text } = useCopy();
+  // Translate explicit interface copy; business names and meeting labels stay intact.
   return (
-    <Text style={[styles.body, muted ? styles.muted : null]}>{children}</Text>
+    <Text style={[styles.body, muted ? styles.muted : null]}>
+      {copy && typeof children === "string" ? text(children) : children}
+    </Text>
   );
 }
 export function Page({
   title,
   children,
   navigation = true,
-}: PropsWithChildren<{ title: string; navigation?: boolean }>) {
+  translateTitle = true,
+}: PropsWithChildren<{
+  title: string;
+  navigation?: boolean;
+  translateTitle?: boolean;
+}>) {
+  const { text } = useCopy();
   return (
     <ScrollView
       keyboardShouldPersistTaps="handled"
@@ -32,18 +44,18 @@ export function Page({
     >
       <Text style={styles.eyebrow}>MYSTREETVENDOR</Text>
       <Text accessibilityRole="header" style={styles.title}>
-        {title}
+        {translateTitle ? text(title) : title}
       </Text>
       {navigation ? (
         <View style={styles.navigation}>
           <Link style={styles.link} href="/">
-            Nearby
+            {text("Nearby")}
           </Link>
           <Link style={styles.link} href="/visits">
-            Visits
+            {text("Visits")}
           </Link>
           <Link style={styles.link} href="/account">
-            Account
+            {text("Account")}
           </Link>
         </View>
       ) : null}
@@ -62,6 +74,7 @@ export function Button({
   disabled?: boolean;
   secondary?: boolean;
 }) {
+  const { text } = useCopy();
   return (
     <Pressable
       accessibilityRole="button"
@@ -81,17 +94,18 @@ export function Button({
           secondary ? { color: tokens.color.primary } : null,
         ]}
       >
-        {label}
+        {text(label)}
       </Text>
     </Pressable>
   );
 }
 export function Field({ label, ...props }: TextInputProps & { label: string }) {
+  const { text } = useCopy();
   return (
     <View style={styles.field}>
-      <Body>{label}</Body>
+      <Body>{text(label)}</Body>
       <TextInput
-        accessibilityLabel={label}
+        accessibilityLabel={text(label)}
         style={styles.input}
         autoCapitalize="none"
         {...props}
@@ -103,17 +117,19 @@ export function Card({ children }: PropsWithChildren) {
   return <View style={styles.card}>{children}</View>;
 }
 export function Problem({ message }: { message: string | null | undefined }) {
+  const { text } = useCopy();
   return message ? (
     <Text accessibilityRole="alert" style={styles.error}>
-      {message}
+      {text(message)}
     </Text>
   ) : null;
 }
 export function Loading({ label = "Loading…" }: { label?: string }) {
+  const { text } = useCopy();
   return (
     <View style={styles.loading}>
-      <ActivityIndicator accessibilityLabel={label} />
-      <Body>{label}</Body>
+      <ActivityIndicator accessibilityLabel={text(label)} />
+      <Body>{text(label)}</Body>
     </View>
   );
 }

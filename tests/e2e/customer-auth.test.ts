@@ -61,7 +61,7 @@ test("customer registers, chooses a manual point and signs out", async ({
       .click();
     await expect(
       page.getByText(
-        "Remote notifications require a physical device and a native development build.",
+        "Remote notifications are unavailable in this preview. Check Visits for updates.",
         { exact: true },
       ),
     ).toBeVisible();

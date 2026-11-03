@@ -4,6 +4,7 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import { activeVisitStatuses, visitSchema } from "@mystreetvendor/shared-types";
 import { useSession } from "../../session";
+import { useCopy } from "../../language";
 import {
   Body,
   Button,
@@ -20,6 +21,7 @@ const pageSchema = z.object({
 });
 export function VisitListScreen() {
   const { client } = useSession();
+  const { language, text } = useCopy();
   const [history, setHistory] = useState(false);
   const visits = useInfiniteQuery({
     queryKey: ["visits", "list"],
@@ -55,17 +57,22 @@ export function VisitListScreen() {
       {visits.isPending ? <Loading /> : null}
       <Problem message={visits.error ? errorMessage(visits.error) : null} />
       {visits.isSuccess && items.length === 0 ? (
-        <Body>
-          No {history ? "past" : "active"} visits in the loaded results.
+        <Body copy>
+          {history
+            ? "No past visits in the loaded results."
+            : "No active visits in the loaded results."}
         </Body>
       ) : null}
       {items.map((visit) => (
         <Card key={visit.id}>
           <Body>{visit.vendor_name}</Body>
           <Body muted>
-            {visit.status} · {new Date(visit.created_at).toLocaleString()}
+            {text(visit.status)} ·{" "}
+            {new Date(visit.created_at).toLocaleString(
+              language === "ta" ? "ta-IN" : "en-IN",
+            )}
           </Body>
-          <Link href={`/visit/${visit.id}`}>View visit</Link>
+          <Link href={`/visit/${visit.id}`}>{text("View visit")}</Link>
         </Card>
       ))}
       {visits.hasNextPage ? (

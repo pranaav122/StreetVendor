@@ -4,6 +4,7 @@ import * as Crypto from "expo-crypto";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { vendorSchema, visitSchema } from "@mystreetvendor/shared-types";
 import { useSession } from "../../session";
+import { useCopy } from "../../language";
 import { useMeeting } from "../discovery/meeting";
 import { VisitIntent } from "../visits/intent";
 import {
@@ -18,6 +19,7 @@ import {
 
 export function VendorScreen({ id }: { id: string }) {
   const { client } = useSession();
+  const { language, text } = useCopy();
   const { meeting } = useMeeting();
   const queries = useQueryClient();
   const [intent] = useState(() => new VisitIntent(() => Crypto.randomUUID()));
@@ -64,28 +66,34 @@ export function VendorScreen({ id }: { id: string }) {
     );
   const row = vendor.data;
   return (
-    <Page title={row.display_name}>
+    <Page title={row.display_name} translateTitle={false}>
       <Body>{row.description}</Body>
       <Body muted>
-        Review: {row.verification_status} ·{" "}
-        {row.is_available ? "Available" : "Offline"}
+        {text("Review")}: {text(row.verification_status)} ·{" "}
+        {text(row.is_available ? "Available" : "Offline")}
       </Body>
       <Body>
-        {row.categories.map((category) => category.name_en).join(" · ")}
+        {row.categories
+          .map((category) =>
+            language === "ta" ? category.name_ta : category.name_en,
+          )
+          .join(" · ")}
       </Body>
       <Card>
         {meeting ? (
           <>
-            <Body>Meeting point: {meeting.label}</Body>
+            <Body>
+              {text("Meeting point")}: {meeting.label}
+            </Body>
             <Body muted>
               {meeting.point.latitude}, {meeting.point.longitude}
             </Body>
           </>
         ) : (
-          <Body>Choose a public meeting point first.</Body>
+          <Body copy>Choose a public meeting point first.</Body>
         )}
-        <Link href="/">Change meeting point</Link>
-        <Body muted>
+        <Link href="/">{text("Change meeting point")}</Link>
+        <Body copy muted>
           The vendor will receive this meeting point with your request. Do not
           enter a home address unless you intend to share it.
         </Body>
@@ -101,13 +109,13 @@ export function VendorScreen({ id }: { id: string }) {
         }
         onPress={() => create.mutate()}
       />
-      <Body muted>
+      <Body copy muted>
         A request expires after five minutes if it is not accepted. Sending a
         request does not place an order or make a payment.
       </Body>
       {create.error ? (
         <Link href="/visits">
-          Check your visits before trying a new request
+          {text("Check your visits before trying a new request")}
         </Link>
       ) : null}
     </Page>

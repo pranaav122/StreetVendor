@@ -24,7 +24,7 @@ export async function registerInstallation(
     return {
       state: "UNAVAILABLE",
       message:
-        "Remote notifications require a physical device and a native development build.",
+        "Remote notifications are unavailable in this preview. Check Visits for updates.",
     };
   const project = z.string().uuid().safeParse(device.projectId);
   // Avoid a permission prompt when this build cannot obtain a usable address.
@@ -32,7 +32,7 @@ export async function registerInstallation(
     return {
       state: "UNAVAILABLE",
       message:
-        "Notifications are not configured for this build. You can still check your visits in the app.",
+        "Notifications are unavailable in this version. Check Visits for updates.",
     };
   if (!(await device.permission(askPermission)))
     return {

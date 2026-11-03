@@ -1,7 +1,9 @@
 import { useState } from "react";
+import { View } from "react-native";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 import { useSession } from "../../session";
+import { useCopy } from "../../language";
 import { Body, Button, Field, Page, Problem, errorMessage } from "../../ui";
 
 type Values = { name: string; email: string; password: string };
@@ -9,6 +11,7 @@ const emailSchema = z.string().email();
 
 export function AuthScreen() {
   const { client, signIn, restoreError, restore } = useSession();
+  const { language, setGuestLanguage } = useCopy();
   const [mode, setMode] = useState<"login" | "register" | "recover">("login");
   const [problem, setProblem] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -68,7 +71,7 @@ export function AuthScreen() {
             email,
             password: values.password,
             display_name: values.name.trim(),
-            preferred_language: "en",
+            preferred_language: language,
           },
         });
       await signIn(email, values.password);
@@ -83,7 +86,19 @@ export function AuthScreen() {
   }
   return (
     <Page title={copy.title} navigation={false}>
-      <Body muted>
+      <View style={{ flexDirection: "row", gap: 8 }}>
+        <Button
+          label="English"
+          secondary={language !== "en"}
+          onPress={() => setGuestLanguage("en")}
+        />
+        <Button
+          label="தமிழ்"
+          secondary={language !== "ta"}
+          onPress={() => setGuestLanguage("ta")}
+        />
+      </View>
+      <Body muted copy>
         Choose a public meeting point, find available vendors and arrange a
         visit.
       </Body>
@@ -138,7 +153,7 @@ export function AuthScreen() {
         />
       ) : null}
       <Problem message={problem} />
-      {notice ? <Body>{notice}</Body> : null}
+      {notice ? <Body copy>{notice}</Body> : null}
       <Button
         label={isSubmitting ? "Please wait…" : copy.label}
         disabled={isSubmitting}

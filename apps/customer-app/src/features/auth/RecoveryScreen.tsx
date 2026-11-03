@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "expo-router";
 import { useSession } from "../../session";
+import { useCopy } from "../../language";
 import {
   Body,
   Button,
@@ -15,6 +16,7 @@ import type { RecoveryKind } from "./recovery-link";
 
 export function RecoveryScreen({ kind }: { kind: RecoveryKind }) {
   const { client, user, reloadUser } = useSession();
+  const { text } = useCopy();
   const { token, readLink, clear } = useRecoveryLink(kind);
   const [link, setLink] = useState("");
   const [password, setPassword] = useState("");
@@ -66,7 +68,7 @@ export function RecoveryScreen({ kind }: { kind: RecoveryKind }) {
       navigation={false}
     >
       {success ? (
-        <Body>
+        <Body copy>
           {reset
             ? "Password changed. Sign in with your new password."
             : "Email link confirmed. You can return to your account."}
@@ -75,7 +77,7 @@ export function RecoveryScreen({ kind }: { kind: RecoveryKind }) {
         <>
           {!token ? (
             <Card>
-              <Body>
+              <Body copy>
                 This link is missing or invalid. Paste the full link from your
                 email.
               </Body>
@@ -117,7 +119,7 @@ export function RecoveryScreen({ kind }: { kind: RecoveryKind }) {
               />
             </>
           ) : (
-            <Body>
+            <Body copy>
               Confirming this link marks its email address as verified.
             </Body>
           )}
@@ -144,7 +146,7 @@ export function RecoveryScreen({ kind }: { kind: RecoveryKind }) {
           ) : null}
         </>
       )}
-      <Link href="/">Return to sign in</Link>
+      <Link href="/">{text("Return to sign in")}</Link>
     </Page>
   );
 }
