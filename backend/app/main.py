@@ -7,6 +7,7 @@ import asyncio
 from fastapi import FastAPI
 from fastapi import HTTPException
 from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import sessionmaker
 
 from app.config import Settings
@@ -53,6 +54,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                     engine.dispose()
 
     app = FastAPI(title="MyStreetVendor API", version="0.1.0", lifespan=lifespan)
+    # Browsers preflight bearer-token writes. Reuse the explicit socket origin
+    # allowlist; the API does not need cross-origin browser cookies.
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.allowed_origins,
+        allow_credentials=False,
+        allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
+        allow_headers=["Authorization", "Content-Type", "Idempotency-Key"],
+    )
     app.state.engine = engine
     app.state.settings = settings
     app.state.mailer = SMTPMailer(settings)

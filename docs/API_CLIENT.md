@@ -26,4 +26,6 @@ Current evidence: sixteen local tests pass, including concurrent refresh, reject
 
 Each app owns its session provider and separate SecureStore key. The shared storage adapter accepts a native storage driver; it has no import of a mobile UI library. On native platforms the app configures device-only keychain access after first unlock, allowing authorized background callbacks without transferring sessions through device backups. Actual operating-system storage behavior still needs device testing.
 
+The API applies the configured origin allowlist to HTTP browser requests as well as sockets. It allows bearer/JSON/idempotency preflights and does not enable cross-origin cookies. Local Customer/Partner origins on ports 8081/8082 are listed explicitly. Production must supply its actual web origins. CORS supplements authentication; native programs can make requests without a browser Origin header and still require valid authorization.
+
 The selected mobile baseline is Expo SDK 58. The current official [workspace guide](https://docs.expo.dev/guides/monorepos/) and [Router installation guide](https://docs.expo.dev/router/installation/) govern package setup; native dependency compatibility is checked with `expo install` for each app.
