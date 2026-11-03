@@ -1,6 +1,6 @@
 # API contracts
 
-Original design dated 21 October 2026; implementation update 2 November 2026. Health and the core authentication/own-account routes below are implemented. The remaining vendor, spatial, visit, notification and WebSocket contracts are planned until their implementation slices pass. See `IMPLEMENTATION_STATUS.md` and generated Swagger for actual coverage.
+Original design dated 21 October 2026; implementation update 3 November 2026. Health, authentication/own-account, vendor management and location/discovery routes are implemented. Visit, notification and WebSocket contracts remain planned until their implementation slices pass. See `IMPLEMENTATION_STATUS.md` and generated Swagger for actual coverage.
 
 ## Phase 1: health
 
@@ -18,7 +18,7 @@ The response never contains a database URL, credentials, SQL, exception details,
 Invoke-RestMethod http://127.0.0.1:8000/health
 ```
 
-## Shared rules for future REST endpoints
+## Shared rules for business REST endpoints
 
 - JSON bodies and responses; UUID IDs; timezone-aware ISO 8601 timestamps in UTC. Coordinates are named `latitude` and `longitude` in JSON so clients do not guess their order.
 - Authentication uses `Authorization: Bearer <access-token>`. Access token claims identify the user and session; the backend also checks the live user/session status. Roles are `customer`, `vendor`, and `admin` and are assigned by the server.
@@ -41,7 +41,7 @@ Planned common errors:
 | `429` | Rate limit reached; return `Retry-After`. |
 | `503` | Required database/provider dependency unavailable; avoid leaking internal details. |
 
-A consistent future business error is `{ "error": { "code": "REQUEST_STATE_CONFLICT", "message": "The request has changed.", "request_id": "<trace-id>" } }`. This envelope is **not installed in Phase 1**. Framework-generated validation errors currently follow FastAPI's normal `detail` structure. Future validation errors must redact passwords and tokens rather than echo their submitted values.
+A business error uses `{ "error": { "code": "REQUEST_STATE_CONFLICT", "message": "The request has changed.", "request_id": "<trace-id>" } }`. Validation errors include field paths and messages while omitting submitted values, passwords and tokens. The health endpoint retains its separate readiness contract.
 
 ## Authentication and accounts — core implemented
 
@@ -59,7 +59,7 @@ A consistent future business error is `{ "error": { "code": "REQUEST_STATE_CONFL
 
 Token response: `{ "access_token": "<jwt>", "token_type": "bearer", "expires_in": 600, "refresh_token": "<opaque-secret>" }`. Starting policy: access lifetime 10 minutes, refresh family absolute lifetime 30 days; tune from security review. Registration does not grant verified email or vendor status. Email verification and password recovery require a real delivery provider before public launch; mobile OTP is a later provider-backed feature.
 
-## Vendor management — Phase 3 planned
+## Vendor management — implemented
 
 | Method and path | Actor | Input / validation | Success |
 |---|---|---|---|
@@ -76,7 +76,7 @@ Token response: `{ "access_token": "<jwt>", "token_type": "bearer", "expires_in"
 
 To go online, submit `is_available: true`, `location_sharing_enabled: true` and a `location` object with the same fields and validation rules as the location endpoint below. Under one transaction, confirm the active verified vendor and explicit consent, validate the first fix, then set availability/sharing and upsert the fix. This bootstrap operation does not require an existing online state or stored fix. Later location-only updates require the vendor already be online. Going offline atomically disables availability/sharing and deletes the precise latest fix, immediately hiding discovery and precise tracking. Existing visits remain recorded and participants receive unavailable status; the backend does not mark them completed. Category administration and report handling can be added behind audited admin routes when required.
 
-## Location and discovery — Phase 4 planned
+## Location and discovery — updates and discovery implemented
 
 `PUT /api/v1/vendors/me/location` requires the authenticated, verified vendor, online availability, and active sharing consent. The server checks its stored consent state; a submitted permission flag is only device telemetry.
 
@@ -94,6 +94,8 @@ Validation: latitude `[-90,90]`, longitude `[-180,180]`, timezone-aware timestam
 `GET /api/v1/vendors/nearby?latitude=13.0827&longitude=80.2707&radius_m=1500&limit=20&category_id=<uuid>` requires an active customer. Radius starts at 100–5,000 metres. Apply validated category filtering, `VERIFIED`, `is_available`, sharing consent and fresh accurate locations in the **database query**. The service never allows a client to include unverified/offline vendors by supplying filters. Use indexed PostGIS geography, bounded sorting by distance then ID, and an opaque cursor bound to the same search point/filter set and a short expiry. Discovery is changing data, not an immutable page snapshot; refresh rather than treating a cursor as a long-term list.
 
 Response items: `vendor_id`, `display_name`, `categories`, `approximate_location`, `distance_band_m`, `location_updated_at`. Discovery displays a coarse map region and distance band, not exact GPS or distance. Rate-limit searches and coordinate changes; rounding alone does not prevent triangulation. See DATABASE.md for metre-based query design.
+
+The implemented privacy policy uses a stable 0.01-degree grid for origins and vendor positions in filtering, ordering and distance bands, as well as display. A radius applies to this coarse region. See [location behavior and debugging](LOCATION.md) for limits, cursor binding and the indexed padded prefilter. Exact request-authorized tracking below is added with the visit workflow.
 
 `GET /api/v1/requests/{request_id}/vendor-location` returns `{ "latitude", "longitude", "accuracy_m", "captured_at" }` only to that request's customer while the request is active (`ACCEPTED`, `APPROACHING`, `ARRIVED`), the vendor is online/sharing, and the position remains fresh. A stale position returns an explicit unavailable result without a precise point. Return `404` to non-participants and `409 TRACKING_UNAVAILABLE` when an authorized request no longer qualifies. Check again for every read and outgoing socket event.
 

@@ -4,7 +4,7 @@ MyStreetVendor is a planned neighbourhood platform for discovering street vendor
 
 ## Scope
 
-The full MVP build is now approved and in progress. The foundation and core account/session APIs are implemented; see [current implementation status](docs/IMPLEMENTATION_STATUS.md) for tested coverage. The October handbook remains a dated Phase 0/1 learning edition. See [the roadmap](docs/ROADMAP.md) for the full product sequence.
+The full MVP build is approved and in progress. The foundation, accounts, vendor management and location/discovery APIs are implemented; see [current implementation status](docs/IMPLEMENTATION_STATUS.md) for tested coverage. The October handbook remains a dated Phase 0/1 learning edition. See [the roadmap](docs/ROADMAP.md) for the full product sequence.
 
 ## Design documents
 
@@ -19,6 +19,9 @@ For a guided explanation of everything built so far, read the [foundation handbo
 - [Roadmap and learning checkpoints](docs/ROADMAP.md)
 - [Every file and the request-to-database walkthrough](docs/FILE_GUIDE.md)
 - [Actual verification results and known limits](docs/VERIFICATION.md)
+- [Account recovery and local email](docs/AUTHENTICATION.md)
+- [Vendor approval and consent](docs/VENDORS.md)
+- [Location privacy, search and GPS simulator](docs/LOCATION.md)
 
 ## Phase 1 setup
 

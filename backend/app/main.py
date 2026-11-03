@@ -18,6 +18,7 @@ from app.auth.mailer import SMTPMailer
 from app.auth.recovery import router as recovery_router
 from app.vendors.router import router as vendors_router
 from app.admin.router import router as admin_router
+from app.location.router import router as location_router
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -41,6 +42,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(auth_router)
     app.include_router(recovery_router)
     app.include_router(users_router)
+    # Literal /vendors/nearby must precede /vendors/{vendor_id}.
+    app.include_router(location_router)
     app.include_router(vendors_router)
     app.include_router(admin_router)
     app.add_exception_handler(HTTPException, http_error)

@@ -15,6 +15,7 @@ RUN pip install --no-cache-dir -c requirements.lock ".[test]" \
 COPY alembic.ini ./
 COPY migrations ./migrations
 COPY tests ./tests
+COPY scripts ./scripts
 
 USER appuser
 EXPOSE 8000

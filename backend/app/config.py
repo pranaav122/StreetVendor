@@ -1,6 +1,8 @@
 """Read configuration from process variables or the root .env file."""
 
-from pydantic import EmailStr, Field, SecretStr
+import json
+
+from pydantic import EmailStr, Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.engine import URL
 from typing import Literal
@@ -35,7 +37,21 @@ class Settings(BaseSettings):
     smtp_starttls: bool = True
     public_customer_url: str = "http://127.0.0.1:8081"
     public_vendor_url: str = "http://127.0.0.1:8082"
-    service_area_geojson: str | None = None
+    service_area_geojson: str | None = Field(default=None, max_length=65536)
+
+    @field_validator("service_area_geojson")
+    @classmethod
+    def polygon_configuration(cls, value):
+        if value is None:
+            return value
+        try:
+            data = json.loads(value)
+            json.dumps(data, allow_nan=False)
+            if not isinstance(data, dict) or data.get("type") not in ("Polygon", "MultiPolygon") or not data.get("coordinates"):
+                raise ValueError("Expected polygon coordinates")
+        except (ValueError, TypeError):
+            raise ValueError("Provide finite GeoJSON Polygon or MultiPolygon geometry.") from None
+        return value
 
     @property
     def database_url(self) -> URL:
