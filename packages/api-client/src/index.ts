@@ -61,7 +61,8 @@ export class ApiClient {
       );
     this.origin = url.origin;
     this.store = config.store;
-    this.transport = config.fetch ?? fetch;
+    // Browsers require the Window receiver when native fetch is stored as a method.
+    this.transport = (config.fetch ?? globalThis.fetch).bind(globalThis);
     this.onSignedOut = config.onSignedOut;
   }
   private persist(operation: () => Promise<void>) {

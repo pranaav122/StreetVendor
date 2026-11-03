@@ -1,36 +1,10 @@
-import { ScrollView, Text } from "react-native";
-import { tokens } from "@mystreetvendor/design-tokens";
 import { useSession } from "../src/session";
+import { AuthScreen } from "../src/features/auth/AuthScreen";
+import { NearbyScreen } from "../src/features/discovery/NearbyScreen";
+import { Loading } from "../src/ui";
 
 export default function Home() {
-  const { ready, restoreError } = useSession();
-  return (
-    <ScrollView contentContainerStyle={{ padding: 24, gap: 16 }}>
-      <Text
-        accessibilityRole="header"
-        style={{
-          fontFamily: tokens.font.bold,
-          fontSize: 28,
-          lineHeight: 40,
-          color: tokens.color.text,
-        }}
-      >
-        MyStreetVendor
-      </Text>
-      <Text
-        style={{
-          fontFamily: tokens.font.regular,
-          fontSize: 16,
-          lineHeight: 26,
-        }}
-      >
-        {ready
-          ? "Application foundation ready. Feature screens are being built."
-          : "Restoring session…"}
-      </Text>
-      {restoreError ? (
-        <Text accessibilityRole="alert">{restoreError}</Text>
-      ) : null}
-    </ScrollView>
-  );
+  const { ready, user } = useSession();
+  if (!ready) return <Loading label="Restoring session…" />;
+  return user ? <NearbyScreen /> : <AuthScreen />;
 }

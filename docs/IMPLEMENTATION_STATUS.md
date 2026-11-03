@@ -16,6 +16,7 @@ The user approved completing the MVP on 2 November 2026. This file describes cur
 - Notifications: session-bound device ownership, transactional outbox, bounded leases/retries, project-separated Expo batches, guarded ticket/receipt processing and privacy cleanup. See [notification delivery](NOTIFICATIONS.md).
 - Application foundation: independent Expo SDK 58 Customer/Partner projects, native SecureStore adapters, memory-only browser sessions, strict response/event contracts, coordinated refresh, bounded realtime transport and per-app session/query providers. Feature screens are still pending.
 - Design: shared accessible tokens and documented bilingual screen states. The Figma draft has known clipping/spacing defects; Starter-plan tool quota blocked the corrective call. See [design handoff](DESIGN.md).
+- Customer first feature slice: registration/sign-in/reset request, permission-aware/manual meeting-point choice, category-filtered discovery, profile/language preferences, confirmation-mail request, sign-out and guarded account deletion. Vendor/visit/map/push screens remain in progress.
 - Comments explain the reasons for sensitive validation, locking, transaction commits, token hashes and cleanup.
 
 ## Latest executed checks
@@ -38,6 +39,8 @@ The user approved completing the MVP on 2 November 2026. This file describes cur
 - `scripts/Test-VisitWorkflow.ps1`: **1 passed in 3.81 seconds**, covering registration/approval, availability, coarse discovery, visit creation, a fake-provider ticket, acceptance, private tracking, two-fix arrival, completion and outsider denial through HTTP handlers with real PostgreSQL. It does not exercise a mobile device or a public server.
 - Application foundation: **16 shared-client tests passed**, strict TypeScript passed for shared packages and both apps, both web exports succeeded, and Expo Doctor passed **20/20 checks per app**. `expo install --check` reports compatible dependencies for each app.
 - npm audit currently reports **11 moderate findings** through Expo's `glob`/`minimatch` build-tool dependency chain. These require dependency/security review; no force downgrade was applied and no claim of a clean dependency audit is made.
+- Customer browser checks against the running local API: **3 passed in 14.3 seconds** (registration, denied-location manual search/sign-out, short-password validation and guarded deletion/revoked login). Shared client suite now has **17 passing tests**, including the reproduced browser fetch-receiver regression. A 390×844 preview was visually inspected for wrapping and spacing.
+- HTTP origin integration: **9 focused backend checks passed**, followed by the synthetic visit workflow (**1 passed in 2.61 seconds**). The rebuilt local API is healthy with browser preflight support.
 - `scripts/Test-LocalMail.ps1` passed with actual SMTP capture in Mailpit, token consumption, new-password login and synthetic-account deletion. This proves local delivery only.
 - Both location-update/offline and location-update/suspension races passed using actual PostgreSQL row locks. The synthetic planner test used the GiST bitmap index, and PostGIS distances matched the independent WGS84 fixtures within 2 centimetres.
 

@@ -36,6 +36,28 @@ const json = (value: unknown, status = 200) =>
     headers: { "Content-Type": "application/json" },
   });
 
+test("the default browser fetch keeps its global receiver", async () => {
+  const original = globalThis.fetch;
+  globalThis.fetch = async function (this: unknown) {
+    assert.equal(this, globalThis);
+    return json({ ok: true });
+  };
+  try {
+    const store: SessionStore = {
+      read: async () => null,
+      write: async () => {},
+      clear: async () => {},
+    };
+    const client = new ApiClient({ baseUrl: "https://api.example.com", store });
+    assert.deepEqual(
+      await client.request("/categories", { authenticated: false }),
+      { ok: true },
+    );
+  } finally {
+    globalThis.fetch = original;
+  }
+});
+
 test("concurrent unauthorized requests rotate once and retry with the new token", async () => {
   let refreshes = 0;
   const { client } = setup(async (url, init) => {

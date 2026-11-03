@@ -11,10 +11,12 @@
   },
   "scripts": {
     "test:client": "tsx --test packages/api-client/tests/*.test.ts",
+    "test:ui": "playwright test",
     "check:design": "node packages/design-tokens/check-contrast.mjs",
     "typecheck": "tsc -p packages/tsconfig.json --noEmit"
   },
   "devDependencies": {
+    "@playwright/test": "1.64.1",
     "@types/node": "^24.0.0",
     "prettier": "3.9.10",
     "tsx": "^4.21.0",

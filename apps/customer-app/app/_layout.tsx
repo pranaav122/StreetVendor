@@ -7,6 +7,7 @@ import {
 } from "@expo-google-fonts/noto-sans-tamil";
 import { tokens } from "@mystreetvendor/design-tokens";
 import { SessionProvider } from "../src/session";
+import { MeetingProvider } from "../src/features/discovery/meeting";
 
 export default function RootLayout() {
   const [loaded, error] = useFonts({
@@ -21,13 +22,16 @@ export default function RootLayout() {
     );
   return (
     <SessionProvider>
-      <Stack
-        screenOptions={{
-          headerStyle: { backgroundColor: tokens.color.background },
-          headerTintColor: tokens.color.text,
-          contentStyle: { backgroundColor: tokens.color.background },
-        }}
-      />
+      <MeetingProvider>
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            headerStyle: { backgroundColor: tokens.color.background },
+            headerTintColor: tokens.color.text,
+            contentStyle: { backgroundColor: tokens.color.background },
+          }}
+        />
+      </MeetingProvider>
     </SessionProvider>
   );
 }
