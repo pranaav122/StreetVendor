@@ -1,5 +1,105 @@
 export type Language = "en" | "ta";
 const tamil: Readonly<Record<string, string>> = {
+  "Customer visits": "வாடிக்கையாளர் சந்திப்புகள்",
+  "Active visits": "நடப்பு சந்திப்புகள்",
+  History: "வரலாறு",
+  "No past visits in the loaded results.":
+    "ஏற்றப்பட்ட முடிவுகளில் பழைய சந்திப்புகள் இல்லை.",
+  "No active visits in the loaded results.":
+    "ஏற்றப்பட்ட முடிவுகளில் நடப்பு சந்திப்புகள் இல்லை.",
+  "View visit": "சந்திப்பைப் பார்க்கவும்",
+  "Load more visits": "மேலும் சந்திப்புகளை ஏற்றவும்",
+  "Refresh visits": "சந்திப்புகளைப் புதுப்பிக்கவும்",
+  Visit: "சந்திப்பு",
+  "Visit pending": "காத்திருக்கும் சந்திப்பு",
+  "Visit accepted": "ஏற்கப்பட்ட சந்திப்பு",
+  "Visit approaching": "நெருங்கும் சந்திப்பு",
+  "Visit arrived": "வந்தடைந்த சந்திப்பு",
+  "Visit completed": "நிறைவடைந்த சந்திப்பு",
+  "Visit declined": "மறுக்கப்பட்ட சந்திப்பு",
+  "Visit cancelled": "ரத்து செய்யப்பட்ட சந்திப்பு",
+  "Visit expired": "காலாவதியான சந்திப்பு",
+  PENDING: "காத்திருக்கிறது",
+  ACCEPTED: "ஏற்கப்பட்டது",
+  APPROACHING: "நெருங்குகிறது",
+  ARRIVED: "வந்தடைந்தது",
+  COMPLETED: "நிறைவடைந்தது",
+  DECLINED: "மறுக்கப்பட்டது",
+  CANCELLED: "ரத்து செய்யப்பட்டது",
+  EXPIRED: "காலாவதியானது",
+  VERIFIED: "சரிபார்க்கப்பட்டது",
+  REJECTED: "நிராகரிக்கப்பட்டது",
+  SUSPENDED: "இடைநிறுத்தப்பட்டது",
+  Status: "நிலை",
+  "Meeting point": "சந்திப்பு இடம்",
+  "Selected public point": "தேர்ந்தெடுத்த பொது இடம்",
+  Deadline: "காலக்கெடு",
+  Latitude: "அட்சரேகை",
+  Longitude: "தீர்க்கரேகை",
+  "Opening maps shares this meeting point with the map provider.":
+    "வரைபடத்தைத் திறந்தால் இந்தச் சந்திப்பு இடம் வரைபட வழங்குநருடன் பகிரப்படும்.",
+  "Open meeting point in maps": "சந்திப்பு இடத்தை வரைபடத்தில் திறக்கவும்",
+  "Arrival needs two accurate server-received location fixes at least five seconds apart near the meeting point. Keep sharing on while travelling.":
+    "வந்தடைந்ததை உறுதிசெய்ய சந்திப்பு இடத்திற்கு அருகில் குறைந்தது ஐந்து நொடிகள் இடைவெளியில் இரண்டு துல்லியமான இருப்பிடங்கள் சேவையகத்தை அடைய வேண்டும். பயணிக்கும்போது இருப்பிடப் பகிர்வை இயக்கி வைக்கவும்.",
+  Reason: "காரணம்",
+  "Accept visit": "சந்திப்பை ஏற்கவும்",
+  "Decline visit": "சந்திப்பை மறுக்கவும்",
+  "Mark approaching": "நெருங்குவதாகக் குறிக்கவும்",
+  "Complete visit": "சந்திப்பை நிறைவு செய்யவும்",
+  "Cancel visit": "சந்திப்பை ரத்து செய்யவும்",
+  "Refresh visit": "சந்திப்பைப் புதுப்பிக்கவும்",
+  "Retry visit": "சந்திப்பை மீண்டும் ஏற்றவும்",
+  "Invalid visit link.": "தவறான சந்திப்பு இணைப்பு.",
+  "Refresh this visit before changing it.":
+    "மாற்றுவதற்கு முன் இந்தச் சந்திப்பைப் புதுப்பிக்கவும்.",
+  "Enter a reason before declining or cancelling.":
+    "மறுப்பதற்கு அல்லது ரத்து செய்வதற்கு முன் காரணத்தை உள்ளிடவும்.",
+  "The request has changed. Refresh its current state.":
+    "கோரிக்கை மாற்றப்பட்டுள்ளது. தற்போதைய நிலையைப் புதுப்பிக்கவும்.",
+  "This visit is complete. No purchase or payment was recorded.":
+    "இந்தச் சந்திப்பு நிறைவடைந்தது. வாங்குதல் அல்லது பணம் செலுத்துதல் பதிவு செய்யப்படவில்லை.",
+  "Report a problem with this visit":
+    "இந்தச் சந்திப்பில் உள்ள சிக்கலைப் புகாரளிக்கவும்",
+  Safety: "பாதுகாப்பு",
+  "No show": "வரவில்லை",
+  Other: "மற்றவை",
+  "Report details": "புகார் விவரங்கள்",
+  "Send report": "புகாரை அனுப்பவும்",
+  "Report sent.": "புகார் அனுப்பப்பட்டது.",
+  "Use at least 10 characters to describe the problem.":
+    "சிக்கலைக் குறைந்தது 10 எழுத்துகளில் விவரிக்கவும்.",
+  "Go online and share location": "ஆன்லைனில் சென்று இருப்பிடத்தைப் பகிரவும்",
+  "Go offline": "ஆஃப்லைனில் செல்லவும்",
+  "Getting your location…": "உங்கள் இருப்பிடம் பெறப்படுகிறது…",
+  "Allow background location": "பின்னணி இருப்பிடத்தை அனுமதிக்கவும்",
+  "Location sharing is active on this device.":
+    "இந்தச் சாதனத்தில் இருப்பிடப் பகிர்வு இயங்குகிறது.",
+  "Your business is online. This device has not started location updates.":
+    "உங்கள் வணிகம் ஆன்லைனில் உள்ளது. இந்தச் சாதனத்தில் இருப்பிடப் புதுப்பிப்புகள் தொடங்கப்படவில்லை.",
+  "Your exact location is shared only with an accepted customer visit. Nearby searches show an approximate area.":
+    "ஏற்கப்பட்ட வாடிக்கையாளர் சந்திப்பில் மட்டும் உங்கள் துல்லியமான இருப்பிடம் பகிரப்படும். அருகிலுள்ள தேடல்களில் தோராயமான பகுதி காட்டப்படும்.",
+  "Keep this screen open for foreground location updates. Background sharing requires a native development build and separate permission.":
+    "இருப்பிடப் புதுப்பிப்புகளுக்கு இந்தத் திரையைத் திறந்து வைக்கவும். பின்னணிப் பகிர்வுக்கு நிறுவப்பட்ட செயலியும் தனி அனுமதியும் தேவை.",
+  "Background sharing is enabled for your next online session. It pauses when access expires; open Partner and go online again. Phone settings can stop updates.":
+    "அடுத்த ஆன்லைன் அமர்வுக்குப் பின்னணிப் பகிர்வு இயக்கப்பட்டுள்ளது. அணுகல் காலாவதியானால் பகிர்வு இடைநிறுத்தப்படும்; செயலியைத் திறந்து மீண்டும் ஆன்லைனில் செல்லவும். தொலைபேசி அமைப்புகள் புதுப்பிப்புகளை நிறுத்தக்கூடும்.",
+  "Background location needs a native development build. Browser sharing works while this screen stays open.":
+    "பின்னணி இருப்பிடத்துக்கு நிறுவப்பட்ட செயலி தேவை. இந்தத் திரை திறந்திருக்கும் வரை உலாவியில் பகிரலாம்.",
+  "Background permission was not granted. You can use foreground sharing instead.":
+    "பின்னணி அனுமதி வழங்கப்படவில்லை. திரை திறந்திருக்கும் போது பகிரலாம்.",
+  "Location permission is required to go online. You can stay offline.":
+    "ஆன்லைனில் செல்ல இருப்பிட அனுமதி தேவை. நீங்கள் ஆஃப்லைனில் இருக்கலாம்.",
+  "Wait for an accurate, recent location and try again.":
+    "துல்லியமான சமீபத்திய இருப்பிடம் கிடைக்கும் வரை காத்திருந்து மீண்டும் முயற்சிக்கவும்.",
+  "Location sharing paused on this device.":
+    "இந்தச் சாதனத்தில் இருப்பிடப் பகிர்வு இடைநிறுத்தப்பட்டது.",
+  "No recent location update. Stale points are hidden; check location and connection.":
+    "சமீபத்திய இருப்பிடம் கிடைக்கவில்லை. பழைய இருப்பிடங்கள் மறைக்கப்படும்; இருப்பிடத்தையும் இணைப்பையும் சரிபார்க்கவும்.",
+  "Location update failed. Check your connection; stale points are hidden.":
+    "இருப்பிடப் புதுப்பிப்பு தோல்வியடைந்தது. இணைப்பைச் சரிபார்க்கவும்; பழைய இருப்பிடங்கள் மறைக்கப்படும்.",
+  "Sharing paused. Check your account and go online again.":
+    "பகிர்வு இடைநிறுத்தப்பட்டது. கணக்கைச் சரிபார்த்து மீண்டும் ஆன்லைனில் செல்லவும்.",
+  "Device sharing stopped. Server offline confirmation failed; retry going offline.":
+    "சாதனத்தில் பகிர்வு நிறுத்தப்பட்டது. சேவையகத்தின் ஆஃப்லைன் உறுதிப்படுத்தல் தோல்வியடைந்தது; மீண்டும் ஆஃப்லைனில் செல்ல முயற்சிக்கவும்.",
   Home: "முகப்பு",
   Visits: "சந்திப்புகள்",
   Profile: "வணிக விவரம்",
@@ -57,20 +157,14 @@ const tamil: Readonly<Record<string, string>> = {
   "You are offline. Your location is not being shared.":
     "நீங்கள் ஆஃப்லைனில் உள்ளீர்கள். உங்கள் இருப்பிடம் பகிரப்படவில்லை.",
   "Go online": "ஆன்லைனில் செல்லவும்",
-  "Go offline": "ஆஃப்லைனில் செல்லவும்",
   "Refresh business": "வணிக நிலையைப் புதுப்பிக்கவும்",
   "Set up location sharing on this device before going online.":
     "ஆன்லைனில் செல்லும் முன் இந்தச் சாதனத்தில் இருப்பிடப் பகிர்வை அமைக்கவும்.",
   "Visit counts are not sales or earnings. The day uses India time.":
     "இவை சந்திப்பு எண்ணிக்கைகள் மட்டுமே; விற்பனையோ வருமானமோ அல்ல. நாள் இந்திய நேரத்தின் அடிப்படையில் கணக்கிடப்படுகிறது.",
-  "Active visits": "நடப்பு சந்திப்புகள்",
   "Pending visits": "காத்திருக்கும் சந்திப்புகள்",
   "Completed visits today": "இன்று முடிந்த சந்திப்புகள்",
   "Review status": "சரிபார்ப்பு நிலை",
-  PENDING: "காத்திருக்கிறது",
-  VERIFIED: "சரிபார்க்கப்பட்டது",
-  REJECTED: "மறுக்கப்பட்டது",
-  SUSPENDED: "இடைநிறுத்தப்பட்டது",
   "Sign out": "வெளியேறவும்",
   Retry: "மீண்டும் முயற்சிக்கவும்",
   "No product categories are configured. Contact the operator.":

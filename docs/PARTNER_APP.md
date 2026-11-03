@@ -30,7 +30,36 @@ then asks the server to erase the point. Signing out also stops the sensor; the
 backend logout transaction hides the business and removes its exact point.
 Stale updates are visibly degraded after 90 seconds. Native foreground sharing
 stops when the app leaves the foreground unless background sharing was explicitly enabled.
-Visit management, complete account recovery and device verification remain in progress.
+Complete account recovery and device verification remain in progress.
+
+## Visit management checkpoint
+
+The inbox separates active visits from loaded history and supports pagination.
+Each detail screen reads the server's allowed actions and sends its current
+version with accept, decline, approach, cancel or complete. Declining and
+cancelling require a reason in this interface. A conflict displays the backend
+message and reloads committed state; the interface never invents a successful
+transition. Active details poll and the session's authenticated socket invalidates
+visit queries after events or reconnect.
+
+Accepted, approaching and arrived visits show the public meeting point and an
+explicit external-map button. Opening it shares that point with Apple Maps on
+iOS or Google Maps elsewhere. Terminal visits hide those controls. Arrival still
+requires the backend's two accurate fixes separated by five seconds; there is no
+manual arrival shortcut. Participants can submit a categorized report. Completed
+visit counts remain separate from purchases or payments.
+
+English/Tamil labels cover visit actions, states and sharing controls. In the
+390-pixel browser check, the Tamil dashboard preserves the entered business name,
+wraps text and keeps the primary control at least 52 pixels tall. The preview was
+visually inspected; physical-device wording/accessibility review is pending.
+
+Visit verification: **3 browser cases passed in 37.4 seconds**, covering real
+acceptance/approach/two-fix arrival/completion/history, decline with persisted
+reason, and competing decisions through two real API sessions. The Tamil browser
+case passed separately in **24.8 seconds**. Partner policy tests now pass **14
+cases**; shared/Partner strict checks and the Partner web export pass. External
+map launching and physical GPS remain unverified on phones.
 
 ## Native background adapter
 
