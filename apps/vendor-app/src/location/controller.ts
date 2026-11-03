@@ -75,6 +75,10 @@ export class SharingController {
       await this.driver.online(fix);
       published = true;
       if (epoch !== this.epoch) return;
+      // Some sensors invoke their callback before subscription setup resolves.
+      // The first fix is already committed; do not publish it a second time.
+      this.lastAttempt = this.driver.now();
+      this.change("STARTING", null, fix.captured_at);
       const stop = await this.driver.watch((next) => {
         void this.upload(next, epoch);
       });
@@ -83,7 +87,6 @@ export class SharingController {
         return;
       }
       this.stop = stop;
-      this.lastAttempt = this.driver.now();
       this.change("ONLINE", null, fix.captured_at);
     } catch (error) {
       if (published) await this.driver.offline().catch(() => {});

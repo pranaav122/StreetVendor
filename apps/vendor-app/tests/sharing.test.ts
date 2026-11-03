@@ -12,6 +12,27 @@ const fix: Fix = {
   accuracy_m: 10,
   captured_at: new Date(now).toISOString(),
 };
+test("a sensor's immediate first callback does not republish the online first fix", async () => {
+  const calls: string[] = [];
+  const controller = new SharingController({
+    now: () => now,
+    first: async () => fix,
+    watch: async (next) => {
+      next(fix);
+      return () => {};
+    },
+    online: async () => {
+      calls.push("online");
+    },
+    upload: async () => {
+      calls.push("duplicate");
+    },
+    offline: async () => {},
+    changed: () => {},
+  });
+  await controller.online();
+  assert.deepEqual(calls, ["online"]);
+});
 test("retrying degraded sharing replaces the old sensor instead of duplicating it", async () => {
   let clock = now;
   let send!: (fix: Fix) => void;
