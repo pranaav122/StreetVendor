@@ -176,3 +176,18 @@ With this isolation, all **21 combined Customer/Partner browser cases passed in
 loopback login counter was exhausted. The helper's rejection of the actual
 development database name was also verified, and the automatic fixture passes
 strict standalone TypeScript checking.
+
+## SDK compatibility follow-up
+
+A fresh Doctor run then found newly required SDK-compatible versions. Both apps
+now use Expo **58.0.23**, Router **58.0.30**, Constants **58.0.15**, Linking
+**58.0.16**, Notifications **58.1.8** and Safe Area Context **5.11.1**. Both Doctor
+runs pass **20/20**, and both apps export web plus iOS/Android Hermes bundles
+(about 3.8 MB each native bundle). Shared and both app strict checks pass, as do
+22 shared, 6 Customer and 17 Partner policy cases. Three updated-SDK browser cases
+passed in **1.0 minute**, covering the joint GPS workflow and both Tamil layouts.
+
+The updated lockfile reports **five moderate npm audit findings** through Expo
+build tooling (`glob`/`minimatch` and their dependents). No forced SDK downgrade was
+applied. These findings remain for the final dependency/security review; this is
+not a clean audit or a native release/signing result.
