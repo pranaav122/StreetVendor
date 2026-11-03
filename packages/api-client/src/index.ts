@@ -29,6 +29,7 @@ type Config = {
   fetch?: typeof fetch;
   onSignedOut?: () => void | Promise<void>;
   allowInsecureDevelopment?: boolean;
+  refreshOnUnauthorized?: boolean;
 };
 
 export class ApiClient {
@@ -43,6 +44,7 @@ export class ApiClient {
   private generation = 0;
   private refreshPromise?: Promise<TokenPair>;
   private persistence: Promise<void> = Promise.resolve();
+  private readonly refreshOnUnauthorized: boolean;
 
   constructor(config: Config) {
     const url = new URL(config.baseUrl);
@@ -64,6 +66,7 @@ export class ApiClient {
     // Browsers require the Window receiver when native fetch is stored as a method.
     this.transport = (config.fetch ?? globalThis.fetch).bind(globalThis);
     this.onSignedOut = config.onSignedOut;
+    this.refreshOnUnauthorized = config.refreshOnUnauthorized !== false;
   }
   private persist(operation: () => Promise<void>) {
     const pending = this.persistence.catch(() => {}).then(operation);
@@ -223,7 +226,13 @@ export class ApiClient {
       authenticated ? sent?.access_token : undefined,
     );
     if (authenticated && generation !== this.generation) throw this.changed();
-    if (authenticated && response.status === 401) {
+    // Headless runtimes cannot share the foreground refresh lock. They must
+    // leave shared credentials untouched and let the foreground renew them.
+    if (
+      authenticated &&
+      response.status === 401 &&
+      this.refreshOnUnauthorized
+    ) {
       // A delayed 401 may belong to the token another request already replaced.
       const tokens =
         this.current?.access_token !== sent?.access_token

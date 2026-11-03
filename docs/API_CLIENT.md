@@ -31,3 +31,13 @@ Each app owns its session provider and separate SecureStore key. The shared stor
 The API applies the configured origin allowlist to HTTP browser requests as well as sockets. It allows bearer/JSON/idempotency preflights and does not enable cross-origin cookies. Local Customer/Partner origins on ports 8081/8082 are listed explicitly. Production must supply its actual web origins. CORS supplements authentication; native programs can make requests without a browser Origin header and still require valid authorization.
 
 The selected mobile baseline is Expo SDK 58. The current official [workspace guide](https://docs.expo.dev/guides/monorepos/) and [Router installation guide](https://docs.expo.dev/router/installation/) govern package setup; native dependency compatibility is checked with `expo install` for each app.
+# Headless location clients
+
+The Partner background location adapter can construct an access-only client with
+`refreshOnUnauthorized: false`. A rejected access token produces the original
+401 without retrying, rotating refresh tokens or clearing SecureStore. Foreground
+clients keep the default coordinated refresh behaviour. Separate native runtimes
+cannot share a JavaScript refresh lock, so the background adapter must pause and
+leave renewal to the foreground. With the current 600-second access lifetime,
+background-only updates are limited to the remaining access lifetime.
+
