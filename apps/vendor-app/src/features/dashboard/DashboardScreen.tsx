@@ -13,6 +13,7 @@ import {
   errorMessage,
 } from "../../ui";
 import { ownBusiness } from "../profile/queries";
+import { useSharing } from "../../location/provider";
 const summarySchema = z.object({
   active_visits: z.number().int().nonnegative(),
   pending_visits: z.number().int().nonnegative(),
@@ -22,6 +23,7 @@ const summarySchema = z.object({
 export function DashboardScreen() {
   const { client } = useSession();
   const { text } = useCopy();
+  const { controller, state } = useSharing();
   const profile = useQuery({
     queryKey: ["vendor", "own"],
     queryFn: ({ signal }) => ownBusiness(client, signal),
@@ -91,15 +93,45 @@ export function DashboardScreen() {
           </Card>
           <Card>
             <Body copy>
-              {row.is_available
-                ? "Your business is online. This device has not started location updates."
-                : "You are offline. Your location is not being shared."}
+              {state.status === "ONLINE"
+                ? "Location sharing is active on this device."
+                : row.is_available
+                  ? "Your business is online. This device has not started location updates."
+                  : "You are offline. Your location is not being shared."}
             </Body>
+            <Problem message={state.message} />
             {row.verification_status === "VERIFIED" ? (
-              <Body copy>
-                Set up location sharing on this device before going online.
-              </Body>
+              <>
+                <Body copy>
+                  Your exact location is shared only with an accepted customer
+                  visit. Nearby searches show an approximate area.
+                </Body>
+                <Body copy>
+                  Keep this screen open for foreground location updates.
+                  Background location setup is still in progress.
+                </Body>
+                <Button
+                  label={
+                    state.status === "STARTING"
+                      ? "Getting your location…"
+                      : "Go online and share location"
+                  }
+                  disabled={
+                    state.status === "STARTING" || state.status === "ONLINE"
+                  }
+                  onPress={() => {
+                    void controller.online().catch(() => {});
+                  }}
+                />
+              </>
             ) : null}
+            <Button
+              label="Go offline"
+              secondary
+              onPress={() => {
+                void controller.offline().catch(() => {});
+              }}
+            />
           </Card>
           {summary.data ? (
             <Card>

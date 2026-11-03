@@ -13,6 +13,7 @@ import * as Crypto from "expo-crypto";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ApiClient, ApiError } from "@mystreetvendor/api-client";
 import { createSessionStore } from "@mystreetvendor/api-client/src/storage";
+import { stopDeviceSharing } from "./location/lifecycle";
 import {
   RealtimeClient,
   type SocketLike,
@@ -81,6 +82,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
         store,
         allowInsecureDevelopment: __DEV__,
         onSignedOut: async () => {
+          await stopDeviceSharing();
           socketRef.current?.stop();
           // Cancel before clearing so a late request cannot repopulate private data.
           await queries.cancelQueries();
@@ -167,6 +169,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
     await reloadUser();
   }
   async function signOut() {
+    await stopDeviceSharing();
     try {
       await client.request("/auth/logout", { method: "POST" });
     } finally {

@@ -16,6 +16,7 @@
     "api-client/**/*.ts",
     "shared-types/**/*.ts",
     "design-tokens/index.ts",
-    "../apps/customer-app/tests/**/*.ts"
+    "../apps/customer-app/tests/**/*.ts",
+    "../apps/vendor-app/tests/**/*.ts"
   ]
 }

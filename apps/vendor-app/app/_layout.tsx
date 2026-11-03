@@ -8,6 +8,7 @@ import {
 import { tokens } from "@mystreetvendor/design-tokens";
 import { SessionProvider } from "../src/session";
 import { LanguageProvider } from "../src/language";
+import { SharingProvider } from "../src/location/provider";
 
 export default function RootLayout() {
   const [loaded, error] = useFonts({
@@ -23,14 +24,16 @@ export default function RootLayout() {
   return (
     <SessionProvider>
       <LanguageProvider>
-        <Stack
-          screenOptions={{
-            headerShown: false,
-            headerStyle: { backgroundColor: tokens.color.background },
-            headerTintColor: tokens.color.text,
-            contentStyle: { backgroundColor: tokens.color.background },
-          }}
-        />
+        <SharingProvider>
+          <Stack
+            screenOptions={{
+              headerShown: false,
+              headerStyle: { backgroundColor: tokens.color.background },
+              headerTintColor: tokens.color.text,
+              contentStyle: { backgroundColor: tokens.color.background },
+            }}
+          />
+        </SharingProvider>
       </LanguageProvider>
     </SessionProvider>
   );

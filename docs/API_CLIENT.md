@@ -40,4 +40,3 @@ clients keep the default coordinated refresh behaviour. Separate native runtimes
 cannot share a JavaScript refresh lock, so the background adapter must pause and
 leave renewal to the foreground. With the current 600-second access lifetime,
 background-only updates are limited to the remaining access lifetime.
-
