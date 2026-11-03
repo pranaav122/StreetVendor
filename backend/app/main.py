@@ -2,6 +2,7 @@
 
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+import asyncio
 
 from fastapi import FastAPI
 from fastapi import HTTPException
@@ -19,6 +20,8 @@ from app.auth.recovery import router as recovery_router
 from app.vendors.router import router as vendors_router
 from app.admin.router import router as admin_router
 from app.location.router import router as location_router
+from app.visits.router import router as visits_router
+from app.jobs import run_jobs
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -28,15 +31,25 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+        app.state.jobs_stop = asyncio.Event()
+        worker = asyncio.create_task(run_jobs(app)) if settings.jobs_enabled else None
         try:
             yield
         finally:
-            engine.dispose()
+            try:
+                if worker:
+                    # Let the current bounded DB transaction finish before disposing its pool.
+                    app.state.jobs_stop.set()
+                    await worker
+            finally:
+                # A failed worker must not prevent cleanup of pooled connections.
+                engine.dispose()
 
     app = FastAPI(title="MyStreetVendor API", version="0.1.0", lifespan=lifespan)
     app.state.engine = engine
     app.state.settings = settings
     app.state.mailer = SMTPMailer(settings)
+    app.state.arrival_candidates = {}
     app.state.session_factory = sessionmaker(bind=engine, autoflush=False)
     app.include_router(router)
     app.include_router(auth_router)
@@ -46,6 +59,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(location_router)
     app.include_router(vendors_router)
     app.include_router(admin_router)
+    app.include_router(visits_router)
     app.add_exception_handler(HTTPException, http_error)
     app.add_exception_handler(RequestValidationError, validation_error)
     return app

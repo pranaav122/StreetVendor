@@ -11,6 +11,7 @@ from app.users.schemas import DeleteInput, ProfileInput
 from app.models.vendors import VendorProfile, VendorVerification
 from app.vendors.service import hide_vendor
 from app.models.mail_tokens import MailToken
+from app.visits.privacy import erase_account_visits
 
 router = APIRouter(prefix="/api/v1/users", tags=["accounts"])
 
@@ -39,14 +40,25 @@ def delete_me(payload: DeleteInput, request: Request, user: CurrentUser, session
     # Keep a nonidentifying row for future visit foreign keys, but revoke access immediately.
     user.status, user.email, user.display_name = "DELETED", None, "Deleted account"
     user.deleted_at = user.updated_at = utcnow()
-    vendor = session.scalar(select(VendorProfile).where(VendorProfile.user_id == user.id).with_for_update())
+    vendor = session.scalar(
+        select(VendorProfile).where(VendorProfile.user_id == user.id).with_for_update()
+    )
     if vendor:
         hide_vendor(session, vendor, anonymize=True)
-        session.execute(update(VendorVerification).where(VendorVerification.vendor_id == vendor.id)
-                        .values(evidence_note="Erased on account deletion"))
+        session.execute(
+            update(VendorVerification)
+            .where(VendorVerification.vendor_id == vendor.id)
+            .values(evidence_note="Erased on account deletion")
+        )
+    ended_visits = erase_account_visits(session, user, vendor)
     session.execute(delete(MailToken).where(MailToken.user_id == user.id))
     session.execute(delete(UserCredential).where(UserCredential.user_id == user.id))
-    session.execute(update(RefreshSession).where(RefreshSession.user_id == user.id)
-                    .values(revoked_at=utcnow()))
+    session.execute(
+        update(RefreshSession)
+        .where(RefreshSession.user_id == user.id)
+        .values(revoked_at=utcnow())
+    )
     session.commit()
+    for request_id in ended_visits:
+        request.app.state.arrival_candidates.pop(request_id, None)
     return {"status": "accepted"}

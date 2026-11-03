@@ -16,9 +16,20 @@ Customer = Annotated[User, Depends(require_role("customer"))]
 @router.put("/me/location")
 def location(payload: LocationInput, request: Request, session: Db, user: Vendor):
     consume_limit(request, str(user.id), "location-update", 120)
-    return record_fix(session, user, payload, request.app.state.settings)
+    return record_fix(
+        session,
+        user,
+        payload,
+        request.app.state.settings,
+        request.app.state.arrival_candidates,
+    )
 
 
 @router.get("/nearby", response_model=VendorPage)
-def discovery(search: Annotated[SearchInput, Query()], request: Request, session: Db, user: Customer):
+def discovery(
+    search: Annotated[SearchInput, Query()],
+    request: Request,
+    session: Db,
+    user: Customer,
+):
     return nearby(session, user, search, request)

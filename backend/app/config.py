@@ -26,6 +26,7 @@ class Settings(BaseSettings):
     auth_login_limit: int = Field(default=5, ge=1, le=100)
     auth_register_limit: int = Field(default=10, ge=1, le=100)
     auth_recent_seconds: int = Field(default=300, ge=1, le=600)
+    vendor_active_request_limit: int = Field(default=100, ge=1, le=100)
     environment: Literal["development", "test", "production"] = "development"
     jobs_enabled: bool = False
     smtp_host: str | None = None
@@ -47,10 +48,16 @@ class Settings(BaseSettings):
         try:
             data = json.loads(value)
             json.dumps(data, allow_nan=False)
-            if not isinstance(data, dict) or data.get("type") not in ("Polygon", "MultiPolygon") or not data.get("coordinates"):
+            if (
+                not isinstance(data, dict)
+                or data.get("type") not in ("Polygon", "MultiPolygon")
+                or not data.get("coordinates")
+            ):
                 raise ValueError("Expected polygon coordinates")
         except (ValueError, TypeError):
-            raise ValueError("Provide finite GeoJSON Polygon or MultiPolygon geometry.") from None
+            raise ValueError(
+                "Provide finite GeoJSON Polygon or MultiPolygon geometry."
+            ) from None
         return value
 
     @property

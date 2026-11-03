@@ -1,6 +1,6 @@
 # API contracts
 
-Original design dated 21 October 2026; implementation update 3 November 2026. Health, authentication/own-account, vendor management and location/discovery routes are implemented. Visit, notification and WebSocket contracts remain planned until their implementation slices pass. See `IMPLEMENTATION_STATUS.md` and generated Swagger for actual coverage.
+Original design dated 21 October 2026; implementation update 3 November 2026. Health, authentication/own-account, vendor management, location/discovery and visit routes are implemented. Notification and WebSocket contracts remain planned until their implementation slices pass. See `IMPLEMENTATION_STATUS.md` and generated Swagger for actual coverage.
 
 ## Phase 1: health
 
@@ -99,7 +99,7 @@ The implemented privacy policy uses a stable 0.01-degree grid for origins and ve
 
 `GET /api/v1/requests/{request_id}/vendor-location` returns `{ "latitude", "longitude", "accuracy_m", "captured_at" }` only to that request's customer while the request is active (`ACCEPTED`, `APPROACHING`, `ARRIVED`), the vendor is online/sharing, and the position remains fresh. A stale position returns an explicit unavailable result without a precise point. Return `404` to non-participants and `409 TRACKING_UNAVAILABLE` when an authorized request no longer qualifies. Check again for every read and outgoing socket event.
 
-## Visit requests — Phase 5 planned
+## Visit requests — implemented
 
 | Method and path | Actor | Input / validation | Success |
 |---|---|---|---|

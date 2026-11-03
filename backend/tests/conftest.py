@@ -27,6 +27,7 @@ def settings() -> Settings:
         postgres_host="127.0.0.1",
         postgres_port=5432,
         db_connect_timeout_seconds=3,
+        jobs_enabled=False,
     )
 
 
@@ -62,7 +63,8 @@ def database_sandbox() -> Iterator[DatabaseSandbox]:
     database_name = f"msv_test_{uuid4().hex}"
     assert re.fullmatch(r"msv_test_[0-9a-f]{32}", database_name)
     sandbox_settings = development_settings.model_copy(
-        update={"postgres_db": database_name}
+        # Background workers are enabled only by tests that explicitly exercise them.
+        update={"postgres_db": database_name, "jobs_enabled": False}
     )
     admin_engine = create_engine(
         development_settings.database_url.set(database="postgres"),

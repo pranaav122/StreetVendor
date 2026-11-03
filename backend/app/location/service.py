@@ -1,4 +1,5 @@
 """Exact writes and deliberately coarse discovery are separate operations."""
+
 import hashlib
 import hmac
 import json
@@ -47,85 +48,167 @@ ORDER BY distance,id LIMIT :limit
 """
 
 
-def record_fix(session, actor, payload, settings):
+def record_fix(session, actor, payload, settings, candidate_store=None):
     vendor = lock_vendor(session, actor.id)
     if vendor.verification_status != "VERIFIED":
-        raise problem(403, "VENDOR_NOT_VERIFIED", "Staff approval is required before sharing location.")
+        raise problem(
+            403,
+            "VENDOR_NOT_VERIFIED",
+            "Staff approval is required before sharing location.",
+        )
     if not vendor.is_available or not vendor.location_sharing_enabled:
-        raise problem(409, "LOCATION_SHARING_DISABLED", "Go online before updating location.")
+        raise problem(
+            409, "LOCATION_SHARING_DISABLED", "Go online before updating location."
+        )
     fix = validate_fix(payload, utcnow())
     validate_service_area(session, fix, settings)
     write_location(session, vendor.id, fix)
+    from app.visits.arrival import evaluate_arrival
+
+    evaluate_arrival(
+        session,
+        vendor,
+        fix,
+        candidate_store if candidate_store is not None else {},
+        utcnow(),
+    )
     session.commit()
     return {"captured_at": fix.captured_at, "tracking_status": "SHARING"}
 
 
 def grid_coordinate(value):
-    return math.floor(value*100+.5)/100
+    return math.floor(value * 100 + 0.5) / 100
 
 
 def cursor_binding(actor, search):
     data = search.model_dump(mode="json", exclude={"cursor"}) | {"actor": str(actor.id)}
-    return hashlib.sha256(json.dumps(data, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+    return hashlib.sha256(
+        json.dumps(data, sort_keys=True, separators=(",", ":")).encode()
+    ).hexdigest()
 
 
 def read_cursor(raw, binding, settings):
     try:
-        claims = jwt.decode(raw, signing_key(settings), algorithms=["HS256"], audience="nearby-cursor",
-                            issuer=settings.jwt_issuer, options={"require": ["exp", "binding", "distance", "id"]})
+        claims = jwt.decode(
+            raw,
+            signing_key(settings),
+            algorithms=["HS256"],
+            audience="nearby-cursor",
+            issuer=settings.jwt_issuer,
+            options={"require": ["exp", "binding", "distance", "id"]},
+        )
         if claims["binding"] != binding:
             raise ValueError("Different search")
         return claims["distance"], claims["id"]
     except (jwt.InvalidTokenError, ValueError, TypeError):
-        raise problem(422, "INVALID_CURSOR", "Refresh this search to continue.") from None
+        raise problem(
+            422, "INVALID_CURSOR", "Refresh this search to continue."
+        ) from None
 
 
 def limit_search_origin(request, actor, latitude, longitude):
     settings = request.app.state.settings
     now = utcnow()
-    period = int(now.timestamp())//900
-    prefix = hmac.new(signing_key(settings).encode(), f"origin:{actor.id}:{period}".encode(), hashlib.sha256).hexdigest()[:32]
+    period = int(now.timestamp()) // 900
+    prefix = hmac.new(
+        signing_key(settings).encode(),
+        f"origin:{actor.id}:{period}".encode(),
+        hashlib.sha256,
+    ).hexdigest()[:32]
     suffix = hashlib.sha256(f"{latitude}:{longitude}".encode()).hexdigest()[:32]
     key = f"{prefix}:{suffix}"
     # A short advisory lock serializes distinct-origin counting across API requests.
     # Stored keys are keyed hashes, so abuse limits don't become a location history.
     with request.app.state.engine.begin() as connection:
-        connection.execute(text("SELECT pg_advisory_xact_lock(hashtextextended(:prefix,0))"), {"prefix": prefix})
-        exists = connection.scalar(select(RateLimitBucket.key).where(RateLimitBucket.key == key))
+        connection.execute(
+            text("SELECT pg_advisory_xact_lock(hashtextextended(:prefix,0))"),
+            {"prefix": prefix},
+        )
+        exists = connection.scalar(
+            select(RateLimitBucket.key).where(RateLimitBucket.key == key)
+        )
         if exists is None:
-            count = connection.scalar(text("SELECT count(*) FROM rate_limit_buckets WHERE key LIKE :prefix"), {"prefix": prefix+":%"})
+            count = connection.scalar(
+                text("SELECT count(*) FROM rate_limit_buckets WHERE key LIKE :prefix"),
+                {"prefix": prefix + ":%"},
+            )
             if count >= 10:
-                raise problem(429, "SEARCH_AREA_LIMIT", "Wait before changing the search area again.", {"Retry-After": "900"})
-            connection.execute(insert(RateLimitBucket).values(key=key, count=1, expires_at=now+timedelta(minutes=15)))
+                raise problem(
+                    429,
+                    "SEARCH_AREA_LIMIT",
+                    "Wait before changing the search area again.",
+                    {"Retry-After": "900"},
+                )
+            connection.execute(
+                insert(RateLimitBucket).values(
+                    key=key, count=1, expires_at=now + timedelta(minutes=15)
+                )
+            )
 
 
 def nearby(session, actor, search, request):
     settings = request.app.state.settings
     validate_service_area(session, search, settings)
     consume_limit(request, str(actor.id), "discovery", 60)
-    latitude, longitude = grid_coordinate(search.latitude), grid_coordinate(search.longitude)
+    latitude, longitude = (
+        grid_coordinate(search.latitude),
+        grid_coordinate(search.longitude),
+    )
     limit_search_origin(request, actor, latitude, longitude)
     binding = cursor_binding(actor, search)
-    after_distance, after_id = read_cursor(search.cursor, binding, settings) if search.cursor else (None, None)
+    after_distance, after_id = (
+        read_cursor(search.cursor, binding, settings) if search.cursor else (None, None)
+    )
     now = utcnow()
-    rows = session.execute(text(NEARBY_SQL), {
-        "latitude": latitude, "longitude": longitude, "radius": search.radius_m,
-        "category_id": search.category_id, "oldest": now-timedelta(seconds=90),
-        "latest": now+timedelta(seconds=30), "limit": search.limit+1,
-        "after_distance": after_distance, "after_id": after_id,
-    }).mappings().all()
+    rows = (
+        session.execute(
+            text(NEARBY_SQL),
+            {
+                "latitude": latitude,
+                "longitude": longitude,
+                "radius": search.radius_m,
+                "category_id": search.category_id,
+                "oldest": now - timedelta(seconds=90),
+                "latest": now + timedelta(seconds=30),
+                "limit": search.limit + 1,
+                "after_distance": after_distance,
+                "after_id": after_id,
+            },
+        )
+        .mappings()
+        .all()
+    )
     items = []
-    for row in rows[:search.limit]:
-        band = int(row["distance"]//1000)*1000
+    for row in rows[: search.limit]:
+        band = int(row["distance"] // 1000) * 1000
         # No exact column, exact distance or device accuracy enters this response.
-        items.append({"vendor_id": row["id"], "display_name": row["display_name"],
-                      "categories": category_list(session, row["id"]),
-                      "approximate_location": {"latitude": row["latitude"], "longitude": row["longitude"], "radius_m": 1000},
-                      "distance_band_m": {"min": band, "max": band+1000}, "location_updated_at": row["captured_at"]})
+        items.append(
+            {
+                "vendor_id": row["id"],
+                "display_name": row["display_name"],
+                "categories": category_list(session, row["id"]),
+                "approximate_location": {
+                    "latitude": row["latitude"],
+                    "longitude": row["longitude"],
+                    "radius_m": 1000,
+                },
+                "distance_band_m": {"min": band, "max": band + 1000},
+                "location_updated_at": row["captured_at"],
+            }
+        )
     cursor = None
-    if len(rows)>search.limit:
-        last = rows[search.limit-1]
-        cursor = jwt.encode({"binding": binding, "distance": last["distance"], "id": str(last["id"]),
-                             "exp": now+timedelta(minutes=5), "iss": settings.jwt_issuer, "aud": "nearby-cursor"},
-                            signing_key(settings), algorithm="HS256")
+    if len(rows) > search.limit:
+        last = rows[search.limit - 1]
+        cursor = jwt.encode(
+            {
+                "binding": binding,
+                "distance": last["distance"],
+                "id": str(last["id"]),
+                "exp": now + timedelta(minutes=5),
+                "iss": settings.jwt_issuer,
+                "aud": "nearby-cursor",
+            },
+            signing_key(settings),
+            algorithm="HS256",
+        )
     return {"items": items, "next_cursor": cursor}
