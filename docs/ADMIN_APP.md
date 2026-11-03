@@ -6,7 +6,8 @@ The application now runs on Next.js 16.4.4 with operator sign-in/out, live servi
 counts and protected route handlers. `src/server/core.ts` owns the session/proxy
 rules; `runtime.ts` is marked server-only and shares one registry across route
 bundles. Client components receive user/count responses, never API credentials.
-Verification/report/action screens remain in progress.
+Business reviews and business suspension/reinstatement are implemented. Report,
+visit-inspection and account-control screens remain in progress.
 
 The browser receives a random 32-byte opaque cookie. In production it uses the
 `__Host-` prefix, `Secure`, `HttpOnly`, `SameSite=Strict` and `Path=/`, with no
@@ -29,6 +30,7 @@ local authority even if upstream revocation fails; that failure is returned.
 | `/api/session` | DELETE | Revoke the backend session and clear the cookie |
 | `/api/backend/admin/...` | GET/POST | Forward an explicitly allowed staff operation |
 | `/api/backend/requests/{uuid}` | GET | Audited backend visit inspection |
+| `/api/backend/vendors/{uuid}` | GET | Public business metadata for staff review |
 
 All mutation requests require the exact configured admin Origin. Cookie
 SameSite rules provide additional protection. Login JSON is limited to 4 KiB;
@@ -89,3 +91,26 @@ Open `http://127.0.0.1:3000`. The test runner starts this server itself on port
 3000, alongside Customer/Partner on 8081/8082 and an isolated API on 8001.
 Public HTTPS hosting, container runtime and server restart checks remain for the
 operations package.
+
+## Business reviews and controls
+
+The default tool lists pending review submissions, with verified/rejected filters
+and pagination. Each card shows the submitted public note and its business ID.
+`View business details` fetches the public description/categories; it does not
+fetch a precise location. Staff provide at least ten characters explaining an
+approval or rejection. The interface renders the committed backend result and
+refreshes the queue/counts after decisions or competing changes.
+
+`Business controls` accepts a business ID and recorded reason. Suspension stops
+sharing and changes the verification state to suspended. Returning to review
+keeps the business offline in pending status; approval remains separate. A pending
+submission is needed for another approval. The response shows the last confirmed
+state and owner account ID, rather than inventing a successful local change.
+
+The extended proxy still rejects precise tracking paths. Its public-metadata
+allowlist regression failed before implementation. **12 core tests**, strict
+shared/Next checks and the production build pass. **6 browser cases passed in
+55.9 seconds**, including actual approve/reject decisions, online-business
+suspension removing sharing, return to pending/offline, and the earlier staff
+session/Origin/revocation cases. Backend results were independently read through
+authenticated HTTP; no business response was mocked.

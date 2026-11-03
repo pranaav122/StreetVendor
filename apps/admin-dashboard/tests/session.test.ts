@@ -321,3 +321,21 @@ test("production requires public HTTPS and plaintext API transport is limited to
       }),
   );
 });
+test("staff review can read public business metadata but cannot proxy precise tracking", async () => {
+  const { server } = setup();
+  const signed = await login(server);
+  const headers = { Cookie: cookie(signed) };
+  const profile = await server.backend(
+    new Request(`${origin}/api/backend/vendors/${operator.id}`, { headers }),
+    ["vendors", operator.id],
+  );
+  assert.equal(profile.status, 200);
+  const tracking = await server.backend(
+    new Request(
+      `${origin}/api/backend/requests/${operator.id}/vendor-location`,
+      { headers },
+    ),
+    ["requests", operator.id, "vendor-location"],
+  );
+  assert.equal(tracking.status, 403);
+});

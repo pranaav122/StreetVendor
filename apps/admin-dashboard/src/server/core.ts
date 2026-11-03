@@ -28,6 +28,7 @@ const writePath = new RegExp(
   "i",
 );
 const inspectPath = new RegExp(`^/requests/${uuid}$`, "i");
+const profilePath = new RegExp(`^/vendors/${uuid}$`, "i");
 const loginSchema = z
   .object({
     email: z.string().email().max(254),
@@ -339,7 +340,10 @@ export class AdminServer {
     const list = ["/admin/verifications", "/admin/reports"].includes(path);
     const allowed =
       request.method === "GET"
-        ? list || path === "/admin/summary" || inspectPath.test(path)
+        ? list ||
+          path === "/admin/summary" ||
+          inspectPath.test(path) ||
+          profilePath.test(path)
         : request.method === "POST" && writePath.test(path);
     // Never expose auth/token endpoints or turn staff cookies into an open proxy.
     if (!allowed)

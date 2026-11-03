@@ -119,6 +119,9 @@ test("remote staff suspension removes the operator interface on refresh", async 
   await expect(
     page.getByRole("button", { name: "Refresh summary", exact: true }),
   ).toBeEnabled();
+  await expect(
+    page.getByRole("button", { name: "Refresh reviews", exact: true }),
+  ).toBeEnabled();
   const suspended = await request.post(
     `${API}/api/v1/admin/users/${user.id}/suspension`,
     {

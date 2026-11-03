@@ -58,9 +58,7 @@ export async function operatorAccount(request: APIRequestContext) {
   };
 }
 
-export async function availableVendor(request: APIRequestContext) {
-  const operator = await operatorAccount(request);
-  const staff = operator.headers;
+export async function pendingVendor(request: APIRequestContext) {
   const vendor = await account(request, "vendor");
   const categories = await request.get(`${API}/api/v1/categories`, {
     headers: vendor.headers,
@@ -87,8 +85,15 @@ export async function availableVendor(request: APIRequestContext) {
     },
   );
   expect(submitted.status()).toBe(201);
+  return { ...vendor, id: profile.id as string, name };
+}
+
+export async function availableVendor(request: APIRequestContext) {
+  const operator = await operatorAccount(request);
+  const staff = operator.headers;
+  const vendor = await pendingVendor(request);
   const approved = await request.post(
-    `${API}/api/v1/admin/vendors/${profile.id}/verification`,
+    `${API}/api/v1/admin/vendors/${vendor.id}/verification`,
     {
       headers: staff,
       data: {
@@ -107,5 +112,5 @@ export async function availableVendor(request: APIRequestContext) {
     },
   });
   expect(online.ok()).toBeTruthy();
-  return { ...vendor, id: profile.id, name, staff };
+  return { ...vendor, staff };
 }

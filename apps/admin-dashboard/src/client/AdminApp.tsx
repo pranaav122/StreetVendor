@@ -6,6 +6,7 @@ import { ApiError } from "@mystreetvendor/api-client";
 import { userSchema, type User } from "@mystreetvendor/shared-types";
 import { cookieRequest, errorMessage, type StaffRequest } from "./http";
 import { Summary } from "./Summary";
+import { StaffTools } from "./StaffTools";
 const sessionSchema = z.object({ user: userSchema });
 
 export function AdminApp() {
@@ -177,6 +178,7 @@ export function AdminApp() {
               </button>
             </header>
             <Summary request={request} userId={user.id} />
+            <StaffTools request={request} userId={user.id} />
           </>
         )}
       </main>
