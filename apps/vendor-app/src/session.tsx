@@ -7,12 +7,10 @@ import {
   useState,
   type PropsWithChildren,
 } from "react";
-import { Platform } from "react-native";
-import * as SecureStore from "expo-secure-store";
 import * as Crypto from "expo-crypto";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ApiClient, ApiError } from "@mystreetvendor/api-client";
-import { createSessionStore } from "@mystreetvendor/api-client/src/storage";
+import { apiOrigin, store } from "./auth-store";
 import { stopDeviceSharing } from "./location/lifecycle";
 import {
   RealtimeClient,
@@ -25,22 +23,6 @@ import {
 } from "@mystreetvendor/shared-types";
 
 const role = "vendor" as const;
-const apiOrigin = process.env.EXPO_PUBLIC_API_URL ?? "http://127.0.0.1:8000";
-const store = createSessionStore(
-  Platform.OS === "web"
-    ? null
-    : {
-        getItem: (key) => SecureStore.getItemAsync(key),
-        setItem: (key, value) =>
-          SecureStore.setItemAsync(key, value, {
-            // Background callbacks need access after the first device unlock, without
-            // moving a session to a different device through a keychain backup.
-            keychainAccessible: SecureStore.AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY,
-          }),
-        removeItem: (key) => SecureStore.deleteItemAsync(key),
-      },
-  "mystreetvendor.vendor.session",
-);
 
 type Session = {
   client: ApiClient;

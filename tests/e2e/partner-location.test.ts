@@ -23,6 +23,12 @@ test("approved partner explicitly shares a location and removes it when going of
   await page.getByLabel("Password", { exact: true }).fill(vendor.password);
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await page
+    .getByRole("button", { name: "Allow background location", exact: true })
+    .click();
+  await expect(
+    page.getByRole("alert").filter({ hasText: "native development build" }),
+  ).toContainText("native development build");
+  await page
     .getByRole("button", { name: "Go online and share location", exact: true })
     .click();
   await expect(

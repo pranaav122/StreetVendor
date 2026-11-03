@@ -57,6 +57,15 @@ test("old confirmed coordinates are visibly degraded after the freshness window"
   controller.checkFreshness();
   assert.equal(controller.state.status, "DEGRADED");
 });
+test("background status cannot revive paused sharing or accept an impossible future timestamp", async () => {
+  const { controller } = setup();
+  await controller.online();
+  controller.confirmExternalFix(new Date(now + 60000).toISOString());
+  assert.equal(controller.state.capturedAt, fix.captured_at);
+  controller.pause();
+  controller.confirmExternalFix(new Date(now + 1000).toISOString());
+  assert.equal(controller.state.status, "PAUSED");
+});
 test("offline during an online write deletes the point after that write finishes", async () => {
   const calls: string[] = [];
   let release!: () => void;

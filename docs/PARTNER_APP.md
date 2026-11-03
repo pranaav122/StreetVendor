@@ -29,8 +29,30 @@ Going offline stops the local sensor immediately, waits for pending writes and
 then asks the server to erase the point. Signing out also stops the sensor; the
 backend logout transaction hides the business and removes its exact point.
 Stale updates are visibly degraded after 90 seconds. Native foreground sharing
-stops when the app leaves the foreground; background integration is still pending.
+stops when the app leaves the foreground unless background sharing was explicitly enabled.
 Visit management, complete account recovery and device verification remain in progress.
+
+## Native background adapter
+
+`src/location/background.ts` registers the task at module scope. A separate
+permission button enables the background mode for the next explicit online
+action. It requires a native development build, foreground/background permission
+and the location capabilities already declared in the Expo configuration.
+
+Only consent metadata and the last successful upload time are persisted; a route
+is never stored. Each callback reads current SecureStore credentials and checks
+the consent user, session family and start time. It uploads only the newest
+usable sample, without rotating credentials. Expired/revoked access stops sharing.
+The background-only window is therefore at most the remaining **600-second**
+access lifetime. Reopen Partner, revalidate the account and explicitly go online
+to resume. Device settings or termination may stop updates sooner.
+
+Consent and upload status have separate storage keys. An old task writing its
+last upload time cannot recreate consent after logout. Status carries a consent
+nonce, so a new online session ignores old status. Offline/logout clears consent
+and unregisters the location task. These native paths are implemented but still
+require installation and physical Android/iOS permission, termination and resume
+checks; browser geolocation and JavaScript bundles cannot prove OS scheduling.
 
 ## Verification
 
@@ -44,6 +66,12 @@ explicit online consent and an independently verified offline server response.
 The location controller has eight passing safety cases covering cleanup races,
 sensor failure, invalid fixes, degraded retries and stale status. These checks do not
 establish native installation, background GPS or push delivery.
+
+The subsequent background-policy checkpoint has **13 passing Partner policy
+tests**, strict shared/Partner TypeScript checks, **20/20 Expo Doctor checks**,
+and **2 passing browser cases in 29.3 seconds**. The browser also checks the clear
+unavailable message for native background permission. Web, iOS and Android
+JavaScript exports pass; the native Hermes bundles are about 3.6 MB each.
 
 Run the browser case in PowerShell from the project folder:
 

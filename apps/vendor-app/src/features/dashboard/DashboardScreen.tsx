@@ -1,6 +1,7 @@
 import { Link } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
+import { useState } from "react";
 import { useSession } from "../../session";
 import { useCopy } from "../../language";
 import {
@@ -23,7 +24,10 @@ const summarySchema = z.object({
 export function DashboardScreen() {
   const { client } = useSession();
   const { text } = useCopy();
-  const { controller, state } = useSharing();
+  const { controller, state, background, enableBackground } = useSharing();
+  const [backgroundProblem, setBackgroundProblem] = useState<string | null>(
+    null,
+  );
   const profile = useQuery({
     queryKey: ["vendor", "own"],
     queryFn: ({ signal }) => ownBusiness(client, signal),
@@ -107,9 +111,26 @@ export function DashboardScreen() {
                   visit. Nearby searches show an approximate area.
                 </Body>
                 <Body copy>
-                  Keep this screen open for foreground location updates.
-                  Background location setup is still in progress.
+                  {background
+                    ? "Background sharing is enabled for your next online session. It pauses when access expires; open Partner and go online again. Phone settings can stop updates."
+                    : "Keep this screen open for foreground location updates. Background sharing requires a native development build and separate permission."}
                 </Body>
+                <Button
+                  label="Allow background location"
+                  secondary
+                  disabled={
+                    background ||
+                    state.status === "ONLINE" ||
+                    state.status === "STARTING"
+                  }
+                  onPress={() => {
+                    setBackgroundProblem(null);
+                    void enableBackground().catch((error) =>
+                      setBackgroundProblem(errorMessage(error)),
+                    );
+                  }}
+                />
+                <Problem message={backgroundProblem} />
                 <Button
                   label={
                     state.status === "STARTING"

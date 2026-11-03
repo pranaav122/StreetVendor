@@ -149,6 +149,16 @@ export class SharingController {
       );
     }
   }
+  confirmExternalFix(capturedAt: string) {
+    if (
+      (this.state.status === "ONLINE" || this.state.status === "DEGRADED") &&
+      Date.parse(capturedAt) >
+        Date.parse(this.state.capturedAt ?? "1970-01-01") &&
+      this.driver.now() - Date.parse(capturedAt) <= 90000 &&
+      Date.parse(capturedAt) - this.driver.now() <= 30000
+    )
+      this.change("ONLINE", null, capturedAt);
+  }
   async offline() {
     // Stop the sensor immediately, then order deletion after any in-flight write.
     this.pause();
