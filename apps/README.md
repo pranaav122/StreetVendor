@@ -1,6 +1,6 @@
 # Application workspace
 
-`customer-app` and `vendor-app` are independent Expo SDK 58 applications. They have separate routes, session providers, public configuration, app identifiers and EAS build files. Customer registration, manual discovery and account controls are implemented; the remaining feature screens are still being built. They share the typed HTTP/realtime transport, response contracts and design tokens.
+`customer-app` and `vendor-app` are independent Expo SDK 58 applications. They have separate routes, session providers, public configuration, app identifiers and EAS build files. Customer workflows now include registration/recovery, English/Tamil, manual or permission-based discovery, maps, requests/tracking/history/reports and guarded account controls. Partner feature screens are next. They share the typed HTTP/realtime transport, response contracts and design tokens.
 
 From the repository root in PowerShell:
 
