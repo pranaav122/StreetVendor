@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Request, Response
-from sqlalchemy import update
+from sqlalchemy import select, update
 
 from app.auth.dependencies import CurrentUser, Db, require_recent_auth
 from app.auth.schemas import (
@@ -19,8 +19,22 @@ from app.auth.service import (
 )
 from app.models.accounts import RefreshSession
 from app.notifications.service import disable_devices
+from app.models.vendors import VendorProfile
+from app.vendors.service import hide_vendor
 
 router = APIRouter(prefix="/api/v1/auth", tags=["authentication"])
+
+
+def stop_vendor_sharing(session, user):
+    if user.role != "vendor":
+        return
+    row = session.scalar(
+        select(VendorProfile).where(VendorProfile.user_id == user.id).with_for_update()
+    )
+    if row:
+        # Session revocation alone leaves a previously fresh point visible.
+        # Erase it and disable sharing in the same account-locked transaction.
+        hide_vendor(session, row)
 
 
 @router.post("/register/customer", response_model=UserResponse, status_code=201)
@@ -73,6 +87,7 @@ def refresh(payload: RefreshInput, request: Request, session: Db):
 @router.post("/logout", status_code=204)
 def logout(request: Request, session: Db, user: CurrentUser):
     lock_user(session, user.id)
+    stop_vendor_sharing(session, user)
     disable_devices(session, user.id, family_id=request.state.auth.family_id)
     session.execute(
         update(RefreshSession)
@@ -90,6 +105,7 @@ def logout(request: Request, session: Db, user: CurrentUser):
 def logout_all(request: Request, session: Db, user: CurrentUser):
     require_recent_auth(request)
     lock_user(session, user.id)
+    stop_vendor_sharing(session, user)
     disable_devices(session, user.id)
     session.execute(
         update(RefreshSession)
