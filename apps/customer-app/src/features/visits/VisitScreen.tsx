@@ -1,0 +1,219 @@
+import { useEffect, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  activeVisitStatuses,
+  fixSchema,
+  trackableVisitStatuses,
+  visitSchema,
+} from "@mystreetvendor/shared-types";
+import { useSession } from "../../session";
+import {
+  Body,
+  Button,
+  Card,
+  Field,
+  Loading,
+  Page,
+  Problem,
+  errorMessage,
+} from "../../ui";
+import { trackingFresh } from "./intent";
+
+export function VisitScreen({ id }: { id: string }) {
+  const { client, realtime } = useSession();
+  const queries = useQueryClient();
+  const [reason, setReason] = useState("");
+  const [report, setReport] = useState("");
+  const [category, setCategory] = useState<"SAFETY" | "NO_SHOW" | "OTHER">(
+    "OTHER",
+  );
+  const [notice, setNotice] = useState<string | null>(null);
+  const [now, setNow] = useState(Date.now());
+  const visit = useQuery({
+    queryKey: ["visits", id],
+    queryFn: async ({ signal }) =>
+      visitSchema.parse(await client.request(`/requests/${id}`, { signal })),
+    refetchInterval: (query) =>
+      query.state.data && activeVisitStatuses.has(query.state.data.status)
+        ? 5000
+        : false,
+  });
+  const trackable =
+    visit.data !== undefined && trackableVisitStatuses.has(visit.data.status);
+  const tracking = useQuery({
+    queryKey: ["tracking", id],
+    enabled: trackable,
+    retry: false,
+    queryFn: async ({ signal }) =>
+      fixSchema.parse(
+        await client.request(`/requests/${id}/vendor-location`, { signal }),
+      ),
+    refetchInterval: trackable ? 10000 : false,
+  });
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 5000);
+    return () => clearInterval(timer);
+  }, []);
+  useEffect(() => {
+    if (trackable) realtime.subscribe(id);
+    else {
+      realtime.unsubscribe(id);
+      // Cancel before erasing so a late tracking response cannot refill the cache.
+      void queries
+        .cancelQueries({ queryKey: ["tracking", id] })
+        .then(() => queries.removeQueries({ queryKey: ["tracking", id] }));
+    }
+    return () => realtime.unsubscribe(id);
+  }, [trackable, id, realtime, queries]);
+  const cancel = useMutation({
+    mutationFn: async () => {
+      if (!visit.data || !reason.trim())
+        throw new Error("Enter a reason before cancelling.");
+      return visitSchema.parse(
+        await client.request(`/requests/${id}/cancel`, {
+          method: "POST",
+          body: { expected_version: visit.data.version, reason: reason.trim() },
+        }),
+      );
+    },
+    onSuccess: (row) => {
+      queries.setQueryData(["visits", id], row);
+      void queries.invalidateQueries({ queryKey: ["visits"] });
+    },
+    onError: () => {
+      void visit.refetch();
+    },
+  });
+  const sendReport = useMutation({
+    mutationFn: async () => {
+      if (report.trim().length < 10)
+        throw new Error("Use at least 10 characters to describe the problem.");
+      return client.request(`/requests/${id}/reports`, {
+        method: "POST",
+        body: { category, reason: report.trim() },
+      });
+    },
+    onSuccess: () => {
+      setNotice("Report sent.");
+      setReport("");
+    },
+  });
+  if (visit.isPending)
+    return (
+      <Page title="Visit">
+        <Loading />
+      </Page>
+    );
+  if (visit.error)
+    return (
+      <Page title="Visit">
+        <Problem message={errorMessage(visit.error)} />
+        <Button
+          label="Retry visit"
+          onPress={() => {
+            void visit.refetch();
+          }}
+        />
+      </Page>
+    );
+  const row = visit.data;
+  const fresh =
+    trackable &&
+    tracking.data &&
+    !tracking.error &&
+    trackingFresh(tracking.data, now);
+  return (
+    <Page title={`Visit ${row.status.toLowerCase()}`}>
+      <Card>
+        <Body>{row.vendor_name}</Body>
+        <Body>Status: {row.status}</Body>
+        <Body>
+          Meeting point: {row.meeting_label ?? "Selected public point"}
+        </Body>
+        <Body muted>Deadline: {new Date(row.expires_at).toLocaleString()}</Body>
+      </Card>
+      {fresh ? (
+        <Card>
+          <Body>Vendor location is available.</Body>
+          <Body>
+            Latitude: {tracking.data.latitude} · Longitude:{" "}
+            {tracking.data.longitude}
+          </Body>
+          <Body muted>
+            Captured {new Date(tracking.data.captured_at).toLocaleTimeString()}{" "}
+            · accuracy {Math.round(tracking.data.accuracy_m)} m
+          </Body>
+        </Card>
+      ) : (
+        <Body muted>
+          {trackable
+            ? "A fresh vendor location is unavailable."
+            : "Precise tracking is unavailable for this visit state."}
+        </Body>
+      )}
+      <Button
+        label="Refresh visit"
+        secondary
+        onPress={() => {
+          void visit.refetch();
+          if (trackable) void tracking.refetch();
+        }}
+      />
+      {row.allowed_actions.includes("cancel") ? (
+        <Card>
+          <Field
+            label="Cancellation reason"
+            value={reason}
+            onChangeText={setReason}
+            maxLength={500}
+          />
+          <Button
+            label={cancel.isPending ? "Cancelling…" : "Cancel visit"}
+            disabled={cancel.isPending || !reason.trim()}
+            onPress={() => cancel.mutate()}
+          />
+          <Problem message={cancel.error ? errorMessage(cancel.error) : null} />
+        </Card>
+      ) : null}
+      {row.status === "COMPLETED" ? (
+        <Body muted>
+          This visit is complete. No purchase or payment was recorded.
+        </Body>
+      ) : null}
+      <Card>
+        <Body>Report a problem with this visit</Body>
+        <Button
+          label="Safety"
+          secondary={category !== "SAFETY"}
+          onPress={() => setCategory("SAFETY")}
+        />
+        <Button
+          label="No show"
+          secondary={category !== "NO_SHOW"}
+          onPress={() => setCategory("NO_SHOW")}
+        />
+        <Button
+          label="Other"
+          secondary={category !== "OTHER"}
+          onPress={() => setCategory("OTHER")}
+        />
+        <Field
+          label="Report details"
+          multiline
+          value={report}
+          onChangeText={setReport}
+          maxLength={1000}
+        />
+        <Button
+          label="Send report"
+          disabled={sendReport.isPending}
+          onPress={() => sendReport.mutate()}
+        />
+        <Problem
+          message={sendReport.error ? errorMessage(sendReport.error) : null}
+        />
+        {notice ? <Body>{notice}</Body> : null}
+      </Card>
+    </Page>
+  );
+}

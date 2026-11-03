@@ -12,6 +12,7 @@
   "scripts": {
     "test:client": "tsx --test packages/api-client/tests/*.test.ts",
     "test:ui": "playwright test",
+    "test:customer": "tsx --test apps/customer-app/tests/*.test.ts",
     "check:design": "node packages/design-tokens/check-contrast.mjs",
     "typecheck": "tsc -p packages/tsconfig.json --noEmit"
   },

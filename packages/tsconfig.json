@@ -15,6 +15,7 @@
   "include": [
     "api-client/**/*.ts",
     "shared-types/**/*.ts",
-    "design-tokens/index.ts"
+    "design-tokens/index.ts",
+    "../apps/customer-app/tests/**/*.ts"
   ]
 }
