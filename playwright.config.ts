@@ -17,6 +17,19 @@ export default defineConfig({
   },
   webServer: [
     {
+      command: "npm run dev --workspace @mystreetvendor/admin-dashboard",
+      url: "http://127.0.0.1:3000",
+      timeout: 120000,
+      reuseExistingServer: false,
+      env: {
+        CI: "1",
+        NEXT_TELEMETRY_DISABLED: "1",
+        ADMIN_APP_ENV: "development",
+        ADMIN_PUBLIC_ORIGIN: "http://127.0.0.1:3000",
+        ADMIN_API_URL: process.env.TEST_API_URL ?? "http://127.0.0.1:8000",
+      },
+    },
+    {
       command:
         "npm run web --workspace @mystreetvendor/customer-app -- --host localhost",
       url: "http://127.0.0.1:8081",

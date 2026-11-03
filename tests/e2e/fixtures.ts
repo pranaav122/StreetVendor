@@ -33,7 +33,7 @@ export async function account(
   };
 }
 
-export async function availableVendor(request: APIRequestContext) {
+export async function operatorAccount(request: APIRequestContext) {
   if (!process.env.BROWSER_FIXTURE_DB || !process.env.BROWSER_PYTHON)
     throw new Error("Use scripts/Test-Applications.ps1 for this workflow.");
   // This helper refuses every database except the generated disposable UI database.
@@ -51,6 +51,16 @@ export async function availableVendor(request: APIRequestContext) {
   expect(staffLogin.ok()).toBeTruthy();
   const staffTokens = await staffLogin.json();
   const staff = { Authorization: `Bearer ${staffTokens.access_token}` };
+  return {
+    email: operator.email as string,
+    password: operator.password as string,
+    headers: staff,
+  };
+}
+
+export async function availableVendor(request: APIRequestContext) {
+  const operator = await operatorAccount(request);
+  const staff = operator.headers;
   const vendor = await account(request, "vendor");
   const categories = await request.get(`${API}/api/v1/categories`, {
     headers: vendor.headers,

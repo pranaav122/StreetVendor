@@ -1,0 +1,131 @@
+:root {
+  color-scheme: light;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--ink);
+  font-family: "Segoe UI", Arial, sans-serif;
+  line-height: 1.6;
+}
+main {
+  width: min(1100px, 100%);
+  margin: 0 auto;
+  padding: 32px 24px 64px;
+}
+h1,
+h2 {
+  line-height: 1.25;
+  margin: 0 0 16px;
+}
+h1 {
+  font-size: 32px;
+}
+h2 {
+  font-size: 22px;
+}
+p {
+  margin: 0 0 16px;
+}
+.brand {
+  color: var(--primary);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  font-size: 13px;
+  margin-bottom: 32px;
+}
+.sign-in {
+  max-width: 460px;
+  margin: 32px auto;
+}
+form,
+label {
+  display: grid;
+  gap: 8px;
+}
+form {
+  gap: 20px;
+}
+input,
+textarea,
+select,
+button {
+  font: inherit;
+  min-height: 52px;
+  border-radius: 12px;
+}
+input,
+textarea,
+select {
+  width: 100%;
+  padding: 12px;
+  color: var(--ink);
+  border: 1px solid #bdc7be;
+  background: var(--surface);
+}
+button {
+  padding: 12px 20px;
+  border: 1px solid var(--primary);
+  background: var(--primary);
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+button.secondary {
+  background: transparent;
+  color: var(--primary);
+}
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 3px solid var(--primary);
+  outline-offset: 3px;
+}
+[role="alert"] {
+  color: var(--danger);
+  overflow-wrap: anywhere;
+}
+.muted {
+  color: #4f6257;
+  font-size: 14px;
+}
+.console-heading,
+.section-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.counts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+  gap: 16px;
+  margin: 0 0 16px;
+}
+.counts > div {
+  background: var(--surface);
+  border: 1px solid #bdc7be;
+  border-radius: 20px;
+  padding: 20px;
+}
+dt {
+  font-size: 14px;
+}
+dd {
+  font-size: 30px;
+  font-weight: 700;
+  margin: 8px 0 0;
+}
+section {
+  margin-bottom: 32px;
+}

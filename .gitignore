@@ -18,6 +18,8 @@ Thumbs.db
 node_modules/
 .expo/
 .next/
+*.tsbuildinfo
+next-env.d.ts
 web-build/
 coverage/
 playwright-report/

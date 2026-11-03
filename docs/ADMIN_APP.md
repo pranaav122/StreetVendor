@@ -2,9 +2,11 @@
 
 ## Session foundation
 
-The first checkpoint implements the server session/proxy core in
-`apps/admin-dashboard/src/server/core.ts`. The Next.js routes and operator screens
-are the next checkpoint; this core alone is not a running dashboard.
+The application now runs on Next.js 16.4.4 with operator sign-in/out, live service
+counts and protected route handlers. `src/server/core.ts` owns the session/proxy
+rules; `runtime.ts` is marked server-only and shares one registry across route
+bundles. Client components receive user/count responses, never API credentials.
+Verification/report/action screens remain in progress.
 
 The browser receives a random 32-byte opaque cookie. In production it uses the
 `__Host-` prefix, `Secure`, `HttpOnly`, `SameSite=Strict` and `Path=/`, with no
@@ -50,10 +52,40 @@ The core passed **11 focused Node tests** and strict shared TypeScript checking.
 Tests cover cookie flags/secrecy, role rejection/revalidation, Origin checks,
 allowed/denied forwarding, expiry/logout, bounded registry, ordinary/chunked body
 limits and HTTPS/private-host configuration. Their API transport is a test
-implementation. They do not establish Next.js routing, a real backend round trip
-or an operator browser workflow; those remain for the next checkpoint.
+implementation. Separately, **4 browser cases passed in 44.9 seconds** against a
+real local Next.js server, FastAPI process and disposable PostgreSQL database.
+They cover the HttpOnly/opaque cookie and counts, sign-out, customer-role rejection,
+a foreign-Origin suspension attempt leaving the business unchanged, and remote
+staff suspension removing the console. The local HTTP cookie is development-only;
+production Secure/prefix flags are covered by the core tests, not a public TLS test.
+
+Strict Next.js checking and its production/standalone build passed on Windows.
+The public shell is prerendered; both API route families remain dynamic and
+uncached. The installed Next.js version generates `AGENTS.md` with its documentation
+rule. Its managed `next-env.d.ts`, `.next` output and TypeScript build state are
+ignored; `typecheck` runs `next typegen` before the compiler.
 
 ```powershell
 npm run test:admin
 npm run typecheck
+npm run typecheck --workspace @mystreetvendor/admin-dashboard
+./scripts/Test-Applications.ps1 tests/e2e/admin-auth.test.ts
 ```
+
+## Local startup
+
+Create an operator using the interactive command documented in
+[authentication](AUTHENTICATION.md). There is no public staff registration or
+hardcoded staff password. With the local API running, use PowerShell:
+
+```powershell
+$env:ADMIN_APP_ENV = 'development'
+$env:ADMIN_API_URL = 'http://127.0.0.1:8000'
+$env:ADMIN_PUBLIC_ORIGIN = 'http://127.0.0.1:3000'
+npm run dev --workspace @mystreetvendor/admin-dashboard
+```
+
+Open `http://127.0.0.1:3000`. The test runner starts this server itself on port
+3000, alongside Customer/Partner on 8081/8082 and an isolated API on 8001.
+Public HTTPS hosting, container runtime and server restart checks remain for the
+operations package.
