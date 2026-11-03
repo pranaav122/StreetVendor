@@ -1,5 +1,9 @@
 export type Language = "en" | "ta";
 const tamil: Readonly<Record<string, string>> = {
+  "Going offline…": "ஆஃப்லைனில் செல்லப்படுகிறது…",
+  "Stopping location sharing…": "இருப்பிடப் பகிர்வு நிறுத்தப்படுகிறது…",
+  "Wait for offline confirmation before going online again.":
+    "மீண்டும் ஆன்லைனில் செல்வதற்கு முன் ஆஃப்லைன் உறுதிப்படுத்தலுக்குக் காத்திருக்கவும்.",
   "Cannot check location permission. Check device settings and go online again.":
     "இருப்பிட அனுமதியைச் சரிபார்க்க முடியவில்லை. சாதன அமைப்புகளைச் சரிபார்த்து மீண்டும் ஆன்லைனில் செல்லவும்.",
   "Location permission was removed. Go online only after enabling it again.":

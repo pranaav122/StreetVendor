@@ -14,14 +14,13 @@ The user approved completing the MVP on 2 November 2026. This file describes cur
 - Staff recovery: audited return from business suspension to pending review, safe inactive-target handling, deleted-owner queue filtering, and role-protected operational/daily visit summaries.
 - Realtime: authenticated bounded WebSockets, PostgreSQL commit hints, participant-only inbox/tracking, send-time live authorization, expiry/revocation/heartbeat checks and REST resynchronization after reconnect.
 - Notifications: session-bound device ownership, transactional outbox, bounded leases/retries, project-separated Expo batches, guarded ticket/receipt processing and privacy cleanup. See [notification delivery](NOTIFICATIONS.md).
-- Application foundation: independent Expo SDK 58 Customer/Partner projects, native SecureStore adapters, memory-only browser sessions, strict response/event contracts, coordinated refresh, bounded realtime transport and per-app session/query providers. Feature screens are still pending.
-- Design: shared accessible tokens and documented bilingual screen states. The Figma draft has known clipping/spacing defects; Starter-plan tool quota blocked the corrective call. See [design handoff](DESIGN.md).
-- Customer first feature slice: registration/sign-in/reset request, permission-aware/manual meeting-point choice, category-filtered discovery, profile/language preferences, confirmation-mail request, sign-out and guarded account deletion.
-- Customer visits: vendor details, stable request-attempt idempotency, active/history lists, versioned cancellation, authorized fresh tracking, terminal tracking cleanup and participant reporting. Map/push/recovery-confirmation/translation integration remains in progress.
-- Customer maps: optional coarse-area web/native map adapters, authorized tracking map, native Android configuration fallback, provider disclosure, safe popup text and cleanup. See [map setup](MOBILE_MAPS.md). Push/recovery-confirmation/translation integration remains in progress.
-- Customer recovery: reset/email-confirmation pages, bounded fragment parsing, visible-URL scrubbing, explicit one-use-token confirmation, native cold/warm link listener and masked manual-link fallback. Native link dispatch still needs device verification. Push/translation integration remains in progress.
-- Customer notification adapter: explicit opt-in, physical-build/project/permission checks, stable installation registration, native token refresh and guarded notification-tap navigation. Physical delivery remains unverified; Tamil copy integration remains in progress.
-- Customer language: English/Tamil sign-in choice, registration/account preference, translated controls/headings/static copy/statuses and bilingual server categories. User-entered names/labels remain intact. Tamil wording still needs pilot-user review.
+- Application foundation: independent Expo SDK 58 Customer/Partner projects, separate routes/identifiers/session keys, memory-only browser sessions, strict response/event contracts, coordinated foreground refresh and bounded realtime transport.
+- Design: accessible shared tokens and bilingual screen states. The Figma draft still has clipping/spacing defects; Starter-plan quota blocked its corrective call. Local running interfaces use the corrected tokens/layouts. See [design handoff](DESIGN.md).
+- Customer application: registration/login, English/Tamil preferences, permission-aware/manual meeting points, filtered coarse discovery, vendor profiles, idempotent requests, active/history lists, versioned cancellation, authorized fresh tracking, terminal cleanup and reports.
+- Customer integrations: optional disclosed web/native maps with configuration fallbacks, fragment-only recovery/email confirmation, opt-in notification registration and REST-authorized taps, resume/reconnect checks and local discovery expiry. Native device/provider behavior remains unverified. See [maps](MOBILE_MAPS.md) and [recovery](MOBILE_RECOVERY.md).
+- Partner application: registration/login, bilingual business/category editing, staff-review requests/statuses, real daily visit counts, incoming/history lists, guarded accept/decline/approach/complete/cancel actions, reports and explicit external meeting-point navigation.
+- Partner sharing: explicit first usable fix, foreground adapter and module-scope native background adapter, user/family/consent checks, latest sample only, visible stale/error/offline states, sensor cleanup and server erasure, generation-guarded resume checks and serialized offline confirmation. Headless callbacks do not rotate credentials; background-only sharing is bounded by the remaining 600-second access lifetime.
+- Partner account/integrations: own profile/language, guarded deletion, fragment-only recovery/confirmation, independent notification installation/app kind, live tap authorization and account revalidation before reconnect. See the [Partner guide](PARTNER_APP.md); physical scheduling, permissions, linking and delivery still require devices.
 - Comments explain the reasons for sensitive validation, locking, transaction commits, token hashes and cleanup.
 
 ## Latest executed checks
@@ -43,7 +42,7 @@ The user approved completing the MVP on 2 November 2026. This file describes cur
 - Final notification checkpoint gate: **28 passed in 58.32 seconds**. The built API applied `0006_notifications` to the development database, restarted healthy and returned database/PostGIS `ok`.
 - `scripts/Test-VisitWorkflow.ps1`: **1 passed in 3.81 seconds**, covering registration/approval, availability, coarse discovery, visit creation, a fake-provider ticket, acceptance, private tracking, two-fix arrival, completion and outsider denial through HTTP handlers with real PostgreSQL. It does not exercise a mobile device or a public server.
 - Application foundation: **16 shared-client tests passed**, strict TypeScript passed for shared packages and both apps, both web exports succeeded, and Expo Doctor passed **20/20 checks per app**. `expo install --check` reports compatible dependencies for each app.
-- npm audit currently reports **11 moderate findings** through Expo's `glob`/`minimatch` build-tool dependency chain. These require dependency/security review; no force downgrade was applied and no claim of a clean dependency audit is made.
+- The initial application foundation audit reported **11 moderate findings** through Expo build tools. After SDK alignment, the current lockfile reports **5 moderate findings** through `glob`/`minimatch` and dependents. Final dependency/security review remains pending; no force downgrade or clean-audit claim is made.
 - Customer browser checks against the running local API: **3 passed in 14.3 seconds** (registration, denied-location manual search/sign-out, short-password validation and guarded deletion/revoked login). Shared client suite now has **17 passing tests**, including the reproduced browser fetch-receiver regression. A 390×844 preview was visually inspected for wrapping and spacing.
 - HTTP origin integration: **9 focused backend checks passed**, followed by the synthetic visit workflow (**1 passed in 2.61 seconds**). The rebuilt local API is healthy with browser preflight support.
 - Isolated browser runner: the same **3 browser cases passed in 15.7 seconds** using a fresh migrated/seeded database and a separate API on port 8001. Cleanup removed the generated database successfully. Development data was not used by that run.
@@ -61,6 +60,14 @@ The user approved completing the MVP on 2 November 2026. This file describes cur
 
 ## Still in progress
 
-Customer and Partner feature screens; admin dashboard; production configuration, backups/restore and final security review. Live push delivery remains a provider/device verification gate.
+Latest application acceptance: **23 combined browser cases passed in 3.5 minutes**
+against an isolated migrated PostgreSQL database. The final resume/concurrent-cleanup
+follow-up passed **24 Partner policy cases**, strict shared/Partner checking and
+**4 relevant browser cases in 1.2 minutes**. Shared and Customer policy suites have
+22 and 6 passing cases. Both aligned SDK setups passed **20/20 Doctor checks** and
+web/iOS/Android exports; the final Partner native bundles are about 3.8 MB each.
+These are local code/policy/browser/build results, not physical-device proof.
+
+Admin dashboard; production configuration; exercised backups/restore; final security/dependency review and the updated whole-project learning guide. Public hosting, signed installs, actual native background/resume/link behavior and live push delivery remain owner/provider/device verification gates.
 
 No current result proves public deployment, native background GPS, real push delivery or store release. Local development choices remain usable while real owner/provider inputs are pending.

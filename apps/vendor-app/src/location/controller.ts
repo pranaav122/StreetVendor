@@ -5,7 +5,8 @@ export type Fix = {
   captured_at: string;
 };
 export type SharingState = {
-  status: "OFFLINE" | "STARTING" | "ONLINE" | "PAUSED" | "DEGRADED";
+  status:
+    "OFFLINE" | "STARTING" | "STOPPING" | "ONLINE" | "PAUSED" | "DEGRADED";
   message: string | null;
   capturedAt: string | null;
 };
@@ -38,9 +39,13 @@ export class SharingController {
   private epoch = 0;
   private stop?: () => void;
   private starting?: Promise<void>;
+  private stopping?: Promise<void>;
   private uploading?: Promise<void>;
   private lastAttempt = -Infinity;
   constructor(private readonly driver: Driver) {}
+  get generation() {
+    return this.epoch;
+  }
   private change(
     status: SharingState["status"],
     message: string | null = null,
@@ -50,6 +55,10 @@ export class SharingController {
     this.driver.changed(this.state);
   }
   online() {
+    if (this.stopping)
+      return Promise.reject(
+        new Error("Wait for offline confirmation before going online again."),
+      );
     if (this.starting) return this.starting;
     if (this.state.status === "ONLINE") return Promise.resolve();
     this.stop?.();
@@ -162,14 +171,29 @@ export class SharingController {
     )
       this.change("ONLINE", null, capturedAt);
   }
-  async offline() {
+  offline() {
+    if (this.stopping) return this.stopping;
     // Stop the sensor immediately, then order deletion after any in-flight write.
     this.pause();
+    this.change("STOPPING", null, null);
+    const operation = this.stopOnServer(this.epoch);
+    this.stopping = operation;
+    void operation
+      .finally(() => {
+        if (this.stopping === operation) this.stopping = undefined;
+      })
+      .catch(() => {});
+    return operation;
+  }
+  private async stopOnServer(epoch: number) {
     await Promise.allSettled([this.starting, this.uploading]);
+    if (epoch !== this.epoch) return;
     try {
       await this.driver.offline();
+      if (epoch !== this.epoch) return;
       this.change("OFFLINE", null, null);
     } catch (error) {
+      if (epoch !== this.epoch) return;
       this.change(
         "PAUSED",
         "Device sharing stopped. Server offline confirmation failed; retry going offline.",

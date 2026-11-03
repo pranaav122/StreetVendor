@@ -12,6 +12,64 @@ const fix: Fix = {
   accuracy_m: 10,
   captured_at: new Date(now).toISOString(),
 };
+test("a new online action waits until an in-flight offline confirmation finishes", async () => {
+  let release!: () => void;
+  let entered!: () => void;
+  const ready = new Promise<void>((resolve) => {
+    entered = resolve;
+  });
+  const pending = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  const controller = new SharingController({
+    now: () => now,
+    first: async () => fix,
+    watch: async () => () => {},
+    online: async () => {},
+    upload: async () => {},
+    offline: async () => {
+      entered();
+      await pending;
+    },
+    changed: () => {},
+  });
+  await controller.online();
+  const stopping = controller.offline();
+  await ready;
+  try {
+    await assert.rejects(controller.online(), /offline/);
+  } finally {
+    release();
+    await stopping;
+  }
+  await controller.online();
+  assert.equal(controller.state.status, "ONLINE");
+});
+test("a pending offline operation cannot write after an account changes", async () => {
+  let release!: () => void;
+  const pending = new Promise<Fix>((resolve) => {
+    release = () => resolve(fix);
+  });
+  let writes = 0;
+  const controller = new SharingController({
+    now: () => now,
+    first: async () => pending,
+    watch: async () => () => {},
+    online: async () => {},
+    upload: async () => {},
+    offline: async () => {
+      writes++;
+    },
+    changed: () => {},
+  });
+  const starting = controller.online();
+  const stopping = controller.offline();
+  controller.pause("Account changed");
+  release();
+  await Promise.all([starting, stopping]);
+  assert.equal(writes, 0);
+  assert.equal(controller.state.message, "Account changed");
+});
 test("a sensor's immediate first callback does not republish the online first fix", async () => {
   const calls: string[] = [];
   const controller = new SharingController({

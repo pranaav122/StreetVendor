@@ -207,3 +207,24 @@ suite now passes **23 browser cases in 3.5 minutes**, including both failed-read
 cases, all Customer/Partner flows and controlled GPS arrival. Partner strict
 checking and its web/iOS/Android JavaScript exports pass. Native OS permission and
 background scheduling checks remain unrun.
+
+## Resume and concurrent cleanup checkpoint
+
+The native resume policy checks both foreground permission and, when chosen,
+background permission, then reads current business availability. Revoked or
+unknown permission stops the local feed and attempts immediate server offline
+erasure. Permission failure and server-offline state do not silently restart GPS.
+Read results carry a generation check so an old resume response cannot stop a
+new online session or apply to a different account.
+
+Offline cleanup has an explicit stopping state. A second online action waits
+until that cleanup finishes, and a pending old-account cleanup cannot send a
+write with a newly selected account. These races failed in regression tests before
+the fix. Native cleanup checks the generation again after awaiting OS task removal.
+
+The final policy suite passes **24 Partner cases**; strict shared/Partner checks
+and the web/iOS/Android exports pass. Four relevant browser cases passed in **1.2
+minutes** after this follow-up, including the joint GPS workflow and failed-read
+offline controls. The preceding complete suite passed 23 cases in 3.5 minutes.
+Injected-policy tests establish the decision rules; actual OS resume/permission
+dispatch still needs a physical development build.

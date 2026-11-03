@@ -25,6 +25,7 @@ export function DashboardScreen() {
   const { client } = useSession();
   const { text } = useCopy();
   const { controller, state, background, enableBackground } = useSharing();
+  const changing = state.status === "STARTING" || state.status === "STOPPING";
   const [backgroundProblem, setBackgroundProblem] = useState<string | null>(
     null,
   );
@@ -45,7 +46,8 @@ export function DashboardScreen() {
   // A stored OS task may still be running while this read fails or is pending.
   const offlineControl = (
     <Button
-      label="Go offline"
+      label={state.status === "STOPPING" ? "Going offline…" : "Go offline"}
+      disabled={state.status === "STOPPING"}
       secondary
       onPress={() => {
         void controller.offline().catch(() => {});
@@ -118,11 +120,13 @@ export function DashboardScreen() {
           </Card>
           <Card>
             <Body copy>
-              {state.status === "ONLINE"
-                ? "Location sharing is active on this device."
-                : row.is_available
-                  ? "Your business is online. This device has not started location updates."
-                  : "You are offline. Your location is not being shared."}
+              {state.status === "STOPPING"
+                ? "Stopping location sharing…"
+                : state.status === "ONLINE"
+                  ? "Location sharing is active on this device."
+                  : row.is_available
+                    ? "Your business is online. This device has not started location updates."
+                    : "You are offline. Your location is not being shared."}
             </Body>
             <Problem message={state.message} />
             {row.verification_status === "VERIFIED" ? (
@@ -139,11 +143,7 @@ export function DashboardScreen() {
                 <Button
                   label="Allow background location"
                   secondary
-                  disabled={
-                    background ||
-                    state.status === "ONLINE" ||
-                    state.status === "STARTING"
-                  }
+                  disabled={background || changing || state.status === "ONLINE"}
                   onPress={() => {
                     setBackgroundProblem(null);
                     void enableBackground().catch((error) =>
@@ -158,9 +158,7 @@ export function DashboardScreen() {
                       ? "Getting your location…"
                       : "Go online and share location"
                   }
-                  disabled={
-                    state.status === "STARTING" || state.status === "ONLINE"
-                  }
+                  disabled={changing || state.status === "ONLINE"}
                   onPress={() => {
                     void controller.online().catch(() => {});
                   }}

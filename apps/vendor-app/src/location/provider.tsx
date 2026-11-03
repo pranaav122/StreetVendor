@@ -13,6 +13,7 @@ import { vendorSchema } from "@mystreetvendor/shared-types";
 import { useSession } from "../session";
 import { SharingController, type Fix, type SharingState } from "./controller";
 import { registerSharingCleanup } from "./lifecycle";
+import { revalidateSharing } from "./resume";
 import {
   allowBackgroundSharing,
   startBackgroundSharing,
@@ -83,6 +84,7 @@ export function SharingProvider({ children }: PropsWithChildren) {
           return () => subscription.remove();
         },
         online: async (location) => {
+          const generation = controller.generation;
           const response = await client.request("/vendors/me/availability", {
             method: "PATCH",
             body: {
@@ -91,6 +93,7 @@ export function SharingProvider({ children }: PropsWithChildren) {
               location,
             },
           });
+          if (generation !== controller.generation) return;
           queries.setQueryData(["vendor", "own"], vendorSchema.parse(response));
           await queries.invalidateQueries({ queryKey: ["vendor"] });
         },
@@ -101,11 +104,14 @@ export function SharingProvider({ children }: PropsWithChildren) {
           });
         },
         offline: async () => {
+          const generation = controller.generation;
           await stopBackgroundSharing();
+          if (generation !== controller.generation) return;
           const response = await client.request("/vendors/me/availability", {
             method: "PATCH",
             body: { is_available: false, location_sharing_enabled: false },
           });
+          if (generation !== controller.generation) return;
           // This is the committed PATCH response, usable even if the next GET fails.
           queries.setQueryData(["vendor", "own"], vendorSchema.parse(response));
           await queries.invalidateQueries({ queryKey: ["vendor"] });
@@ -152,39 +158,24 @@ export function SharingProvider({ children }: PropsWithChildren) {
         )
           void controller.offline().catch(() => {});
       } else if (next === "active") {
-        // Returning to the foreground rechecks live permissions and account state.
-        void Location.getForegroundPermissionsAsync()
-          .then((permission) => {
-            if (!permission.granted) {
-              controller.pause(
-                "Location permission was removed. Go online only after enabling it again.",
-              );
-              void stopBackgroundSharing().catch(() => {});
-            }
-          })
-          .catch(() => {
-            // A failed permission read is not consent to continue publishing.
-            controller.pause(
-              "Cannot check location permission. Check device settings and go online again.",
-            );
-            void stopBackgroundSharing().catch(() => {});
-          });
+        void revalidateSharing({
+          controller,
+          requiresBackground: backgroundRef.current,
+          permissions: async () => ({
+            foreground: (await Location.getForegroundPermissionsAsync())
+              .granted,
+            background:
+              backgroundRef.current &&
+              (await Location.getBackgroundPermissionsAsync()).granted,
+          }),
+          business: async () =>
+            vendorSchema.parse(await client.request("/vendors/me")),
+          disableBackground: () => {
+            backgroundRef.current = false;
+            setBackground(false);
+          },
+        });
         void queries.invalidateQueries();
-        void client
-          .request<{ is_available: boolean }>("/vendors/me")
-          .then((profile) => {
-            if (
-              !profile.is_available &&
-              (controller.state.status === "ONLINE" ||
-                controller.state.status === "DEGRADED")
-            ) {
-              controller.pause(
-                "The server stopped sharing. Go online again after checking your account.",
-              );
-              void stopBackgroundSharing().catch(() => {});
-            }
-          })
-          .catch(() => {});
       }
     });
     return () => subscription.remove();
