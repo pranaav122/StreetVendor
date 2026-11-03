@@ -22,6 +22,8 @@ For a guided explanation of everything built so far, read the [foundation handbo
 - [Account recovery and local email](docs/AUTHENTICATION.md)
 - [Vendor approval and consent](docs/VENDORS.md)
 - [Location privacy, search and GPS simulator](docs/LOCATION.md)
+- [Visits, arrival and retention](docs/VISITS.md)
+- [Realtime protocol and independent TCP checks](docs/REALTIME.md)
 
 ## Phase 1 setup
 

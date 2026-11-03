@@ -10,6 +10,7 @@ from app.errors import problem
 from app.location.validation import validate_fix, validate_service_area
 from app.models.locations import VendorLocation
 from app.models.vendors import ProductCategory, VendorCategory, VendorProfile
+from app.realtime.signals import notify_vendor
 
 CATALOGUE = [
     ("vegetables", "Vegetables", "காய்கறிகள்"),
@@ -117,6 +118,7 @@ def hide_vendor(session, row, *, anonymize=False):
     if anonymize:
         row.display_name, row.description = "Deleted vendor", ""
     session.execute(delete(VendorLocation).where(VendorLocation.vendor_id == row.id))
+    notify_vendor(session, row.id)
 
 
 def write_location(session, vendor_id, fix):
@@ -145,6 +147,7 @@ def write_location(session, vendor_id, fix):
         raise problem(
             409, "LOCATION_OUT_OF_ORDER", "A newer reading has already been accepted."
         )
+    notify_vendor(session, vendor_id)
 
 
 def set_availability(session, actor, payload, settings, candidate_store=None):

@@ -22,6 +22,8 @@ from app.admin.router import router as admin_router
 from app.location.router import router as location_router
 from app.visits.router import router as visits_router
 from app.jobs import run_jobs
+from app.realtime.manager import RealtimeManager
+from app.realtime.router import router as realtime_router
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -42,8 +44,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                     app.state.jobs_stop.set()
                     await worker
             finally:
-                # A failed worker must not prevent cleanup of pooled connections.
-                engine.dispose()
+                try:
+                    await app.state.realtime.close()
+                finally:
+                    # Neither worker nor socket cleanup may prevent pool disposal.
+                    engine.dispose()
 
     app = FastAPI(title="MyStreetVendor API", version="0.1.0", lifespan=lifespan)
     app.state.engine = engine
@@ -51,6 +56,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.mailer = SMTPMailer(settings)
     app.state.arrival_candidates = {}
     app.state.session_factory = sessionmaker(bind=engine, autoflush=False)
+    app.state.realtime = RealtimeManager(app)
     app.include_router(router)
     app.include_router(auth_router)
     app.include_router(recovery_router)
@@ -60,6 +66,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(vendors_router)
     app.include_router(admin_router)
     app.include_router(visits_router)
+    app.include_router(realtime_router)
     app.add_exception_handler(HTTPException, http_error)
     app.add_exception_handler(RequestValidationError, validation_error)
     return app

@@ -1,6 +1,6 @@
 # API contracts
 
-Original design dated 21 October 2026; implementation update 3 November 2026. Health, authentication/own-account, vendor management, location/discovery and visit routes are implemented. Notification and WebSocket contracts remain planned until their implementation slices pass. See `IMPLEMENTATION_STATUS.md` and generated Swagger for actual coverage.
+Original design dated 21 October 2026; implementation update 3 November 2026. Health, authentication/own-account, vendor management, location/discovery, visit and WebSocket routes are implemented. Device/push notification contracts remain planned until that slice passes. See `IMPLEMENTATION_STATUS.md` and generated Swagger for actual coverage.
 
 ## Phase 1: health
 
@@ -136,9 +136,11 @@ Arrival pilot rule: within 50 metres of the meeting point for two usable observa
 
 For each transition: lock or conditionally update the request with expected status/version; verify actor, deadline, and vendor state; increment version; insert the immutable `request_events` record; commit; then emit live events once Phase 6 exists. Phase 7 adds the outbox table and includes relevant notification entries in the same transaction from that phase onward. Return `409` if another actor already changed it. A partial unique index protects one active request per customer/vendor pair. A vendor may have multiple customer requests; route planning is later work. Expiry evaluation runs on reads/writes and a small periodic server task; a disconnected phone cannot keep a request alive indefinitely.
 
-## Realtime — Phase 6 planned
+## Realtime — implemented
 
 Endpoint: `WSS /api/v1/ws`. Development can use `ws://` only on the trusted local network. No access token in a URL or query string.
+
+The implemented transport, limits, close codes and independent TCP test are described in [the realtime guide](REALTIME.md). Initial authentication returns `resync_required: true`; reconnecting clients refetch REST before restoring subscriptions.
 
 1. Accept an unauthenticated connection with strict connection/IP limits and a 5-second authentication deadline. Send no private information yet.
 2. The first JSON message is `{ "type": "AUTHENTICATE", "access_token": "<jwt>" }`. Verify signature, issuer/audience, expiry, live account/session and socket origin where applicable. Close with application code `4401` on failure; do not echo credentials.

@@ -27,6 +27,21 @@ class Settings(BaseSettings):
     auth_register_limit: int = Field(default=10, ge=1, le=100)
     auth_recent_seconds: int = Field(default=300, ge=1, le=600)
     vendor_active_request_limit: int = Field(default=100, ge=1, le=100)
+    ws_auth_timeout_seconds: float = Field(default=5, ge=0.05, le=5)
+    ws_idle_timeout_seconds: float = Field(default=60, ge=1, le=60)
+    ws_max_connections: int = Field(default=100, ge=1, le=100)
+    ws_max_per_ip: int = Field(default=10, ge=1, le=100)
+    ws_max_per_user: int = Field(default=3, ge=1, le=5)
+    allowed_origins: list[str] = Field(
+        default_factory=lambda: [
+            "http://127.0.0.1:8081",
+            "http://localhost:8081",
+            "http://127.0.0.1:8082",
+            "http://localhost:8082",
+            "http://127.0.0.1:3000",
+            "http://localhost:3000",
+        ]
+    )
     environment: Literal["development", "test", "production"] = "development"
     jobs_enabled: bool = False
     smtp_host: str | None = None

@@ -17,6 +17,7 @@ from app.models.locations import VendorLocation
 from app.models.visits import RequestEvent, VisitRequest
 from app.models.vendors import VendorProfile
 from app.visits.state import ACTIVE, TERMINAL, VENDOR_TRANSITIONS, allowed_actions
+from app.realtime.signals import notify_event
 
 
 def missing():
@@ -60,6 +61,7 @@ def append_event(session, row, previous, actor_id=None):
     )
     session.add(event)
     session.flush()
+    notify_event(session, event)
     return event
 
 
