@@ -72,7 +72,10 @@ Token response: `{ "access_token": "<jwt>", "token_type": "bearer", "expires_in"
 | `GET /api/v1/admin/verifications` | Admin | Status/cursor/limit | `200` minimal review queue |
 | `POST /api/v1/admin/vendors/{vendor_id}/verification` | Admin | `decision` (`VERIFIED`/`REJECTED`), `reason` | `200` audited review under a vendor-row lock; never self-approval |
 | `POST /api/v1/admin/vendors/{vendor_id}/suspension` | Admin | `reason` | `200` audited profile suspension; turn off availability/sharing and revoke tracking in one transaction |
+| `POST /api/v1/admin/vendors/{vendor_id}/reinstatement` | Admin | `reason`; active owner and suspended business | `200` audited return to pending review, remaining offline |
 | `POST /api/v1/admin/users/{user_id}/suspension` | Admin | `suspended`, bounded `reason`; audit actor | `200`; revoke affected access/subscriptions |
+| `GET /api/v1/admin/summary` | Admin | None | Operational verification, report and visit counts |
+| `GET /api/v1/vendors/me/summary` | Vendor | None | Own active/pending and completed-today visit counts; `Asia/Kolkata` pilot day |
 
 To go online, submit `is_available: true`, `location_sharing_enabled: true` and a `location` object with the same fields and validation rules as the location endpoint below. Under one transaction, confirm the active verified vendor and explicit consent, validate the first fix, then set availability/sharing and upsert the fix. This bootstrap operation does not require an existing online state or stored fix. Later location-only updates require the vendor already be online. Going offline atomically disables availability/sharing and deletes the precise latest fix, immediately hiding discovery and precise tracking. Existing visits remain recorded and participants receive unavailable status; the backend does not mark them completed. Category administration and report handling can be added behind audited admin routes when required.
 

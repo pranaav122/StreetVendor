@@ -13,6 +13,10 @@ The seed is safe to repeat and preserves retired categories. Create an operator 
 
 Going online requires a verified business, explicit sharing consent and a usable first GPS fix. The API validates the entire input before committing availability and the PostGIS point together. A pending or suspended vendor cannot go online. Going offline removes the exact point and disables both availability and sharing in one transaction. Suspension and account deletion also remove the point; deletion erases the public business name and review note.
 
+Staff can return a suspended business to review with `POST /api/v1/admin/vendors/{vendor_id}/reinstatement` and a reason. It returns to `PENDING`, stays offline and needs a separate approval. Restore a suspended owner account first. Deleted owners are absent from the pending queue, and an inactive target produces a conflict rather than invalidating the staff member's session.
+
+`GET /api/v1/admin/summary` gives staff operational counts. `GET /api/v1/vendors/me/summary` gives the vendor active/pending visits and completed visits today. The explicit pilot-day timezone is `Asia/Kolkata`. These counters describe visits; they record no sales or revenue.
+
 Every sharing write locks the account, then its vendor profile, then location state. This order prevents a waiting online write from bypassing a later offline operation. The database independently enforces that an available profile is verified and sharing. [GeoAlchemy2 Geography](https://github.com/geoalchemy/geoalchemy2/blob/main/doc/types.rst) maps the `geography(Point,4326)` column; its explicitly named GiST index supports the upcoming metre-based discovery query. A location contains longitude first in PostGIS, while JSON uses named latitude/longitude fields.
 
 The local area is the synthetic rectangle latitude 13.00–13.20, longitude 80.15–80.35. This is a test boundary chosen for development. Production requires an approved GeoJSON service area; a missing area disables location operations. Public customer/vendor business routes also require email confirmation in production. Locally bootstrapped operators retain access to staff tools.

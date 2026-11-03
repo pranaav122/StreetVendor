@@ -5,7 +5,13 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy import select
 
 from app.admin.schemas import ReasonInput, ReviewInput, SuspensionInput
-from app.admin.service import review_vendor, suspend_account, suspend_vendor
+from app.admin.service import (
+    reinstate_vendor,
+    review_vendor,
+    suspend_account,
+    suspend_vendor,
+)
+from app.admin.summary import staff_summary
 from app.auth.dependencies import Db, require_role
 from app.models.accounts import User
 from app.models.vendors import VendorProfile, VendorVerification
@@ -28,8 +34,13 @@ def verifications(
     query = (
         select(VendorVerification, VendorProfile.display_name)
         .join(VendorProfile)
-        .where(VendorVerification.status == status)
+        .join(User, User.id == VendorProfile.user_id)
+        .where(VendorVerification.status == status, User.status != "DELETED")
     )
+    if status == "PENDING":
+        query = query.where(
+            VendorProfile.verification_status == "PENDING", User.status == "ACTIVE"
+        )
     if cursor:
         query = query.where(VendorVerification.id > cursor)
     rows = session.execute(query.order_by(VendorVerification.id).limit(limit + 1)).all()
@@ -57,6 +68,18 @@ def verification(vendor_id: UUID, payload: ReviewInput, session: Db, user: Admin
 @router.post("/vendors/{vendor_id}/suspension")
 def vendor_suspension(vendor_id: UUID, payload: ReasonInput, session: Db, user: Admin):
     return suspend_vendor(session, user, vendor_id, payload.reason)
+
+
+@router.post("/vendors/{vendor_id}/reinstatement")
+def vendor_reinstatement(
+    vendor_id: UUID, payload: ReasonInput, session: Db, user: Admin
+):
+    return reinstate_vendor(session, user, vendor_id, payload.reason)
+
+
+@router.get("/summary")
+def summary(session: Db, user: Admin):
+    return staff_summary(session)
 
 
 @router.post("/users/{user_id}/suspension")

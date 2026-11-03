@@ -17,6 +17,7 @@ from app.vendors.service import (
     set_availability,
     vendor_response,
 )
+from app.admin.summary import visit_counts
 
 router = APIRouter(prefix="/api/v1", tags=["vendors"])
 Vendor = Annotated[User, Depends(require_role("vendor"))]
@@ -84,6 +85,14 @@ def submit_verification(
         "status": review.status,
         "submitted_at": review.submitted_at,
     }
+
+
+@router.get("/vendors/me/summary")
+def own_summary(session: Db, user: Vendor):
+    row = session.scalar(select(VendorProfile).where(VendorProfile.user_id == user.id))
+    if row is None:
+        raise problem(404, "VENDOR_NOT_FOUND", "Create your business profile first.")
+    return {"vendor_id": row.id} | visit_counts(session, row.id)
 
 
 @router.get("/vendors/{vendor_id}")

@@ -11,6 +11,7 @@ The user approved completing the MVP on 2 November 2026. This file describes cur
 - Vendors: bilingual catalogue and idempotent seed command, own business profiles, staff review queue, audited approval/suspension, consent-based availability with first-fix validation, and exact-point erasure on offline/suspension/deletion.
 - Location: monotonic latest-fix updates, freshness/accuracy/service-area checks, coarse discovery with actor-bound cursors and search limits, and a protected synthetic GPS simulator with cleanup.
 - Visits: idempotent creation, one active pair, guarded transitions/versions, expiry, private tracking, server-confirmed two-fix arrival, participant reports, audited staff inspection/resolution/cancellation, account-deletion erasure and bounded maintenance.
+- Staff recovery: audited return from business suspension to pending review, safe inactive-target handling, deleted-owner queue filtering, and role-protected operational/daily visit summaries.
 - Comments explain the reasons for sensitive validation, locking, transaction commits, token hashes and cleanup.
 
 ## Latest executed checks
@@ -22,6 +23,8 @@ The user approved completing the MVP on 2 November 2026. This file describes cur
 - Password-policy checks exposed silent whitespace stripping; explicit label normalization now preserves passwords and enforces the documented 15-character minimum.
 - Visit checkpoint on Windows: **124 passed in 461.79 seconds**. A subsequent worker-failure cleanup regression passed separately after reproducing skipped pool disposal.
 - Same 124-case suite in the Linux API image: **124 passed in 377.92 seconds**. The final task check also includes the new shutdown regression.
+- Final visit/migration/shutdown task check in Linux: **33 passed in 115.61 seconds** after formatting and the cleanup fix.
+- Administration recovery follow-up: **21 passed in 93.66 seconds** on Windows and **21 passed in 39.76 seconds** in Linux, after five new cases failed before implementation.
 - Fresh upgrade/downgrade/re-upgrade and Alembic schema comparison passed through `0005_visits_reports` in disposable databases.
 - `scripts/Test-LocalMail.ps1` passed with actual SMTP capture in Mailpit, token consumption, new-password login and synthetic-account deletion. This proves local delivery only.
 - Both location-update/offline and location-update/suspension races passed using actual PostgreSQL row locks. The synthetic planner test used the GiST bitmap index, and PostGIS distances matched the independent WGS84 fixtures within 2 centimetres.
