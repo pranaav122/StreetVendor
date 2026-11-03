@@ -20,7 +20,11 @@ export default defineConfig({
       "npm run web --workspace @mystreetvendor/customer-app -- --host localhost",
     url: "http://127.0.0.1:8081",
     timeout: 120000,
-    reuseExistingServer: true,
-    env: { CI: "1", BROWSER: "none" },
+    reuseExistingServer: false,
+    env: {
+      CI: "1",
+      BROWSER: "none",
+      EXPO_PUBLIC_API_URL: process.env.TEST_API_URL ?? "http://127.0.0.1:8000",
+    },
   },
 });

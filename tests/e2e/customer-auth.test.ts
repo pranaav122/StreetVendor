@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { expect, test } from "@playwright/test";
+const API = process.env.TEST_API_URL ?? "http://127.0.0.1:8000";
 
 test("customer registers, chooses a manual point and signs out", async ({
   page,
@@ -46,19 +47,15 @@ test("customer registers, chooses a manual point and signs out", async ({
     ).toBeVisible();
   } finally {
     // Clean up synthetic accounts without printing their password or session.
-    const login = await request.post(
-      "http://127.0.0.1:8000/api/v1/auth/login",
-      { data: { email, password } },
-    );
+    const login = await request.post(`${API}/api/v1/auth/login`, {
+      data: { email, password },
+    });
     if (login.ok()) {
       const tokens = await login.json();
-      const deleted = await request.delete(
-        "http://127.0.0.1:8000/api/v1/users/me",
-        {
-          headers: { Authorization: `Bearer ${tokens.access_token}` },
-          data: { confirmation: "DELETE" },
-        },
-      );
+      const deleted = await request.delete(`${API}/api/v1/users/me`, {
+        headers: { Authorization: `Bearer ${tokens.access_token}` },
+        data: { confirmation: "DELETE" },
+      });
       expect(deleted.ok()).toBeTruthy();
     }
   }
@@ -93,7 +90,7 @@ test("account deletion needs typed confirmation and revokes the account", async 
   const email = `ui-delete-${randomUUID()}@example.com`,
     password = `Synthetic-${randomUUID()}`;
   const registered = await request.post(
-    "http://127.0.0.1:8000/api/v1/auth/register/customer",
+    `${API}/api/v1/auth/register/customer`,
     { data: { email, password, display_name: "Synthetic deletion" } },
   );
   expect(registered.status()).toBe(201);
@@ -115,19 +112,17 @@ test("account deletion needs typed confirmation and revokes the account", async 
     await expect(
       page.getByRole("button", { name: "Sign in", exact: true }),
     ).toBeVisible();
-    const rejected = await request.post(
-      "http://127.0.0.1:8000/api/v1/auth/login",
-      { data: { email, password } },
-    );
+    const rejected = await request.post(`${API}/api/v1/auth/login`, {
+      data: { email, password },
+    });
     expect(rejected.status()).toBe(401);
   } finally {
-    const login = await request.post(
-      "http://127.0.0.1:8000/api/v1/auth/login",
-      { data: { email, password } },
-    );
+    const login = await request.post(`${API}/api/v1/auth/login`, {
+      data: { email, password },
+    });
     if (login.ok()) {
       const tokens = await login.json();
-      await request.delete("http://127.0.0.1:8000/api/v1/users/me", {
+      await request.delete(`${API}/api/v1/users/me`, {
         headers: { Authorization: `Bearer ${tokens.access_token}` },
         data: { confirmation: "DELETE" },
       });
