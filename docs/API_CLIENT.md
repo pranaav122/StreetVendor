@@ -1,0 +1,25 @@
+# Shared application client
+
+`packages/api-client` owns HTTP authorization and session coordination. `packages/shared-types` validates token responses and realtime messages and defines the business response types. Neither package contains application screens.
+
+Create one `ApiClient` per running application with an API origin, a `SessionStore` and `onSignedOut`. The native store adapter must use SecureStore. Browser previews should keep credentials in memory rather than local storage. The administration application will use its separate server boundary.
+
+Call `request('/users/me')` for `/api/v1/users/me`. Pass `authenticated: false` for registration, login and recovery. The default is authenticated. Absolute URLs are rejected so callers cannot send credentials to another host. HTTPS is required unless local development is explicitly enabled. Requests have a fifteen-second fetch timeout and accept a caller cancellation signal.
+
+Concurrent unauthorized requests share one refresh operation. A delayed 401 retries with an access token already rotated by another request. A rejected refreshed access token ends the session rather than looping. Temporary refresh failures retain the stored session for a later explicit retry; rejected credentials clear it. Persisted changes are serialized, and generation checks prevent delayed responses or failed writes from restoring or clearing the wrong account.
+
+`onSignedOut` must cancel private queries, clear their cache and close realtime subscriptions. It runs even if clearing durable storage fails. The app must surface that storage failure and avoid presenting the session as saved. App sign-out should attempt the backend logout endpoint before local cleanup; the backend remains responsible for revoking other devices.
+
+The exported types reflect current backend responses. `parseServerMessage` returns null for malformed JSON, unknown message types, invalid identifiers, invalid locations and oversized input. Clients must resynchronize visits through REST after reconnect; messages are hints rather than durable business state.
+
+Checks from PowerShell:
+
+```powershell
+npm ci
+npm run test:client
+npm run typecheck
+```
+
+Current evidence: eleven local tests pass, including concurrent refresh, rejected refresh, sign-out during refresh, bounded retry, cancellation, host protection, temporary provider failure, late 401 handling and an old storage failure racing a new sign-in. These are deterministic client tests, not native storage or phone-network checks.
+
+The selected mobile baseline is Expo SDK 58. The current official [workspace guide](https://docs.expo.dev/guides/monorepos/) and [Router installation guide](https://docs.expo.dev/router/installation/) govern package setup; native dependency compatibility is checked with `expo install` for each app.

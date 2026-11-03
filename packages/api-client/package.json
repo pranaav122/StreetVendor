@@ -1,0 +1,9 @@
+{
+  "name": "@mystreetvendor/api-client",
+  "version": "0.1.0",
+  "private": true,
+  "main": "src/index.ts",
+  "dependencies": {
+    "@mystreetvendor/shared-types": "0.1.0"
+  }
+}

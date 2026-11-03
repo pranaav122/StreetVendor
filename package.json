@@ -1,0 +1,23 @@
+{
+  "name": "mystreetvendor",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=24.13.0 <25"
+  },
+  "scripts": {
+    "test:client": "tsx --test packages/api-client/tests/*.test.ts",
+    "check:design": "node packages/design-tokens/check-contrast.mjs",
+    "typecheck": "tsc -p packages/tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "prettier": "3.9.10",
+    "tsx": "^4.21.0",
+    "typescript": "~6.0.3"
+  }
+}
