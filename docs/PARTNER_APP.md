@@ -69,6 +69,21 @@ PostgreSQL through authenticated HTTP reads. Partner policy tests now pass **16
 cases**, including native scheme and malformed-link parsing. Strict shared/Partner
 checks pass. Internet mail delivery and native link dispatch remain unverified.
 
+## Joint browser workflow
+
+The two independent browser applications completed a shared visit in **44.4
+seconds** (one passing case). Partner went online using browser geolocation,
+Customer found the business and requested a visit, and Partner accepted and
+marked approaching. The browser then supplied two controlled geolocation events
+six seconds apart; the actual Partner sensor adapter uploaded them through HTTP
+and the actual backend marked arrival. Partner completed the visit, Customer lost
+precise tracking, and Partner went offline. No API business response was mocked.
+
+A controller regression also reproduced an immediate sensor callback repeating
+the already committed first fix. It now establishes the upload throttle before
+subscribing; all **17 Partner policy tests** pass. This workflow verifies browser
+geolocation transport and server arrival rules, not native background scheduling.
+
 ## Visit management checkpoint
 
 The inbox separates active visits from loaded history and supports pagination.
