@@ -32,6 +32,8 @@ The user approved completing the MVP on 2 November 2026. This file describes cur
 - Fresh upgrade/downgrade/re-upgrade and Alembic schema comparison passed through `0005_visits_reports` in disposable databases.
 - Notification checkpoint: **170 backend tests passed in 318.02 seconds** on Windows. Device/delivery/migration checks passed **27 cases in 52.43 seconds**; after reproducing disabled-provider receipt retention, the final retention subset passed **3 cases in 10.87 seconds**. Fresh migration/schema comparison includes `0006_notifications`.
 - Postman CLI checked the running local `/health`: HTTP 200 with database and PostGIS `ok`, with one passing assertion. This checks the current local service, not public hosting.
+- Final notification checkpoint gate: **28 passed in 58.32 seconds**. The built API applied `0006_notifications` to the development database, restarted healthy and returned database/PostGIS `ok`.
+- `scripts/Test-VisitWorkflow.ps1`: **1 passed in 3.81 seconds**, covering registration/approval, availability, coarse discovery, visit creation, a fake-provider ticket, acceptance, private tracking, two-fix arrival, completion and outsider denial through HTTP handlers with real PostgreSQL. It does not exercise a mobile device or a public server.
 - `scripts/Test-LocalMail.ps1` passed with actual SMTP capture in Mailpit, token consumption, new-password login and synthetic-account deletion. This proves local delivery only.
 - Both location-update/offline and location-update/suspension races passed using actual PostgreSQL row locks. The synthetic planner test used the GiST bitmap index, and PostGIS distances matched the independent WGS84 fixtures within 2 centimetres.
 

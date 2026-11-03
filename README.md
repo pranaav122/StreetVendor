@@ -62,7 +62,9 @@ docker compose --env-file .env -f infrastructure/compose.yaml down
 
 ## Mobile applications
 
-Neither mobile application exists yet. Phases 8 and 9 will create separate Expo projects after the supporting backend features are implemented and approved. There are no customer/vendor launch commands in this milestone.
+Both independent mobile applications are approved for implementation. Their backend now includes authentication, vendor review, discovery, visits, realtime and durable notifications. Application implementation is next; launch commands will be added when verified.
+
+Run the complete synthetic backend visit check with `./scripts/Test-VisitWorkflow.ps1` in PowerShell. It uses a disposable PostgreSQL database and a fake push provider. See [notification delivery](docs/NOTIFICATIONS.md) for delivery states and debugging.
 
 ## Selected foundation
 
