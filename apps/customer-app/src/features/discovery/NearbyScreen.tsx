@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ScrollView } from "react-native";
 import { Link } from "expo-router";
 import * as Location from "expo-location";
@@ -23,6 +23,7 @@ import {
 import { useMeeting } from "./meeting";
 import AreaMap from "../../components/AreaMap";
 import { useCopy } from "../../language";
+import { locationTimestampFresh } from "../visits/intent";
 
 const pageSchema = z.object({
   items: z.array(nearbySchema),
@@ -44,6 +45,7 @@ export function NearbyScreen() {
   const [category, setCategory] = useState<string | null>(null);
   const [problem, setProblem] = useState<string | null>(null);
   const [locating, setLocating] = useState(false);
+  const [clock, setClock] = useState(Date.now());
   const categories = useQuery({
     queryKey: ["categories"],
     queryFn: async ({ signal }) =>
@@ -75,6 +77,9 @@ export function NearbyScreen() {
       );
     },
     getNextPageParam: (last) => last.next_cursor ?? undefined,
+    // More loaded pages cost more searches; preserve the server's privacy/rate budget.
+    refetchInterval: (query) =>
+      Math.max(30000, (query.state.data?.pages.length ?? 1) * 30000),
   });
   function choosePoint() {
     setProblem(null);
@@ -122,21 +127,40 @@ export function NearbyScreen() {
       setLocating(false);
     }
   }
-  const items = nearby.data?.pages.flatMap((page) => page.items) ?? [];
+  const items = useMemo(
+    () =>
+      (nearby.data?.pages.flatMap((page) => page.items) ?? []).filter((item) =>
+        locationTimestampFresh(item.location_updated_at, Date.now()),
+      ),
+    [nearby.data, clock],
+  );
+  const outdated =
+    items.length === 0 &&
+    (nearby.data?.pages.some((page) => page.items.length > 0) ?? false);
+  useEffect(() => {
+    if (!items.length) return;
+    const expires = Math.min(
+      ...items.map((item) => Date.parse(item.location_updated_at) + 90000),
+    );
+    // Expire cached public points even when a request cannot reach the server.
+    const timer = setTimeout(
+      () => setClock(Date.now()),
+      Math.max(10, expires - Date.now() + 1),
+    );
+    return () => clearTimeout(timer);
+  }, [items]);
   const pins = useMemo(
     () =>
-      nearby.data?.pages
-        .flatMap((page) => page.items)
-        .map((item) => ({
-          id: item.vendor_id,
-          label: item.display_name,
-          point: {
-            latitude: item.approximate_location.latitude,
-            longitude: item.approximate_location.longitude,
-          },
-          radiusM: item.approximate_location.radius_m,
-        })) ?? [],
-    [nearby.data],
+      items.map((item) => ({
+        id: item.vendor_id,
+        label: item.display_name,
+        point: {
+          latitude: item.approximate_location.latitude,
+          longitude: item.approximate_location.longitude,
+        },
+        radiusM: item.approximate_location.radius_m,
+      })),
+    [items],
   );
   return (
     <Page title="Around your meeting point">
@@ -245,7 +269,12 @@ export function NearbyScreen() {
           />
         </>
       ) : null}
-      {meeting && nearby.isSuccess && items.length === 0 ? (
+      {outdated ? (
+        <Body copy>
+          Cached results are out of date. Refresh to check availability.
+        </Body>
+      ) : null}
+      {meeting && nearby.isSuccess && items.length === 0 && !outdated ? (
         <Body copy>No available vendors nearby.</Body>
       ) : null}
       {!mapVisible

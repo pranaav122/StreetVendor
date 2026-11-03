@@ -22,12 +22,17 @@ export class VisitIntent {
     return { key: this.key, body };
   }
 }
-export function trackingFresh(fix: LocationFix, now = Date.now()) {
-  const captured = Date.parse(fix.captured_at);
+export function locationTimestampFresh(timestamp: string, now = Date.now()) {
+  const captured = Date.parse(timestamp);
   return (
     Number.isFinite(captured) &&
     captured >= now - 90000 &&
-    captured <= now + 30000 &&
+    captured <= now + 30000
+  );
+}
+export function trackingFresh(fix: LocationFix, now = Date.now()) {
+  return (
+    locationTimestampFresh(fix.captured_at, now) &&
     Number.isFinite(fix.accuracy_m) &&
     fix.accuracy_m >= 0 &&
     fix.accuracy_m <= 100

@@ -47,6 +47,7 @@ export const vendorSchema = z.object({
 export type Vendor = z.infer<typeof vendorSchema>;
 export const nearbySchema = z
   .object({
+    location_updated_at: z.string().datetime({ offset: true }),
     vendor_id: z.string().uuid(),
     display_name: z.string(),
     approximate_location: pointSchema.extend({ radius_m: z.number() }),

@@ -1,5 +1,7 @@
 export type Language = "en" | "ta";
 const tamil: Readonly<Record<string, string>> = {
+  "Cached results are out of date. Refresh to check availability.":
+    "சேமிக்கப்பட்ட முடிவுகள் பழையவை. கிடைக்கும் விற்பனையாளர்களைக் காண புதுப்பிக்கவும்.",
   Latitude: "அட்சரேகை",
   Longitude: "தீர்க்கரேகை",
   "Nearby map": "அருகிலுள்ள வரைபடம்",
