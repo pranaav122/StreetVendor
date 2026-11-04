@@ -89,8 +89,14 @@ test dependencies, PostgreSQL restart recovery and admin restart invalidating
 staff sessions. Both images built on Linux; Caddy 2.11.7 validated its configuration
 without public TLS. See [production operations](PRODUCTION.md).
 
-Exercised backups/restore, final security/dependency review and the updated
-whole-project learning guide remain in progress. Public
+Binary-safe backup and isolated restore are exercised: **9 backup/workflow cases
+passed in 34.33 seconds**, including real business/visit rows, corrupt archives,
+unsafe targets and schema-query failure cleanup. A separate production-operator
+drill restored a 54,042-byte synthetic archive and cleaned up successfully. See
+[backup and recovery](BACKUPS.md).
+
+Final security/dependency review and the updated whole-project learning guide
+remain in progress. Public
 hosting, signed installs, actual native background/resume/link behavior and live
 push delivery remain owner/provider/device verification gates.
 

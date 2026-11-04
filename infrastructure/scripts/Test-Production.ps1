@@ -1,4 +1,4 @@
-param([switch]$SkipBuild)
+param([switch]$SkipBuild, [switch]$CheckBackup)
 $ErrorActionPreference = 'Stop'
 $taskRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $taskId = [guid]::NewGuid().ToString('N').Substring(0, 12)
@@ -66,6 +66,14 @@ finally:
     path.unlink(missing_ok=True)
 '@ | & docker @taskCompose exec -T api python -
     if ($LASTEXITCODE -ne 0) { throw 'Admin restart session check failed.' }
+    if ($CheckBackup) {
+        $taskBackup = & (Join-Path $PSScriptRoot 'Backup-Database.ps1') -EnvFile $taskEnvFile `
+            -ComposeFile (Join-Path $taskRoot 'infrastructure/compose.production.yaml') `
+            -ProjectName $taskProject -OutputDirectory (Join-Path $taskRoot "backups/$taskProject")
+        & (Join-Path $PSScriptRoot 'Test-Restore.ps1') -BackupPath $taskBackup.Path `
+            -EnvFile $taskEnvFile -ComposeFile (Join-Path $taskRoot 'infrastructure/compose.production.yaml') `
+            -ProjectName $taskProject -AsJson
+    }
 }
 finally {
     if ($taskProject -notmatch '^msv_prod_check_[0-9a-f]{12}$') { throw 'Unsafe test cleanup target.' }
