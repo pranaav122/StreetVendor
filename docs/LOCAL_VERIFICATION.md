@@ -63,3 +63,9 @@ The trusted IP list contains only Caddy and Node's reserved addresses. Dynamic a
 ## Cross-platform configuration fixture
 
 After the security changes, the complete Windows backend run passed **207 tests in 449.37 seconds**. The first Linux run produced **194 passed, 11 skipped, 2 failed in 350.37 seconds**. Both failures came from the production unit-test constructor inheriting the development container's `SMTP_STARTTLS=false` environment. A new regression reproduced that inheritance with a deliberately conflicting mail environment. The helper now explicitly supplies its synthetic production mail values; no application guard was weakened. All **18 production configuration cases passed on Windows (0.17 seconds) and Linux (0.28 seconds)**. The eleven Linux skips cover Windows/Docker-host operator checks exercised separately on Windows. A complete Linux rerun follows this repair.
+
+## Final local follow-up
+
+After repairing the environment-dependent fixture, the rebuilt Linux development image passed **197 tests, 11 explicitly skipped in 217.48 seconds**. The skips are the seven Windows operator cases, the Windows binary roundtrip and three host Docker-configuration checks; those checks passed on Windows. The rebuilt development API returned health/database/PostGIS `ok`.
+
+The current Next production build then passed and all **32 combined browser cases passed in 5.1 minutes**, using both Expo web apps, compiled Next, a real isolated API/database and local Mailpit. The generated browser database was removed. This includes the two-interface/browser-GPS visit, offline/error controls, session revocation, narrow Tamil layouts, recovery and staff flows. It does not add physical native or public-provider proof.

@@ -1,73 +1,62 @@
 # MyStreetVendor
 
-MyStreetVendor is a planned neighbourhood platform for discovering street vendors and requesting a visit. Two independent future applications, **MyStreetVendor Customer** and **MyStreetVendor Partner**, will share one trusted FastAPI backend. Phones will never connect directly to PostgreSQL.
+A local MVP for finding verified street vendors and coordinating visits. Customers and partners use separate Expo applications. Staff review businesses and reports in a Next.js dashboard. FastAPI owns authorization and business rules; PostgreSQL/PostGIS stores the data.
 
-## Scope
+The full remaining MVP was approved on 2 November 2026. Application code and a self-hosted deployment package are implemented. Local verification and external release gates are recorded separately in [LOCAL_VERIFICATION.md](docs/LOCAL_VERIFICATION.md). This repository has not been publicly deployed or submitted to app stores.
 
-The full MVP build is approved and in progress. The foundation, accounts, vendor management and location/discovery APIs are implemented; see [current implementation status](docs/IMPLEMENTATION_STATUS.md) for tested coverage. The October handbook remains a dated Phase 0/1 learning edition. See [the roadmap](docs/ROADMAP.md) for the full product sequence.
+## Start reading
 
-## Design documents
+- [Project handbook](docs/PROJECT_HANDBOOK.md): a guided explanation of everything built, with exercises and debugging examples.
+- [Architecture](docs/ARCHITECTURE.md), [database](docs/DATABASE.md), [API](docs/API.md) and [every-file guide](docs/FILE_GUIDE.md).
+- [Windows setup](docs/DEPLOYMENT.md), [debugging](docs/DEBUGGING.md), [production package](docs/PRODUCTION.md) and [backup/restore](docs/BACKUPS.md).
+- [Security](docs/SECURITY.md), [dependency alerts](docs/DEPENDENCIES.md) and [implementation status](docs/IMPLEMENTATION_STATUS.md).
 
-For a guided explanation of everything built so far, read the [foundation handbook](docs/FOUNDATION_HANDBOOK.md) or its [PDF edition](output/pdf/MyStreetVendor_Foundation_Handbook.pdf). It includes code walkthroughs, exercises, a glossary and an answer key before Phase 2.
+The [October foundation handbook](docs/FOUNDATION_HANDBOOK.md) and [October verification](docs/VERIFICATION.md) describe their original milestone. They do not describe today's complete application.
 
-- [Architecture and diagrams](docs/ARCHITECTURE.md)
-- [Database design and ER diagram](docs/DATABASE.md)
-- [REST and WebSocket contracts](docs/API.md)
-- [Security and privacy](docs/SECURITY.md)
-- [Local development and future deployment](docs/DEPLOYMENT.md)
-- [Independent debugging guide](docs/DEBUGGING.md)
-- [Roadmap and learning checkpoints](docs/ROADMAP.md)
-- [Every file and the request-to-database walkthrough](docs/FILE_GUIDE.md)
-- [Actual verification results and known limits](docs/VERIFICATION.md)
-- [Account recovery and local email](docs/AUTHENTICATION.md)
-- [Vendor approval and consent](docs/VENDORS.md)
-- [Location privacy, search and GPS simulator](docs/LOCATION.md)
-- [Visits, arrival and retention](docs/VISITS.md)
-- [Realtime protocol and independent TCP checks](docs/REALTIME.md)
+## Run locally in PowerShell
 
-## Phase 1 setup
-
-Use **Windows PowerShell** from the repository root. Follow [DEPLOYMENT.md](docs/DEPLOYMENT.md) for the foundation setup and [AUTHENTICATION.md](docs/AUTHENTICATION.md) for the signing key and account APIs. The local `.env` contains generated private database and signing secrets and is ignored by Git. On a new checkout, copy `.env.example` to `.env` and replace both placeholders first.
+Use Docker Desktop with Linux containers, Python 3.13 and Node 24.13 or newer within Node 24. See the setup guide for fresh-environment instructions. Keep an existing `.env`; when creating one, copy `.env.example` and replace both secret placeholders with independent random values.
 
 ```powershell
 Set-Location 'C:\Users\prana\Desktop\mystreetvendor'
-# If Docker is not already on PATH, add its discovered per-user installation for this shell.
-$taskDockerBin = Join-Path $env:LOCALAPPDATA 'Programs\DockerDesktop\resources\bin'
+$taskDockerBin = Join-Path $env:LOCALAPPDATA 'Programs/DockerDesktop/resources/bin'
 if (Test-Path -LiteralPath $taskDockerBin) { $env:PATH = "$taskDockerBin;$env:PATH" }
-docker version
-docker compose version
-docker compose --env-file .env -f infrastructure/compose.yaml config --quiet
-docker compose --env-file .env -f infrastructure/compose.yaml build
-docker compose --env-file .env -f infrastructure/compose.yaml up -d --wait db
+docker compose --env-file .env -f infrastructure/compose.yaml build api
+docker compose --env-file .env -f infrastructure/compose.yaml up -d --wait db mail
 docker compose --env-file .env -f infrastructure/compose.yaml run --rm api alembic -c alembic.ini upgrade head
 docker compose --env-file .env -f infrastructure/compose.yaml up -d --wait api
-Invoke-RestMethod -Uri 'http://127.0.0.1:8000/health'
+docker compose --env-file .env -f infrastructure/compose.yaml exec api python -m app.cli seed-categories
+Invoke-RestMethod http://127.0.0.1:8000/health
+npm ci
+npm run web --workspace @mystreetvendor/customer-app
 ```
 
-Open [the local Swagger UI](http://127.0.0.1:8000/docs) after startup. It describes the health and implemented account/authentication endpoints. The full business API is being added in the approved sequence.
-
-Run all automated tests inside Linux, including isolated database tests:
+In separate PowerShell windows:
 
 ```powershell
-docker compose --env-file .env -f infrastructure/compose.yaml run --rm -e RUN_DB_TESTS=1 api python -m pytest
+npm run web --workspace @mystreetvendor/vendor-app
+npm run dev --workspace @mystreetvendor/admin-dashboard
 ```
 
-Without `RUN_DB_TESTS=1`, database-dependent tests are skipped explicitly. Integration tests create unique disposable databases and leave the development database intact. Fresh results are tracked in [implementation status](docs/IMPLEMENTATION_STATUS.md); the [October verification record](docs/VERIFICATION.md) remains historical evidence for the original foundation.
+Open Customer on [8081](http://127.0.0.1:8081), Partner on [8082](http://127.0.0.1:8082), Staff on [3000](http://127.0.0.1:3000), API documentation on [8000/docs](http://127.0.0.1:8000/docs), and the development mail inbox on [8025](http://127.0.0.1:8025). Register customer/vendor accounts in their respective apps. Create your own staff account interactively:
 
 ```powershell
-# Inspect logs or stop the local stack while preserving its data.
-docker compose --env-file .env -f infrastructure/compose.yaml logs --tail 100 api db
-docker compose --env-file .env -f infrastructure/compose.yaml down
+docker compose --env-file .env -f infrastructure/compose.yaml exec api python -m app.cli create-admin --email 'YOUR_EMAIL'
 ```
 
-## Mobile applications
+The command prompts for a password. There is no shared default staff login. Browser previews keep mobile sessions in memory, so reloading signs them out. No database credential belongs in either application.
 
-Both independent mobile applications are approved for implementation. Their backend now includes authentication, vendor review, discovery, visits, realtime and durable notifications. Application implementation is next; launch commands will be added when verified.
+## Check what works
 
-Run the complete synthetic backend visit check with `./scripts/Test-VisitWorkflow.ps1` in PowerShell. It uses a disposable PostgreSQL database and a fake push provider. See [notification delivery](docs/NOTIFICATIONS.md) for delivery states and debugging.
+```powershell
+./infrastructure/scripts/Test-Stack.ps1 -Browser -Production -NativeBundles
+./.venv/Scripts/python.exe backend/scripts/demo_workflow.py
+```
 
-## Selected foundation
+The full command includes actual PostgreSQL integration, application checks, browser journeys, isolated production containers and a restore drill. Native exports are JavaScript bundles; signed builds and real-device behavior require separate checks. The [verification record](docs/LOCAL_VERIFICATION.md) states actual results, including failures that led to fixes.
 
-Python 3.13; FastAPI and Pydantic 2; synchronous SQLAlchemy 2 with Psycopg 3; Alembic; PostgreSQL 18 with PostGIS 3.6; Uvicorn; Pytest and HTTPX2 for the current Starlette TestClient. Exact installed versions are pinned in `backend/pyproject.toml` and `backend/requirements.lock`. The [PostGIS image maintainers](https://github.com/postgis/docker-postgis) document the PostgreSQL 18 volume path `/var/lib/postgresql`.
+## Release boundary
 
-Expo/React Native, strict TypeScript, Expo Router and TanStack Query are selected for the future mobile architecture. Their compatible versions will be selected with `expo install` against the stable Expo SDK when those phases begin. No mobile dependency workspace or mobile application is generated in Phase 1.
+The production package has private database/API/admin networking, separate database roles, Caddy routing and binary-safe backups. Public DNS/TLS/server access, approved pilot area, mail/push credentials, signing and physical-device tests remain release gates. Five moderate dependency alerts remain in Expo build tooling. Partner background-only sharing lasts at most the remaining 600-second access-token lifetime; shift-long unattended tracking is not promised.
+
+Payments, inventory, sales accounting, route optimization and multi-city operations are future product work. A completed visit records workflow completion, not a sale.

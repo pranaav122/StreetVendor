@@ -1,121 +1,45 @@
-# Security and privacy design
+# Security and privacy
 
-Phase 0 design, 21 October 2026. Phase 1 is a local backend foundation. Authentication, role authorization, live location sharing, rate limiting and notification security below are **planned controls**, to be implemented and tested in their own phases before exposing real user data.
+Updated 4 November 2026. These controls are implemented and have local evidence in [LOCAL_VERIFICATION.md](LOCAL_VERIFICATION.md). Public deployment, provider delivery and physical-device behavior remain separate gates.
 
-## Trust boundaries
+## Enforced boundaries
 
-```mermaid
-flowchart LR
-    Customer[Customer app - untrusted device] -->|HTTPS or WSS| Edge[Caddy - future TLS boundary]
-    Vendor[Vendor app - untrusted device] -->|HTTPS or WSS| Edge
-    Admin[Admin client - strong authentication] -->|HTTPS| Edge
-    Edge --> API[FastAPI - validates and authorizes every operation]
-    API -->|Private network and restricted role| DB[(PostgreSQL and PostGIS)]
-    API -->|Minimum alert metadata| Push[Expo Push Service]
-    DB -->|Encrypted scheduled copy| Backup[Off-server backup - restricted access]
-```
+- The API derives the actor from a signed access token and checks current account/session state. Registration selects only its fixed customer/vendor role. Staff creation is an interactive operator command.
+- Passwords use Argon2id. Access JWTs last 600 seconds; opaque refresh families have an absolute 30-day lifetime. Only refresh hashes are stored, rotation detects reuse, and account-first locks coordinate logout/revocation with refresh.
+- Recent authentication protects destructive account actions. Reset/verification tokens are hashed, single use and purpose-bound. Production mail requires encrypted transport; local Mailpit does not send to real recipients.
+- PostgreSQL abuse counters survive failed requests and restarts. Caddy overwrites client identity; private Node forwards it only for login, and the API trusts only the two reserved proxy addresses. Node/API have no public production ports. Origin checks and CORS have separate roles; neither proves a raw HTTP caller's identity.
+- Staff cookies contain a random opaque session handle with HttpOnly, Strict, host-only and production Secure attributes. API tokens stay in the server registry. Mutations require the exact configured Origin; proxy paths and query fields are allowlisted. Role/account state is rechecked by the API.
+- Precise vendor tracking is restricted to live participants in accepted/approaching/arrived work. Coarse discovery, bounded search, signed actor-bound cursors, freshness and state checks apply independently of the UI. Admin inspection is audited and does not grant a general exact-GPS endpoint.
+- Offline/suspension/deletion erases the latest fix in the state transaction. Bounded maintenance physically removes abandoned stale fixes. Closed meeting points and old event/device/payload data have the deadlines in [DATABASE.md](DATABASE.md).
+- WebSockets authenticate in a bounded first frame. Send-time resolution rechecks authority, and IDs rather than private coordinates wait in bounded queues. Expiry, logout, unsubscribe and terminal states stop protected delivery.
+- Device ownership includes installation, user, app/project and session family. Outbox delivery rechecks relevance; generic alerts contain identifiers. Taps must reauthorize through REST. Retry ambiguity can duplicate an OS alert.
+- Production runtime uses a non-root container and restricted database role. Migration/bootstrap credentials are separate. JSON request logs omit query strings, bodies and credentials; backups and private configuration are ignored by Git.
 
-Phone GPS, app state, timestamps and request IDs are inputs, not trusted facts. An authenticated vendor may still submit false GPS. The MVP validates freshness/accuracy and implausible jumps, but cannot prove physical presence from a phone report alone. Neither mobile app ever receives database credentials or connects directly to PostgreSQL.
+Native SecureStore holds each app's token pair. Browser mobile previews use memory only. A compromised phone, browser extension or trusted server operator remains a relevant threat; these controls do not establish physical device integrity.
 
-## Threats and planned defenses
+## Source review and remediation
 
-| Threat | Defense and verification |
+Codex Security scan `3e10a132-3eb0-428b-9c88-6933cdfb5271` completed on source revision `d54959401f788a8249e444a28f56117e48f44687`. It fully read 307 source paths; generated lockfile metadata was reviewed separately. Installed dependencies, private state, physical devices, providers and public server/TLS were excluded. The report is an offline source review, not penetration testing.
+
+The sealed report contains two findings: medium severity shared admin-login IP limits, and low severity stale precise-location retention. Later fixes are separate from that historical snapshot:
+
+| Finding | Fix and observed regression |
 |---|---|
-| Password theft and credential stuffing | Argon2id hashes, generic login errors, per-account/IP limits, breached-password policy review, audit unusual failures. Test throttling without locking legitimate users indefinitely. |
-| Stolen tokens and replay | Short access lifetime, hashed opaque refresh tokens, rotation with reuse detection, live session/account checks, TLS and secure device storage. Test expired/revoked/replayed tokens. |
-| Customer reading another customer's visit | Actor-scoped queries and per-resource ownership checks. Test ID substitution on REST and sockets. |
-| Vendor self-verification/admin escalation | Dedicated registration paths assign roles; only audited admins change verification. Reject privileged input fields. |
-| Precise location stalking | Coarse discovery with distance bands, search limits, active-request-only precise tracking, immediate revocation on terminal/offline state. Test privacy on every transport. |
-| Fake arrival or stale GPS | Server timestamps, monotonic latest-location update, freshness/accuracy limits and multi-observation arrival checks. Test simulated bad GPS. |
-| Request races and duplicate alerts | Database transactions, expected versions, active-pair unique constraint, idempotency and transactional outbox. Test simultaneous actions and provider retry ambiguity. |
-| SQL injection | SQLAlchemy bound parameters and validated query fields. No string-built SQL from client input. |
-| Denial of service | Input/message limits, bounded pages/radii, database timeouts, socket connection/subscription/send limits, rate limiting. Measure costly spatial queries. |
-| Secret/PII leaks through logs | Structured event codes, redaction, no password/token/coordinate/body dumps. Test error responses and logs with synthetic secrets. |
-| Lost server/database | Persistent volumes, encrypted off-server backups and restore drills. A volume alone is not a backup. |
+| Stale exact point remained stored after disconnect | [d70cedb](https://github.com/pranaav122/StreetVendor/commit/d70cedbd5832f82e032e82596134b9a37137456b): a 91-second-old row first failed the storage assertion; bounded locked cleanup then passed fresh/stale/writer cases and relevant suites. |
+| Failed anonymous admin logins blocked unrelated operators | [769eb3d](https://github.com/pranaav122/StreetVendor/commit/769eb3d80c1bde8be7ea0926fc58e855f7844ee0): regressions first failed forwarding/ingress checks; real local Caddy/API tests then preserved separate client limits and overwrote forged headers. |
 
-## Authentication design — Phase 2
+On this workstation the authoritative report is at `C:/Users/prana/.codex/state/plugins/codex-security/scans/mystreetvendor/d54959401f788a8249e444a28f56117e48f44687_20261104T073955Z_ht4hmzf8/report.md`, alongside canonical findings, coverage and threat model. The sealed report is retained unchanged. Local regression results support the fixes; there has been no second repository scan or public security certification.
 
-Use server-owned email/password authentication initially. Customer and vendor registration are separate routes assigning fixed roles `customer` and `vendor`. Administrative accounts require a controlled operator process with role `admin`; no public admin-registration route. Check the account's `ACTIVE`/`SUSPENDED`/`DELETED` state and session revocation on protected operations so suspension need not wait for access-token expiry.
+The plugin reported partial token accounting: 25,206,289 total tokens (25,133,497 input, 72,792 output; 24,523,648 cached), with seven missing thread rollouts. This includes linked historical project context and is not reliable audit-only usage or billing.
 
-Normalize email consistently before enforcing uniqueness. Preserve a display form separately if useful. Never silently trim or normalize passwords. Starting password policy: 15–128 characters, allow spaces and Unicode, no arbitrary composition rules; bound the encoded byte size to control hashing cost and document that bound in Phase 2. Reject known-compromised passwords before public launch using a privacy-preserving method. Registration must not imply email ownership; public production use requires real verification/recovery delivery and abuse controls.
+## Open release decisions
 
-Use a maintained Argon2id implementation with per-password random salts and encoded algorithm/cost metadata. Begin at least at the current OWASP minimum, benchmark on the target VPS and rehash when policy changes. Do not implement hashing primitives. OWASP currently lists Argon2id with at least 19 MiB memory, two iterations and one parallelism lane; confirm again when Phase 2 dependencies are selected. [Password storage guidance](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html)
+Five moderate Expo build-tool dependency alerts remain; see [DEPENDENCIES.md](DEPENDENCIES.md). Before public use, resolve that toolchain gate, choose/enforce retention for expired refresh history and minimal staff/audit records, review admin MFA/access restrictions, approve the pilot polygon and support/privacy policy, pin reviewed deployment images, and exercise actual server/provider/device flows.
 
-```mermaid
-sequenceDiagram
-    participant App as Customer or vendor app
-    participant API as FastAPI auth module
-    participant DB as PostgreSQL
-    participant Store as Device SecureStore
-    App->>API: Register through role-specific route
-    API->>API: Validate and Argon2id hash password
-    API->>DB: Create user and credentials transaction
-    API-->>App: Safe user profile
-    App->>API: Login with email and password
-    API->>DB: Load active user and credential hash
-    API->>API: Verify password and apply limits
-    API->>DB: Store refresh hash and session family
-    API-->>App: Short access JWT and opaque refresh token
-    App->>Store: Save refresh token
-    App->>API: Authorized request with access JWT
-    API->>DB: Confirm live account and session, authorize resource
-    API-->>App: Authorized data
-    App->>API: Refresh with current refresh token
-    API->>DB: Lock token row, consume and replace hash atomically
-    API-->>App: New access and refresh tokens
-    App->>Store: Replace stored refresh token
-    App->>API: Logout
-    API->>DB: Revoke session family
-    App->>Store: Delete local refresh token
-```
+Backups are custom-format PostgreSQL archives, not encrypted merely because they are binary. Operators must encrypt/restrict off-server copies, schedule backups, rehearse restoration and define expiration. Host administrators and Docker operators can read environment secrets and remain trusted.
 
-JWT access tokens initially last 10 minutes and include `sub` (user UUID), `sid` (session family), `jti`, `iat`, `exp`, `iss`, and `aud`. Use a maintained library, a fixed allowlisted algorithm, a high-entropy signing secret/key from the environment, explicit issuer/audience validation and bounded clock skew. Do not choose the verification algorithm from attacker input. JWT payloads are readable: include no coordinates, password hashes, refresh secrets or private profile data. Keep signing keys separate from database credentials and support key rotation. FastAPI's [official security tutorial](https://fastapi.tiangolo.com/tutorial/security/oauth2-jwt/) provides framework integration patterns; this application's session/rotation rules still require implementation.
+A phone can falsify location. Freshness, accuracy, monotonic updates and two-fix arrival reduce mistakes but cannot prove a visit occurred. Background-only Partner sharing stops by the access token's remaining expiry; it does not silently refresh from a headless callback. No payment or sale is inferred from completion.
 
-Refresh tokens are random high-entropy opaque secrets, initially at least 32 random bytes, with a 30-day absolute family expiry. Store only a cryptographic digest with family/user/expiry/consumed/revoked metadata. Fast hashing is suitable for these unpredictable tokens; password hashes need deliberately expensive Argon2id. Consume and replace a token under a database lock. Retain consumed hashes until family expiry to detect reuse. Reuse revokes the whole family and emits a security audit event. Apps serialize refresh attempts so simultaneous network requests do not race to consume the same token; a lost refresh response can require login again. Do not weaken replay detection through an undocumented grace period.
+## Reporting and investigation
 
-Logout revokes the current family; logout-all, password reset, deletion and suspension revoke every family. Protected operations consult live session state, including the original family's identifier across rotations. WebSockets must terminate or cease all private delivery when revocation/expiry occurs.
-
-Rate limiting starts in Phase 2: combined source-IP and normalized-account limits, bounded escalating delay, generic failure messages and metrics. Keep an in-memory limiter in the single-instance MVP only if its restart/reset and multi-instance limitations are acceptable and documented. Shared limits become necessary before multiple API instances. Never use existence-specific login responses. Password recovery returns the same outward response for absent and present accounts and uses single-use expiring hashed reset tokens. Real SMS OTP requires a legitimate provider, expiry, attempt limits and verified ownership; no development bypass can be a production authentication path.
-
-## Authorization and resource ownership
-
-Roles are coarse permissions; ownership and current request state are additional checks. A vendor role does not grant access to every vendor profile's private data. An admin role does not justify logging precise location or unrestricted exports.
-
-- Customer: own profile, request history and meeting points; public vendor profiles; precise tracking only for a qualifying accepted visit.
-- Vendor: own profile, categories, availability and latest location; visits addressed to that vendor; customer meeting points only for those visits.
-- Admin: explicit operational permissions for verification/suspension/support, with actor/reason/time audit. Stronger authentication is required before production admin access.
-- Server: deadlines, arrival evaluation, verification side effects and notification recipients. The phone never declares authoritative arrival or session validity.
-
-Use one authorization path per operation, shared by REST and socket delivery when the policy is the same. Recheck active request membership before every precise location event; a subscription created yesterday is not permanent permission. Queries should narrow by actor before loading private objects. Tests must attempt cross-account access, forged IDs and forbidden state changes.
-
-## Location and personal data
-
-Collect the minimum data required for a visit. The initial location table stores one latest point per vendor; there is no detailed movement-history feature. Sharing requires explicit vendor consent and an online state. Removing permission or going offline clears live exposure and prevents new discovery; clients show when tracking is active. The server must handle a phone that disappears without sending an offline update by enforcing freshness limits.
-
-Discovery returns a coarse point/region and distance band, with search/radius limits. Do not return exact distances together with a rounded marker: repeated distance queries can reconstruct the underlying point. Do not treat rounding as a complete privacy guarantee. Prevent scraping using account limits, service-area checks and review of repeated changing-origin queries. Precise vendor location is available only to the owning vendor and a request's customer while state is `ACCEPTED`, `APPROACHING` or `ARRIVED`, sharing is on and the point is fresh. Terminal transitions revoke exposure on REST, sockets and local caches. Prior data already seen by another device cannot be remotely erased or made impossible to screenshot.
-
-Meeting points can reveal a home address. Prefer a user-selected public meeting point, show who receives it, and restrict it to visit participants. Push alerts contain request identifiers and generic text, not precise points. Avoid coordinates in crash analytics, access logs and notification provider payloads. Device push tokens are private routing identifiers and must not appear in public profiles or normal logs.
-
-The retention policy in DATABASE.md is authoritative and remains a product proposal, not a legal conclusion. Remove the latest precise fix when a vendor goes offline or disables sharing; exclude stale fixes immediately and remove them through cleanup. Redact a terminal request's meeting point and label within 24 hours; retain minimal request/event history for 90 days. Remove completed outbox payloads after 7 days and purge disabled/stale device registrations after 30 days. Purge expired refresh families after the short replay-investigation window specified in DATABASE.md. A specific approved safety investigation requires a restricted, recorded retention exception. Verification initially stores minimal staff decisions, without scanned government IDs; any later documentary evidence requires purpose, consent, restricted private storage, a deletion deadline and access audit before collection. Use synthetic records in development.
-
-Account deletion immediately disables access, revokes tokens and stops sharing, then removes or irreversibly anonymizes personal fields according to the retention schedule. Referential integrity may require a pseudonymous tombstone for retained visit records. Backups age out under a documented schedule; the restore procedure must reapply outstanding deletion requests. Obtain privacy/legal review for actual deployment in India before collecting production identity/location data; these engineering choices do not certify compliance.
-
-## Transport, devices and application clients
-
-Production uses HTTPS/WSS through Caddy; keep PostgreSQL on a private Docker network with no public database listener. Device refresh tokens belong in Expo SecureStore, access tokens preferably in memory. Never ship server keys in an Expo environment variable or app bundle. SecureStore is device storage, not an account database or guaranteed recovery mechanism; uninstall/backup/biometric changes can affect availability. Handle a missing token by requesting login. [Expo SecureStore documentation](https://docs.expo.dev/versions/latest/sdk/securestore/)
-
-The future admin browser uses a separately reviewed secure session/cookie flow, origin controls and CSRF protection where cookies authenticate writes. Do not copy the mobile token-storage pattern into browser local storage. Allowlist browser CORS origins if browser clients are introduced; CORS is not authorization and does not protect mobile/API clients. WebSocket authentication messages and authorization rules are specified in API.md; avoid tokens in query strings because URLs commonly enter logs.
-
-## Phase 1 configuration and infrastructure limits
-
-The local foundation has a public health endpoint and interactive API docs, without an authentication system. Keep the API and PostgreSQL published ports on loopback by default. Local database development credentials are not a production permission model. The eventual production application role must lack superuser, role-management and extension/schema-owner privileges. Use a separate migration role, install PostGIS under operator control and grant only needed schema/table/sequence privileges to the runtime account.
-
-Keep `.env`, backups, database data and virtual environments out of Git. Track only `.env.example` with placeholders. Generate a unique local password; do not paste a live connection URL into issue reports or shell output. Container environment values are visible to operators with Docker access, so Docker access is privileged. Secrets are injected at runtime and never copied into the image. Future production secrets use restricted files or a suitable secret store, with rotation and access audit.
-
-Use SQLAlchemy-bound statements, a bounded connection pool, connection/query timeouts and safe failure responses. `pool_pre_ping` detects stale pooled connections; it cannot rescue an in-flight transaction. Roll back failed work and retry only operations with explicit idempotency and bounded retry policy. Run migrations deliberately before deploying compatible API code; do not run schema creation on each request or use `create_all()` as a migration substitute.
-
-Phase 1 must verify success/failure health responses, real PostgreSQL/PostGIS connectivity and migration state. It does not establish production readiness. Later release gates include dependency review, least-privilege testing, authentication/authorization tests, privacy tests, rate-limit abuse tests, restore drills, admin review and physical-device tracking/notification tests.
-
-## Operational incident handling
-
-First determine the affected boundary: phone, API, database, network or provider. Record a trace ID and safe error code, not the submitted secret. Revoke leaked sessions/keys, stop unnecessary location exposure, preserve minimal restricted audit evidence and rotate credentials. Restore into an isolated environment and validate migration/application compatibility before switching traffic. Document each resolved defect in DEBUGGING.md with its root cause, smallest fix and a meaningful regression test.
+Keep credentials, exact locations and private dumps out of public issues. Reproduce with synthetic accounts and an isolated database. Record the request ID, route template, time, observed status and expected rule. Avoid enabling SQL/body/access-query logging on real users. Revoke affected sessions and use the documented operator/recovery path when needed; do not bypass authorization to make a test pass.

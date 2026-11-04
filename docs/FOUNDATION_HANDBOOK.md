@@ -1,5 +1,7 @@
 # MyStreetVendor Foundation Handbook
 
+Historical edition: the full remaining MVP was later approved on 2 November. Read the [4 November project handbook](PROJECT_HANDBOOK.md) for current applications, operations and the file map. The text below retains its original foundation scope.
+
 Understand the system built in Phases 0 and 1
 
 Edition dated 21 October 2026. Application source checkpoint `699a820`.

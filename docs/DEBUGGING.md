@@ -1,116 +1,95 @@
-# Debugging the foundation yourself
+# Debugging independently
 
-Status: Phase 1 runbook. [VERIFICATION.md](VERIFICATION.md) records what was actually exercised. Future-feature sections are guidance for later phases, not claims of current functionality.
+Use synthetic local accounts. Start with a failing layer and expected result. Keep private configuration, tokens, exact points and dumps out of logs/reports. Actual verification is in [LOCAL_VERIFICATION.md](LOCAL_VERIFICATION.md).
 
-## Start with evidence
-
-Reproduce the smallest failing action and note its time, HTTP status, response and relevant logs. Locate the failing boundary before editing code: PowerShell → Docker engine → API listener → application configuration → database connection → migration/PostGIS. Change one thing and repeat the same check. Do not rewrite the project or erase the database to hide an error.
-
-Run commands from the repository root. If necessary, add Docker to this shell's PATH as shown in [DEPLOYMENT.md](DEPLOYMENT.md).
+## Tools and containers
 
 ```powershell
+$taskDockerBin = Join-Path $env:LOCALAPPDATA 'Programs/DockerDesktop/resources/bin'
+if (Test-Path -LiteralPath $taskDockerBin) { $env:PATH = "$taskDockerBin;$env:PATH" }
 docker version
 docker compose --env-file .env -f infrastructure/compose.yaml config --quiet
 docker compose --env-file .env -f infrastructure/compose.yaml ps
-docker compose --env-file .env -f infrastructure/compose.yaml logs --tail 100 api db
+docker compose --env-file .env -f infrastructure/compose.yaml logs --tail 60 api db
 ```
 
-Use `config --quiet` when sharing output. Plain `config` may expand and print your password. The database connection URL and `.env` are secrets.
+Missing executable means PATH/install; missing Server response means Docker Desktop/Linux engine. An unhealthy container requires its service log. Plain resolved Compose output can print secrets; use `config --quiet`. Production logs omit raw request queries/bodies; keep that boundary.
 
-## Inspect HTTP independently
+## API and database
 
 ```powershell
-curl.exe -i --max-time 10 http://127.0.0.1:8000/health
-Invoke-RestMethod -Uri 'http://127.0.0.1:8000/health' -TimeoutSec 10
-Invoke-RestMethod -Uri 'http://127.0.0.1:8000/openapi.json' -TimeoutSec 10
-Get-NetTCPConnection -LocalPort 8000 -State Listen -ErrorAction SilentlyContinue
+Invoke-RestMethod http://127.0.0.1:8000/health
+docker compose --env-file .env -f infrastructure/compose.yaml exec api alembic -c alembic.ini current
+docker compose --env-file .env -f infrastructure/compose.yaml exec db psql -U mystreetvendor -d mystreetvendor -c 'SELECT PostGIS_Version()'
 ```
 
-`curl.exe` selects the actual HTTP client, avoiding PowerShell's historical `curl` alias. A healthy response is HTTP 200 with `status`, `database`, and `postgis` all `ok`. A database outage is HTTP 503; a missing PostGIS installation also produces 503. A 404 means an HTTP server answered but that route was not found. Connection refusal means there is no listener at that address/port. A timeout means the server or a dependency did not respond within the limit. `/health` is dependency readiness, not a substitute for migration inspection or functional tests.
+Use configured account/database names if different. Health 200 establishes database/PostGIS access, not every workflow. Health 503 distinguishes database/extension unavailability safely. Business database failures include a server request ID.
 
-## Inspect PostgreSQL directly
+Containers use `db`; Windows Python uses the loopback port. Changing only `.env` does not rotate an existing cluster password. Use deliberate rotation and a verified backup. Deleting a volume is not a repair procedure.
+
+## Confirm running code and set breakpoints
+
+Backend source is copied into the image, without a source bind mount. Restarting an old image keeps old code. After an edit:
 
 ```powershell
-docker compose --env-file .env -f infrastructure/compose.yaml exec -T db sh -c 'pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"'
-docker compose --env-file .env -f infrastructure/compose.yaml exec -T db sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT current_database(), current_user, version();"'
-docker compose --env-file .env -f infrastructure/compose.yaml exec -T db sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT PostGIS_Full_Version();"'
-docker compose --env-file .env -f infrastructure/compose.yaml exec -T db sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT version_num FROM alembic_version;"'
-docker compose --env-file .env -f infrastructure/compose.yaml exec db sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"'
+docker compose --env-file .env -f infrastructure/compose.yaml build api
+docker compose --env-file .env -f infrastructure/compose.yaml up -d --wait api
 ```
 
-In the interactive SQL shell, use `\dt` to list tables, `\dx` to list extensions, `\d alembic_version` for its structure and `\q` to exit. Business tables do not exist in Phase 1. Extension-owned spatial tables are expected; they are not application entities. `pg_isready` proves the server accepts connections; a SQL query using the real application credentials is the stronger application connectivity check.
-
-For a longer SQL statement containing quoted values, pass it through standard input with a PowerShell here-string. This avoids nesting SQL quotes inside another shell's quotes:
+Apply new migrations explicitly. A model edit does not change tables. To debug host Python, stop the container API first to free port 8000:
 
 ```powershell
-@'
-SELECT datname FROM pg_database WHERE datname LIKE 'msv_test_%';
-'@ | docker compose --env-file .env -f infrastructure/compose.yaml exec -T db sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"'
+docker compose --env-file .env -f infrastructure/compose.yaml stop api
+Push-Location backend
+try { ../.venv/Scripts/python.exe -m uvicorn app.main:create_app --factory --host 127.0.0.1 --port 8000 --env-file ../.env --no-access-log }
+finally { Pop-Location }
 ```
 
-```powershell
-docker compose --env-file .env -f infrastructure/compose.yaml run --rm api alembic -c alembic.ini current
-docker compose --env-file .env -f infrastructure/compose.yaml run --rm api alembic -c alembic.ini heads
-docker compose --env-file .env -f infrastructure/compose.yaml run --rm api alembic -c alembic.ini upgrade head
-```
+Configure your editor's Python debugger with that module, arguments and working directory. Break at the route, service and database call. Pausing may cause socket expiry/browser timeouts. An IDE breakpoint session has not been claimed as automated verification. Stop host Uvicorn before restarting the container API.
 
-`current` reads the database's revision; `heads` reads the latest revision in the files. They should match after upgrade. `Base.metadata.create_all()` is not used: it would bypass the migration history. Downgrade tests run only in disposable test databases. The initial downgrade intentionally leaves PostGIS installed because extensions may be shared and dropping one can destroy dependent objects.
+## Read HTTP outcomes
 
-## Common failures and their causes
-
-| Symptom | Likely cause and focused check |
+| Status | Next step |
 |---|---|
-| `docker` is not recognized | Docker's executable directory is missing from PATH. Use its installed full path or the temporary PATH command. |
-| Cannot connect to Docker engine | Desktop is stopped, wrong context, or WSL/virtualization failure. Inspect `docker version` and Desktop before changing Python. |
-| Compose reports an unset variable | Missing `.env`, wrong working directory, or an empty required value. Use explicit `--env-file .env`. |
-| Database password authentication fails | App values differ from the credentials stored in the existing volume. Editing `.env` does not reset PostgreSQL. Use an authorized SQL password change and update the app value, then recreate the API container. |
-| Hostname `db` fails in Windows Python | `db` exists only on the Compose network. Use `POSTGRES_HOST=127.0.0.1` on Windows. |
-| API container cannot connect to `localhost` | Inside that container, localhost is the API itself. Compose must pass `POSTGRES_HOST=db`. |
-| Port 5432 or 8000 is already allocated | Another service or project is listening. Inspect `Get-NetTCPConnection`; change the matching local port in `.env` and your URL. Do not stop unrelated services. |
-| PostGIS function does not exist | Connected to the wrong database or initial migration has not enabled the extension. Check `current_database()`, `\dx`, and Alembic. |
-| Relation `alembic_version` missing | Migration was not applied to this database. Verify host/database before running `upgrade head`. |
-| Connection works but health is 503 | Inspect safe API warning type and verify `PostGIS_Full_Version()`; readiness checks both dependencies. |
-| Unit tests pass but containers fail | Mocked tests check response behavior only. Run real database integration tests and a live HTTP request. |
-| File edits have no effect in Docker | The image contains the old source. Rebuild and recreate `api`; there is no development source mount. |
-| Windows Python ignores the root `.env` | Run from the repository root, or supply process environment variables explicitly. |
+| 401 | Check live session/account and expiry; sign in again where appropriate. |
+| 403 | Check fixed role, verification, production email rules or staff Origin. |
+| 404 | Check ID/ownership; private resources avoid revealing another user's record. |
+| 409 | Refetch current version/state and allowed actions/tracking eligibility. |
+| 422 | Read safe field/code errors; check timestamp, accuracy, area and unknown fields. |
+| 429 | Respect the abuse window/Retry-After; avoid repeated retries. |
+| 503 | Check database/provider/configuration; production staff requires private proxy identity. |
 
-Do not include a password in screenshots, shell history, debug watch exports or public bug reports. Health errors log an exception class and safe context, rather than a full database error containing connection details.
+A stale version is a normal concurrency outcome. Retry creation with its existing idempotency key; do not generate a new key for every timeout. A 503 does not authorize blindly repeating a mutation.
 
-## Set a Python breakpoint
+## Discovery and sharing
 
-Use the optional local Python workflow in [DEPLOYMENT.md](DEPLOYMENT.md), with PostgreSQL still running in Docker. In an IDE, select `.venv\Scripts\python.exe`, set working directory to the repository root, launch module `uvicorn` with arguments `app.main:create_app --factory --host 127.0.0.1 --port 8000`, and set a breakpoint in `backend/app/health.py`. Avoid `--reload` during your first breakpoint session because it creates a child process.
+Check active account, partner approval, availability/consent, recent usable fix, area, category and coarse radius. Discovery uses coarse regions, so it does not promise precise distances. A stale point is hidden even when availability is true; maintenance removes the stored point.
 
-Send `/health` from another terminal and step into `get_db` and `session.execute`. Inspect the query and response, without exporting the password or connection URL. A SQLAlchemy engine is a connection manager; it does not open a database connection merely because it was constructed. The first SQL operation is where many connection failures appear.
+Tracking also requires that visit's customer and qualifying live state. Completion/cancellation/expiry ends tracking. Arrival needs two usable observations plus server timing/distance checks. Use [LOCATION.md](LOCATION.md), [VISITS.md](VISITS.md) and synthetic tests rather than weakening privacy checks.
 
-## Reproduce database failure and recovery
+## Browser, device and provider
 
-This temporarily interrupts only this project's local database. Keep the API running so the same process must recover its pool.
+Mobile browser sessions are in memory. Native builds need reachable networking, SecureStore, OS permissions and correct project IDs. Browser GPS tests do not prove native background behavior. Partner headless sharing ends by access-token expiry; foreground resume reconciles state.
+
+Mailpit shows local capture; production needs real encrypted SMTP and sender verification. Expo needs independent projects and explicit notification permission. Tickets mean provider acceptance, while receipts and physical delivery are additional stages. Do not expose provider tokens in issues/logs.
+
+## Focused tests
 
 ```powershell
-docker compose --env-file .env -f infrastructure/compose.yaml stop db
-curl.exe -i --max-time 10 http://127.0.0.1:8000/health
-docker compose --env-file .env -f infrastructure/compose.yaml up -d --wait db
-curl.exe -i --max-time 10 http://127.0.0.1:8000/health
+$env:RUN_DB_TESTS = '1'
+./.venv/Scripts/python.exe -m pytest -c backend/pyproject.toml backend/tests/test_retention.py -q
+./.venv/Scripts/python.exe backend/scripts/demo_workflow.py
+npm run test:client
+npm run test:admin
+./scripts/Test-Applications.ps1 tests/e2e/customer-partner.test.ts
 ```
 
-Expected: 503 during the outage and 200 after recovery. SQLAlchemy `pool_pre_ping` checks borrowed connections and replaces stale ones; it does not replay interrupted business transactions. Later writes must handle rollback and idempotent retries deliberately. Do not use `down --volumes` for this experiment.
+The browser wrapper uses generated `msv_ui_*` databases/API port 8001 and rejects the real development database. Cases reset their own synthetic rows. Traces/video are disabled because login traffic has credentials.
 
-## Future application debugging — not implemented
+`_env_file=None` disables file loading, not environment variables; production unit fixtures explicitly supply their mail settings. Windows backup tests skip explicitly in Linux because the image lacks PowerShell/host scripts; they run on Windows instead.
 
-- **Mobile UI:** use React Native DevTools and development-build device logs; inspect component state and TanStack Query state separately. Reproduce on a physical device when permissions/background operation matter.
-- **HTTP/auth:** inspect method, endpoint, status, request ID and expiry. Redact authorization headers. Trace refresh rotation on the server; avoid retries that create duplicate requests.
-- **GPS:** Phase 4 adds a deterministic simulator. Test stale timestamps, inaccurate fixes, out-of-order samples, disabled sharing and network reconnection. Compare captured time with server receipt time and the selected coordinate system.
-- **WebSockets:** inspect connection/auth result, subscription authorization, event ID/version and reconnect resynchronization. A socket event is a hint to refresh authoritative REST state, not proof of a committed action on its own.
-- **Push:** trace committed request event → outbox row → provider ticket → delivery receipt. Check token invalidation and retry state. A successful provider submission is not proof the phone displayed an alert.
+## Recovery
 
-## Resolved issues and verification
+Use [BACKUPS.md](BACKUPS.md). Restore validates its archive, creates only a new generated isolated database, queries actual schema/records and removes its target on failure. Do not pipe dump bytes through PowerShell text processing or restore over development/pilot data.
 
-The read-only environment inspection found Docker installed per-user but absent from PATH. Calling its full path returned both client and Linux server versions successfully. The temporary PATH command fixes shell discovery without reinstalling Docker or changing global settings.
-
-The same PATH omission initially prevented image downloads: Docker could not find `docker-credential-desktop`. Adding the whole executable directory to the session PATH resolved both CLI and credential-helper discovery.
-
-The image sets the database search path to include `topology` and `tiger`. The first Alembic comparison consequently mistook geocoder tables for removed application tables. No changes were applied by that comparison. The migration environment now sets a transaction-local search path of `public`, and excludes the extension-owned `spatial_ref_sys` table. The regression test includes a visible `tiger` table and proves it survives a clean schema comparison. Future business models must be imported into the migration environment when added, so their metadata is visible to Alembic.
-
-The initial dependency selection produced a Starlette warning about the old HTTPX package. The current documented HTTPX2 test client dependency is now pinned and tested. Container tests initially could not write their optional Pytest cache under `/app`; the Dockerfile grants the non-root user access to that cache directory only.
-
-Do not treat the expected outputs in this runbook as executed results; consult the verification report for final outcomes.
+`./infrastructure/scripts/Test-Production.ps1 -CheckBackup` checks private synthetic containers, actual roles, real Caddy routing/header handling, restarts and restore. It uses HTTP without public ports or certificates. Review the [release gates](ROADMAP.md) before treating that as a public deployment.
