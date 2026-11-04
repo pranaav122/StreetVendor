@@ -22,7 +22,7 @@ Errors use `{ "error": { "code": "...", "message": "...", "request_id": "..." } 
 | Own account | Safe profile/language updates; explicit deletion confirmation anonymizes/revokes and erases affected location data. No role/status mass assignment. |
 | Business | Vendor-owned profile/categories and minimal `evidence_note` review submission; staff approval/suspension/reinstatement is audited. No document-upload workflow. |
 | Availability | Verified active vendor, explicit consent and first valid location commit atomically. Offline erases the exact point; later location writes require current sharing state. |
-| GPS | At most 90 seconds old, at most 30 seconds future, accuracy at most 100 m, timezone-aware and newer than the stored reading. Updates are limited to 120 per 15-minute window per vendor. |
+| GPS | At most 90 seconds old, at most 30 seconds future, accuracy at most 100 m, timezone-aware and newer than the stored reading. Updates are limited to 240 per 15-minute window per vendor (180 normal five-second updates plus bounded margin). |
 | Discovery | Active customer, service-area origin, 100–5,000 m coarse radius, active category, current vendor eligibility; returns approximate location, kilometre band and capture time. No exact public GPS. |
 | Visits | Active-pair uniqueness, guarded state/version/deadline and meeting-point privacy. Pending expires after five minutes; accepted work after sixty minutes. |
 | Tracking | Only the visit's customer during accepted/approaching/arrived work with fresh eligible vendor. Unauthorized is 404; no longer eligible is 409 `TRACKING_UNAVAILABLE`. |

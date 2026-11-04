@@ -1,6 +1,7 @@
 from datetime import timedelta
 from concurrent.futures import ThreadPoolExecutor
 import time
+from types import SimpleNamespace
 
 import pytest
 from sqlalchemy import text
@@ -10,6 +11,25 @@ from test_auth import api
 from test_vendors import categories, fix, operator, vendor, verified
 
 pytestmark = pytest.mark.integration
+
+
+def test_five_second_sharing_cadence_fits_one_rate_window_with_bounded_margin(
+    api, vendor, ready_vendor, monkeypatch
+):
+    from app.auth import service
+
+    # Compress fifteen minutes of five-second uploads into one real API test.
+    # Keep the limiter's bucket clock fixed even if the wall clock crosses a
+    # boundary; fresh GPS readings and JWT validation still use the real clock.
+    monkeypatch.setattr(service, "time", SimpleNamespace(time=lambda: 9000))
+    for index in range(240):
+        response = api.put("/api/v1/vendors/me/location", headers=vendor, json=fix())
+        assert response.status_code == 200, (index, response.text)
+    # A five-second feed needs 180 updates; the extra 60 permit timing/retry
+    # variation. The allowance remains finite rather than disabling abuse checks.
+    response = api.put("/api/v1/vendors/me/location", headers=vendor, json=fix())
+    assert response.status_code == 429
+    assert response.json()["error"]["code"] == "RATE_LIMITED"
 
 
 @pytest.fixture

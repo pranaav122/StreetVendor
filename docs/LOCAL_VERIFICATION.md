@@ -69,3 +69,7 @@ After the security changes, the complete Windows backend run passed **207 tests 
 After repairing the environment-dependent fixture, the rebuilt Linux development image passed **197 tests, 11 explicitly skipped in 217.48 seconds**. The skips are the seven Windows operator cases, the Windows binary roundtrip and three host Docker-configuration checks; those checks passed on Windows. The rebuilt development API returned health/database/PostGIS `ok`.
 
 The current Next production build then passed and all **32 combined browser cases passed in 5.1 minutes**, using both Expo web apps, compiled Next, a real isolated API/database and local Mailpit. The generated browser database was removed. This includes the two-interface/browser-GPS visit, offline/error controls, session revocation, narrow Tamil layouts, recovery and staff flows. It does not add physical native or public-provider proof.
+
+## Final review: sustained GPS allowance
+
+The independent whole-project reviewer found that a five-second feed could need 180 PUTs per 15 minutes while the server allowed only 120. A real HTTP/PostgreSQL regression, with the limiter clock held in one bucket, failed on attempt 121 with 429. The server now permits 240 per vendor/window, retaining a finite allowance with margin for normal timing/retries. The regression accepts 240 fresh writes then requires 429 on attempt 241. The location/retention suites passed **25 tests in 48.61 seconds**, and the changed router passed Ruff. Sensor cadence, GPS validation and privacy guards were preserved.
