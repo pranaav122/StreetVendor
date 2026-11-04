@@ -1,8 +1,8 @@
 # Every-file guide
 
-Updated 4 November 2026. This inventory explains every maintained Git file and the current handbook. Private `.env`, installed dependencies, databases, backups and generated test/export output are deliberately excluded. Start with [PROJECT_HANDBOOK.md](PROJECT_HANDBOOK.md), then use this map to follow an actual feature.
+Updated 5 November 2026. This inventory explains every maintained Git file and the current handbook. Private `.env`, installed dependencies, databases, backups and generated test/export output are deliberately excluded. Start with [PROJECT_HANDBOOK.md](PROJECT_HANDBOOK.md), then use this map to follow an actual feature.
 
-Inventory: **312 files**. Paths are repository-relative and linked from this guide. Tests describe the behavior they protect; their existence alone is not a passing result. Actual runs are in [LOCAL_VERIFICATION.md](LOCAL_VERIFICATION.md).
+Inventory: **313 files**. Paths are repository-relative and linked from this guide. Tests describe the behavior they protect; their existence alone is not a passing result. Actual runs are in [LOCAL_VERIFICATION.md](LOCAL_VERIFICATION.md).
 
 ## Root settings
 
@@ -278,6 +278,7 @@ Inventory: **312 files**. Paths are repository-relative and linked from this gui
 | [docs/DEBUGGING.md](../docs/DEBUGGING.md) | Maintained reading/reference document: Debugging independently. |
 | [docs/DEPENDENCIES.md](../docs/DEPENDENCIES.md) | Maintained reading/reference document: Dependency review — 4 November 2026. |
 | [docs/DEPLOYMENT.md](../docs/DEPLOYMENT.md) | Maintained reading/reference document: Windows development and deployment. |
+| [docs/UX_RESEARCH_AND_CODE_MAP.md](../docs/UX_RESEARCH_AND_CODE_MAP.md) | Reference-app evidence, usability reasons, module responsibilities and acceptance checks for the proposed redesign. |
 | [docs/DESIGN.md](../docs/DESIGN.md) | Maintained reading/reference document: MyStreetVendor interface design. |
 | [docs/FILE_GUIDE.md](../docs/FILE_GUIDE.md) | Maintained reading/reference document: Every file and how the foundation works. |
 | [docs/FOUNDATION_HANDBOOK.md](../docs/FOUNDATION_HANDBOOK.md) | Maintained reading/reference document: MyStreetVendor Foundation Handbook. |

@@ -1,3 +1,7 @@
+/**
+ * Revalidates permissions and server availability when the app resumes.
+ * Earlier consent is not proof that sharing is still authorised after suspension.
+ */
 import type { SharingController } from "./controller";
 export async function revalidateSharing(options: {
   controller: SharingController;

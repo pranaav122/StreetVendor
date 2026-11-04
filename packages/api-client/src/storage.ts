@@ -1,3 +1,7 @@
+/**
+ * Adapts validated session data to secure native storage or browser memory.
+ * The storage boundary keeps persistence choices out of individual screens.
+ */
 import { tokenSchema, type TokenPair } from "@mystreetvendor/shared-types";
 import type { SessionStore } from "./index";
 

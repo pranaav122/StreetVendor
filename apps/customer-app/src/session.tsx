@@ -1,3 +1,7 @@
+/**
+ * Coordinates the customer identity, query cache and realtime connection.
+ * One lifecycle boundary ensures sign-out also clears private results and subscriptions.
+ */
 import {
   createContext,
   useCallback,

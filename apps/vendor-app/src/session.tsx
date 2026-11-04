@@ -1,3 +1,7 @@
+/**
+ * Coordinates the vendor identity, query cache and realtime connection.
+ * One lifecycle boundary keeps credentials and private results from surviving sign-out.
+ */
 import {
   createContext,
   useCallback,

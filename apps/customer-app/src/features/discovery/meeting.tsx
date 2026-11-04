@@ -1,3 +1,7 @@
+/**
+ * Keeps the selected public meeting point in memory for the current account.
+ * Discovery and request screens share this choice without persisting private coordinates.
+ */
 import {
   createContext,
   useContext,

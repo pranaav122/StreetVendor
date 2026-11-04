@@ -1,3 +1,7 @@
+/**
+ * Owns authenticated HTTP requests and coordinated token refresh for both apps.
+ * Screens share one credential lifecycle rather than racing independent refresh attempts.
+ */
 import { tokenSchema, type TokenPair } from "@mystreetvendor/shared-types";
 
 export type { TokenPair } from "@mystreetvendor/shared-types";

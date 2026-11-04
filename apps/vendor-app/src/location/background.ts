@@ -1,3 +1,7 @@
+/**
+ * Adapts native background callbacks and secure consent storage to the sharing policy.
+ * The OS may invoke this module without a mounted screen, so it cannot rely on React state.
+ */
 import { Platform } from "react-native";
 import * as Location from "expo-location";
 import * as TaskManager from "expo-task-manager";

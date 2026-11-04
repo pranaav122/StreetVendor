@@ -6,6 +6,8 @@ The full remaining MVP was approved on 2 November 2026. Application code and a s
 
 ## Start reading
 
+- [Workflow research and module explanations](docs/UX_RESEARCH_AND_CODE_MAP.md): reference apps, reasons, code owners and checks for the proposed simpler interface.
+
 - [Project handbook](docs/PROJECT_HANDBOOK.md): a guided explanation of everything built, with exercises and debugging examples.
 - [Architecture](docs/ARCHITECTURE.md), [database](docs/DATABASE.md), [API](docs/API.md) and [every-file guide](docs/FILE_GUIDE.md).
 - [Windows setup](docs/DEPLOYMENT.md), [debugging](docs/DEBUGGING.md), [production package](docs/PRODUCTION.md) and [backup/restore](docs/BACKUPS.md).

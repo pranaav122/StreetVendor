@@ -1,3 +1,7 @@
+/**
+ * Connects the sharing controller to Expo sensors, the API and React lifecycle.
+ * Screens request online/offline actions here instead of creating competing location watchers.
+ */
 import {
   createContext,
   useContext,

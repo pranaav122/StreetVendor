@@ -1,3 +1,7 @@
+/**
+ * Runs location-sharing state using injected sensor and network operations.
+ * Generations invalidate old callbacks so a late upload cannot undo a newer offline decision.
+ */
 export type Fix = {
   latitude: number;
   longitude: number;

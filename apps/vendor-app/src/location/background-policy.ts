@@ -1,3 +1,7 @@
+/**
+ * Checks consent, session identity and location fixes before a background send.
+ * Keeping this policy separate from Expo callbacks lets tests exercise it without an OS task.
+ */
 import { usableFix, type Fix } from "./controller";
 export type Consent = {
   userId: string;

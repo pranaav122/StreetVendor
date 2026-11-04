@@ -1,3 +1,7 @@
+/**
+ * Owns socket authentication, visit subscriptions and bounded reconnection.
+ * HTTP resynchronisation rechecks current access before private tracking is displayed again.
+ */
 import {
   parseServerMessage,
   type ServerMessage,

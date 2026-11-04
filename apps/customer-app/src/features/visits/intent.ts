@@ -1,3 +1,7 @@
+/**
+ * Keeps a visit retry tied to its original intent and checks tracking freshness.
+ * These rules stay independent of React so retries and stale positions can be tested directly.
+ */
 import type { LocationFix, Point } from "@mystreetvendor/shared-types";
 
 export class VisitIntent {
