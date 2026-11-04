@@ -68,6 +68,16 @@ follow-up passed **24 Partner policy cases**, strict shared/Partner checking and
 web/iOS/Android exports; the final Partner native bundles are about 3.8 MB each.
 These are local code/policy/browser/build results, not physical-device proof.
 
-Admin dashboard; production configuration; exercised backups/restore; final security/dependency review and the updated whole-project learning guide. Public hosting, signed installs, actual native background/resume/link behavior and live push delivery remain owner/provider/device verification gates.
+The admin dashboard is implemented: staff sessions, real summaries, business
+review/controls, reports, audited visit inspection/cancellation and account
+suspension/restoration. All nine admin browser cases passed against the compiled
+Next server and a real isolated API/database on 4 November, alongside 12 passing
+session/proxy unit cases and strict checking. Its 390-pixel review preview was
+visually inspected. The combined all-app run is still being evaluated.
+
+Production configuration; exercised backups/restore; final security/dependency
+review and the updated whole-project learning guide remain in progress. Public
+hosting, signed installs, actual native background/resume/link behavior and live
+push delivery remain owner/provider/device verification gates.
 
 No current result proves public deployment, native background GPS, real push delivery or store release. Local development choices remain usable while real owner/provider inputs are pending.

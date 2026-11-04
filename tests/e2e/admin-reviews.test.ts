@@ -1,5 +1,6 @@
 import { expect, test } from "./test";
 import { API, fix, operatorAccount, pendingVendor } from "./fixtures";
+import path from "node:path";
 const admin = "http://127.0.0.1:3000";
 
 test("staff reviews public business details, approves, suspends and returns the business to pending", async ({
@@ -22,6 +23,15 @@ test("staff reviews public business details, approves, suspends and returns the 
       exact: true,
     }),
   ).toBeVisible();
+  expect(
+    await page.locator("html").evaluate((node) => node.scrollWidth),
+  ).toBeLessThanOrEqual(390);
+  await page.screenshot({
+    path: path.resolve(
+      ".superpowers/sdd/2026-11-02-applications/admin-review-live.png",
+    ),
+    fullPage: true,
+  });
   await expect(
     card.getByRole("button", { name: "Approve business", exact: true }),
   ).toBeDisabled();

@@ -141,3 +141,27 @@ PostgreSQL: report inspection/cancellation/resolution, account suspension/
 restoration/new login with sharing still off, forbidden self-suspension, and a
 competing vendor acceptance against staff cancellation. Core tests remain **12
 passing** and strict shared/Next checking passes. The production build also passes.
+
+## Repeating the combined checks
+
+Build the admin app first, then run the isolated browser suite from PowerShell:
+
+```powershell
+npm run build --workspace @mystreetvendor/admin-dashboard
+$env:TEST_ADMIN_PRODUCTION = '1'
+./scripts/Test-Applications.ps1
+Remove-Item Env:TEST_ADMIN_PRODUCTION
+```
+
+The flag tests compiled Next code rather than the development compiler. It still
+uses local HTTP and a development cookie, so it does not prove public TLS. Next
+warns that its standalone deployment should use the generated `server.js`;
+the production package must use that entry point. The browser suite checks the
+390-pixel layout and saves an ignored synthetic business-review screenshot.
+That screenshot was visually inspected: controls, IDs and review text wrap
+within the screen without horizontal overflow.
+
+On 4 November the compiled-server run passed all nine admin browser cases
+against the real isolated API/database. The remaining Customer/Partner cases
+continue in the same run; their final result is recorded separately. The current
+admin core suite passed all 12 cases, and shared/Next strict checking passed.

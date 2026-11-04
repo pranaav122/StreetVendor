@@ -17,7 +17,7 @@ export default defineConfig({
   },
   webServer: [
     {
-      command: "npm run dev --workspace @mystreetvendor/admin-dashboard",
+      command: `npm run ${process.env.TEST_ADMIN_PRODUCTION === "1" ? "start" : "dev"} --workspace @mystreetvendor/admin-dashboard`,
       url: "http://127.0.0.1:3000",
       timeout: 120000,
       reuseExistingServer: false,
