@@ -1,37 +1,40 @@
 """Construct the API without connecting to or migrating the database at import."""
 
+import asyncio
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-import asyncio
 
-from fastapi import FastAPI
-from fastapi import HTTPException
+from fastapi import FastAPI, HTTPException
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import sessionmaker
 
-from app.config import Settings
-from app.database import create_db_engine
-from app.health import router
-from app.auth.router import router as auth_router
-from app.users.router import router as users_router
-from app.errors import http_error, validation_error
+from app.admin.router import router as admin_router
 from app.auth.mailer import SMTPMailer
 from app.auth.recovery import router as recovery_router
-from app.vendors.router import router as vendors_router
-from app.admin.router import router as admin_router
-from app.location.router import router as location_router
-from app.visits.router import router as visits_router
+from app.auth.router import router as auth_router
+from app.config import Settings
+from app.database import create_db_engine
+from app.errors import database_error, http_error, validation_error
+from app.health import router
 from app.jobs import run_jobs
-from app.realtime.manager import RealtimeManager
-from app.realtime.router import router as realtime_router
+from app.location.router import router as location_router
 from app.notifications.provider import ExpoProvider
 from app.notifications.router import router as devices_router
+from app.observability import RequestLogMiddleware, configure_json_logging
+from app.realtime.manager import RealtimeManager
+from app.realtime.router import router as realtime_router
+from app.users.router import router as users_router
+from app.vendors.router import router as vendors_router
+from app.visits.router import router as visits_router
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
     if settings is None:
         settings = Settings()
+    if settings.environment == "production":
+        configure_json_logging()
     engine = create_db_engine(settings)
 
     @asynccontextmanager
@@ -63,6 +66,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
         allow_headers=["Authorization", "Content-Type", "Idempotency-Key"],
     )
+    app.add_middleware(RequestLogMiddleware)
     app.state.engine = engine
     app.state.settings = settings
     app.state.mailer = SMTPMailer(settings)
@@ -83,4 +87,5 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(devices_router)
     app.add_exception_handler(HTTPException, http_error)
     app.add_exception_handler(RequestValidationError, validation_error)
+    app.add_exception_handler(SQLAlchemyError, database_error)
     return app

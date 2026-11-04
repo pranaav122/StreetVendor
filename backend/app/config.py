@@ -1,12 +1,13 @@
 """Read configuration from process variables or the root .env file."""
 
 import json
+from typing import Literal
+from urllib.parse import urlsplit
+from uuid import UUID
 
-from pydantic import EmailStr, Field, SecretStr, field_validator
+from pydantic import EmailStr, Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.engine import URL
-from typing import Literal
-from uuid import UUID
 
 
 class Settings(BaseSettings):
@@ -48,6 +49,7 @@ class Settings(BaseSettings):
         ]
     )
     environment: Literal["development", "test", "production"] = "development"
+    api_workers: int = Field(default=1, ge=1)
     jobs_enabled: bool = False
     smtp_host: str | None = None
     smtp_port: int = Field(default=587, ge=1, le=65535)
@@ -59,6 +61,57 @@ class Settings(BaseSettings):
     public_customer_url: str = "http://127.0.0.1:8081"
     public_vendor_url: str = "http://127.0.0.1:8082"
     service_area_geojson: str | None = Field(default=None, max_length=65536)
+
+    @model_validator(mode="after")
+    def production_configuration(self):
+        if self.environment != "production":
+            return self
+        key = self.jwt_secret.get_secret_value() if self.jwt_secret else ""
+        # Refuse obvious placeholders; operators must still generate random keys.
+        if (
+            len(key) < 64
+            or len(set(key)) < 16
+            or key == self.postgres_password.get_secret_value()
+        ):
+            raise ValueError(
+                "Production requires an independent random signing key of at least 64 characters."
+            )
+        if self.api_workers != 1 or self.postgres_user != "msv_runtime":
+            raise ValueError(
+                "Production requires one API worker and the restricted msv_runtime database role."
+            )
+        if not self.service_area_geojson:
+            raise ValueError("Production requires an approved service-area polygon.")
+        if not self.allowed_origins:
+            raise ValueError("Production requires explicit browser origins.")
+        for value in [
+            *self.allowed_origins,
+            self.public_customer_url,
+            self.public_vendor_url,
+        ]:
+            parsed = urlsplit(value)
+            if (
+                parsed.scheme != "https"
+                or not parsed.hostname
+                or parsed.username
+                or parsed.password
+                or parsed.query
+                or parsed.fragment
+                or parsed.path not in ("", "/")
+            ):
+                raise ValueError(
+                    "Production public URLs and browser origins must be explicit HTTPS origins."
+                )
+        if (
+            not self.smtp_host
+            or not self.smtp_from
+            or not (self.smtp_ssl or self.smtp_starttls)
+            or bool(self.smtp_username) != bool(self.smtp_password)
+        ):
+            raise ValueError(
+                "Production requires configured TLS mail transport with complete credentials."
+            )
+        return self
 
     @field_validator("service_area_geojson")
     @classmethod

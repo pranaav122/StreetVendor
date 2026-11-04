@@ -4,7 +4,6 @@ from uuid import uuid4
 
 import pytest
 from sqlalchemy import text, select
-from sqlalchemy.exc import SQLAlchemyError
 
 from app.auth.security import utcnow
 from test_auth import api, bearer, login, register
@@ -111,8 +110,9 @@ def test_outbox_failure_rolls_back_business_state_and_event(
                 "CREATE TRIGGER fail_test_outbox BEFORE INSERT ON notification_outbox FOR EACH ROW EXECUTE FUNCTION fail_test_outbox()"
             )
         )
-    with pytest.raises(SQLAlchemyError):
-        action(api, visit, vendor, "accept")
+    response = action(api, visit, vendor, "accept")
+    assert response.status_code == 503
+    assert response.json()["error"]["code"] == "DATABASE_UNAVAILABLE"
     with database_sandbox.engine.connect() as connection:
         assert connection.scalar(text("SELECT status FROM visit_requests")) == "PENDING"
         assert connection.scalar(text("SELECT count(*) FROM request_events")) == 1

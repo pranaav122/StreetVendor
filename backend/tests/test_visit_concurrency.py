@@ -4,7 +4,6 @@ from uuid import uuid4
 
 import pytest
 from sqlalchemy import text
-from sqlalchemy.exc import SQLAlchemyError
 
 from test_auth import api
 from test_vendors import categories, customer_headers, operator, vendor
@@ -102,8 +101,9 @@ def test_event_insert_failure_rolls_back_state_version_and_event(
                 "CREATE TRIGGER reject_test_event BEFORE INSERT ON request_events FOR EACH ROW EXECUTE FUNCTION reject_test_event()"
             )
         )
-    with pytest.raises(SQLAlchemyError):
-        action(api, visit, vendor, "accept")
+    response = action(api, visit, vendor, "accept")
+    assert response.status_code == 503
+    assert response.json()["error"]["code"] == "DATABASE_UNAVAILABLE"
     with database_sandbox.engine.connect() as connection:
         assert connection.scalar(text("SELECT status FROM visit_requests")) == "PENDING"
         assert connection.scalar(text("SELECT version FROM visit_requests")) == 1

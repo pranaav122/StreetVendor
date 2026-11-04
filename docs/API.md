@@ -6,11 +6,11 @@ Original design dated 21 October 2026; implementation update 3 November 2026. He
 
 `GET /health` is public and performs real database queries. It is a readiness check, not proof that every future business feature is working.
 
-| HTTP status | JSON body | Meaning |
-|---|---|---|
-| `200` | `{"status":"ok","database":"ok","postgis":"ok"}` | PostgreSQL responds and PostGIS can execute its version function. |
-| `503` | `{"status":"error","database":"unavailable","postgis":"unknown"}` | A connection/query needed to establish database connectivity failed. |
-| `503` | `{"status":"error","database":"ok","postgis":"unavailable"}` | PostgreSQL responds, but PostGIS is missing or its check fails. |
+| HTTP status | JSON body                                                         | Meaning                                                              |
+| ----------- | ----------------------------------------------------------------- | -------------------------------------------------------------------- |
+| `200`       | `{"status":"ok","database":"ok","postgis":"ok"}`                  | PostgreSQL responds and PostGIS can execute its version function.    |
+| `503`       | `{"status":"error","database":"unavailable","postgis":"unknown"}` | A connection/query needed to establish database connectivity failed. |
+| `503`       | `{"status":"error","database":"ok","postgis":"unavailable"}`      | PostgreSQL responds, but PostGIS is missing or its check fails.      |
 
 The response never contains a database URL, credentials, SQL, exception details, or extension version. API logs explain the failing component without logging credentials. A newly created SQLAlchemy engine alone does not establish a network connection; the health queries do.
 
@@ -30,52 +30,52 @@ Invoke-RestMethod http://127.0.0.1:8000/health
 
 Planned common errors:
 
-| Status | Meaning |
-|---|---|
-| `400` | Invalid operation that is not a field validation error. |
-| `401` | Missing/expired/invalid credentials; include `WWW-Authenticate: Bearer` for REST authentication failures. |
-| `403` | The authenticated actor cannot perform an operation. |
-| `404` | Resource absent or intentionally hidden from a non-participant. |
-| `409` | State/version conflict, duplicate active request, or idempotency payload mismatch. |
-| `422` | Request validation failed. |
-| `429` | Rate limit reached; return `Retry-After`. |
-| `503` | Required database/provider dependency unavailable; avoid leaking internal details. |
+| Status | Meaning                                                                                                   |
+| ------ | --------------------------------------------------------------------------------------------------------- |
+| `400`  | Invalid operation that is not a field validation error.                                                   |
+| `401`  | Missing/expired/invalid credentials; include `WWW-Authenticate: Bearer` for REST authentication failures. |
+| `403`  | The authenticated actor cannot perform an operation.                                                      |
+| `404`  | Resource absent or intentionally hidden from a non-participant.                                           |
+| `409`  | State/version conflict, duplicate active request, or idempotency payload mismatch.                        |
+| `422`  | Request validation failed.                                                                                |
+| `429`  | Rate limit reached; return `Retry-After`.                                                                 |
+| `503`  | Required database/provider dependency unavailable; avoid leaking internal details.                        |
 
 A business error uses `{ "error": { "code": "REQUEST_STATE_CONFLICT", "message": "The request has changed.", "request_id": "<trace-id>" } }`. Validation errors include field paths and messages while omitting submitted values, passwords and tokens. The health endpoint retains its separate readiness contract.
 
 ## Authentication and accounts — core implemented
 
-| Method and path | Actor | Input / validation | Success |
-|---|---|---|---|
-| `POST /api/v1/auth/register/customer` | Public, rate limited | `email`, `password`, `display_name`, `preferred_language` (`en`/`ta`); normalized email, bounded strings, password policy in SECURITY.md | `201` minimal user; role fixed to `customer` |
-| `POST /api/v1/auth/register/vendor` | Public, rate limited | Same account fields; no verification or role input | `201` vendor user; vendor verification remains pending |
-| `POST /api/v1/auth/login` | Public, rate limited | `email`, `password`, optional bounded `device_name` | `200` token response |
-| `POST /api/v1/auth/refresh` | Holder of refresh token, rate limited | `refresh_token`; rotate under a database row lock | `200` replacement access and refresh tokens |
-| `POST /api/v1/auth/logout` | Authenticated session | No user ID; revoke acting session family | `204`; repeated revocation is safe |
-| `POST /api/v1/auth/logout-all` | Authenticated user, recent authentication | No body | `204`; revoke all user's session families |
-| `GET /api/v1/users/me` | Any active account | None | `200` own safe profile |
-| `PATCH /api/v1/users/me` | Any active account | Only `display_name`, `preferred_language`; no role/status | `200` updated safe profile |
-| `DELETE /api/v1/users/me` | Any account, recent authentication | Explicit deletion confirmation | `202` accepted deletion; suspend access and revoke tokens immediately |
+| Method and path                       | Actor                                     | Input / validation                                                                                                                       | Success                                                               |
+| ------------------------------------- | ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| `POST /api/v1/auth/register/customer` | Public, rate limited                      | `email`, `password`, `display_name`, `preferred_language` (`en`/`ta`); normalized email, bounded strings, password policy in SECURITY.md | `201` minimal user; role fixed to `customer`                          |
+| `POST /api/v1/auth/register/vendor`   | Public, rate limited                      | Same account fields; no verification or role input                                                                                       | `201` vendor user; vendor verification remains pending                |
+| `POST /api/v1/auth/login`             | Public, rate limited                      | `email`, `password`, optional bounded `device_name`                                                                                      | `200` token response                                                  |
+| `POST /api/v1/auth/refresh`           | Holder of refresh token, rate limited     | `refresh_token`; rotate under a database row lock                                                                                        | `200` replacement access and refresh tokens                           |
+| `POST /api/v1/auth/logout`            | Authenticated session                     | No user ID; revoke acting session family                                                                                                 | `204`; repeated revocation is safe                                    |
+| `POST /api/v1/auth/logout-all`        | Authenticated user, recent authentication | No body                                                                                                                                  | `204`; revoke all user's session families                             |
+| `GET /api/v1/users/me`                | Any active account                        | None                                                                                                                                     | `200` own safe profile                                                |
+| `PATCH /api/v1/users/me`              | Any active account                        | Only `display_name`, `preferred_language`; no role/status                                                                                | `200` updated safe profile                                            |
+| `DELETE /api/v1/users/me`             | Any account, recent authentication        | Explicit deletion confirmation                                                                                                           | `202` accepted deletion; suspend access and revoke tokens immediately |
 
 Token response: `{ "access_token": "<jwt>", "token_type": "bearer", "expires_in": 600, "refresh_token": "<opaque-secret>" }`. Starting policy: access lifetime 10 minutes, refresh family absolute lifetime 30 days; tune from security review. Registration does not grant verified email or vendor status. Email verification and password recovery require a real delivery provider before public launch; mobile OTP is a later provider-backed feature.
 
 ## Vendor management — implemented
 
-| Method and path | Actor | Input / validation | Success |
-|---|---|---|---|
-| `GET /api/v1/categories` | Active customer/vendor | Optional cursor/limit | `200` active categories with localized labels |
-| `PUT /api/v1/vendors/me/profile` | Vendor | `display_name`, short `description`, `category_ids`; existing active category UUIDs | `200` own profile; create once or update allowed fields |
-| `GET /api/v1/vendors/me` | Vendor | None | `200` own profile including verification and availability |
-| `PATCH /api/v1/vendors/me/availability` | Verified vendor | `is_available`, `location_sharing_enabled`; enabling also includes the first validated `location` fix, committed atomically with online state | `200` server-confirmed state |
-| `GET /api/v1/vendors/{vendor_id}` | Customer/vendor | UUID | `200` public business profile; no email, credentials, device tokens or precise discovery position |
-| `POST /api/v1/vendors/me/verifications` | Vendor | Bounded verification metadata via private upload workflow; no public document URL | `201` pending verification record |
-| `GET /api/v1/admin/verifications` | Admin | Status/cursor/limit | `200` minimal review queue |
-| `POST /api/v1/admin/vendors/{vendor_id}/verification` | Admin | `decision` (`VERIFIED`/`REJECTED`), `reason` | `200` audited review under a vendor-row lock; never self-approval |
-| `POST /api/v1/admin/vendors/{vendor_id}/suspension` | Admin | `reason` | `200` audited profile suspension; turn off availability/sharing and revoke tracking in one transaction |
-| `POST /api/v1/admin/vendors/{vendor_id}/reinstatement` | Admin | `reason`; active owner and suspended business | `200` audited return to pending review, remaining offline |
-| `POST /api/v1/admin/users/{user_id}/suspension` | Admin | `suspended`, bounded `reason`; audit actor | `200`; revoke affected access/subscriptions |
-| `GET /api/v1/admin/summary` | Admin | None | Operational verification, report and visit counts |
-| `GET /api/v1/vendors/me/summary` | Vendor | None | Own active/pending and completed-today visit counts; `Asia/Kolkata` pilot day |
+| Method and path                                        | Actor                  | Input / validation                                                                                                                            | Success                                                                                                |
+| ------------------------------------------------------ | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `GET /api/v1/categories`                               | Active customer/vendor | Optional cursor/limit                                                                                                                         | `200` active categories with localized labels                                                          |
+| `PUT /api/v1/vendors/me/profile`                       | Vendor                 | `display_name`, short `description`, `category_ids`; existing active category UUIDs                                                           | `200` own profile; create once or update allowed fields                                                |
+| `GET /api/v1/vendors/me`                               | Vendor                 | None                                                                                                                                          | `200` own profile including verification and availability                                              |
+| `PATCH /api/v1/vendors/me/availability`                | Verified vendor        | `is_available`, `location_sharing_enabled`; enabling also includes the first validated `location` fix, committed atomically with online state | `200` server-confirmed state                                                                           |
+| `GET /api/v1/vendors/{vendor_id}`                      | Customer/vendor        | UUID                                                                                                                                          | `200` public business profile; no email, credentials, device tokens or precise discovery position      |
+| `POST /api/v1/vendors/me/verifications`                | Vendor                 | Bounded verification metadata via private upload workflow; no public document URL                                                             | `201` pending verification record                                                                      |
+| `GET /api/v1/admin/verifications`                      | Admin                  | Status/cursor/limit                                                                                                                           | `200` minimal review queue                                                                             |
+| `POST /api/v1/admin/vendors/{vendor_id}/verification`  | Admin                  | `decision` (`VERIFIED`/`REJECTED`), `reason`                                                                                                  | `200` audited review under a vendor-row lock; never self-approval                                      |
+| `POST /api/v1/admin/vendors/{vendor_id}/suspension`    | Admin                  | `reason`                                                                                                                                      | `200` audited profile suspension; turn off availability/sharing and revoke tracking in one transaction |
+| `POST /api/v1/admin/vendors/{vendor_id}/reinstatement` | Admin                  | `reason`; active owner and suspended business                                                                                                 | `200` audited return to pending review, remaining offline                                              |
+| `POST /api/v1/admin/users/{user_id}/suspension`        | Admin                  | `suspended`, bounded `reason`; audit actor                                                                                                    | `200`; revoke affected access/subscriptions                                                            |
+| `GET /api/v1/admin/summary`                            | Admin                  | None                                                                                                                                          | Operational verification, report and visit counts                                                      |
+| `GET /api/v1/vendors/me/summary`                       | Vendor                 | None                                                                                                                                          | Own active/pending and completed-today visit counts; `Asia/Kolkata` pilot day                          |
 
 To go online, submit `is_available: true`, `location_sharing_enabled: true` and a `location` object with the same fields and validation rules as the location endpoint below. Under one transaction, confirm the active verified vendor and explicit consent, validate the first fix, then set availability/sharing and upsert the fix. This bootstrap operation does not require an existing online state or stored fix. Later location-only updates require the vendor already be online. Going offline atomically disables availability/sharing and deletes the precise latest fix, immediately hiding discovery and precise tracking. Existing visits remain recorded and participants receive unavailable status; the backend does not mark them completed. Category administration and report handling can be added behind audited admin routes when required.
 
@@ -104,31 +104,31 @@ The implemented privacy policy uses a stable 0.01-degree grid for origins and ve
 
 ## Visit requests — implemented
 
-| Method and path | Actor | Input / validation | Success |
-|---|---|---|---|
-| `POST /api/v1/requests` | Customer | `vendor_id`, `meeting_point` (`latitude`, `longitude`), optional short `meeting_label`; idempotency header | `201` `PENDING` request with expiry/version |
-| `GET /api/v1/requests` | Customer/vendor | `status`, cursor, limit; actor-scoped query | `200` own request history/inbox |
-| `GET /api/v1/requests/{id}` | Request participant/admin | UUID; authorize ownership | `200` current state, version and allowed actions |
-| `POST /api/v1/requests/{id}/accept` | Target vendor | `expected_version` | `200` `ACCEPTED` |
-| `POST /api/v1/requests/{id}/decline` | Target vendor | `expected_version`, optional bounded reason | `200` `DECLINED` |
-| `POST /api/v1/requests/{id}/approach` | Target vendor | `expected_version` | `200` `APPROACHING` |
-| `POST /api/v1/requests/{id}/cancel` | Customer/target vendor | `expected_version`, bounded reason | `200` `CANCELLED` |
-| `POST /api/v1/requests/{id}/complete` | Target vendor | `expected_version`; only from `ARRIVED` | `200` `COMPLETED` visit |
+| Method and path                       | Actor                     | Input / validation                                                                                         | Success                                          |
+| ------------------------------------- | ------------------------- | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| `POST /api/v1/requests`               | Customer                  | `vendor_id`, `meeting_point` (`latitude`, `longitude`), optional short `meeting_label`; idempotency header | `201` `PENDING` request with expiry/version      |
+| `GET /api/v1/requests`                | Customer/vendor           | `status`, cursor, limit; actor-scoped query                                                                | `200` own request history/inbox                  |
+| `GET /api/v1/requests/{id}`           | Request participant/admin | UUID; authorize ownership                                                                                  | `200` current state, version and allowed actions |
+| `POST /api/v1/requests/{id}/accept`   | Target vendor             | `expected_version`                                                                                         | `200` `ACCEPTED`                                 |
+| `POST /api/v1/requests/{id}/decline`  | Target vendor             | `expected_version`, optional bounded reason                                                                | `200` `DECLINED`                                 |
+| `POST /api/v1/requests/{id}/approach` | Target vendor             | `expected_version`                                                                                         | `200` `APPROACHING`                              |
+| `POST /api/v1/requests/{id}/cancel`   | Customer/target vendor    | `expected_version`, bounded reason                                                                         | `200` `CANCELLED`                                |
+| `POST /api/v1/requests/{id}/complete` | Target vendor             | `expected_version`; only from `ARRIVED`                                                                    | `200` `COMPLETED` visit                          |
 
 Meeting points must be within the supported service area and sensible request distance. They are shared only with the target vendor/authorized administrators for the visit, never through discovery. A request response includes `id`, `vendor_id`, participant-safe profile fields, `status`, `version`, `created_at`, `expires_at`, `meeting_point`, and `allowed_actions`; server authorization is still required even if a client submits an action it displayed earlier.
 
-| From | To | Allowed actor / condition |
-|---|---|---|
-| No record | `PENDING` | Customer; discoverable vendor, valid meeting point, no active request for this customer/vendor pair |
-| `PENDING` | `ACCEPTED` | Target vendor; before pending expiry |
-| `PENDING` | `DECLINED` | Target vendor |
-| `PENDING` | `CANCELLED` | Creating customer or target vendor |
-| `PENDING` | `EXPIRED` | Server after pending deadline, initially 5 minutes |
-| `ACCEPTED` | `APPROACHING` | Vendor's explicit action or backend distance evaluation using fresh accurate GPS |
-| `APPROACHING` | `ARRIVED` | Server only; confirmed arrival rule below |
-| `ARRIVED` | `COMPLETED` | Target vendor confirms visit finished |
-| `ACCEPTED`, `APPROACHING`, `ARRIVED` | `CANCELLED` | Customer or target vendor; store actor/reason |
-| `ACCEPTED`, `APPROACHING`, `ARRIVED` | `EXPIRED` | Server after active visit deadline, initially 60 minutes from acceptance |
+| From                                 | To            | Allowed actor / condition                                                                           |
+| ------------------------------------ | ------------- | --------------------------------------------------------------------------------------------------- |
+| No record                            | `PENDING`     | Customer; discoverable vendor, valid meeting point, no active request for this customer/vendor pair |
+| `PENDING`                            | `ACCEPTED`    | Target vendor; before pending expiry                                                                |
+| `PENDING`                            | `DECLINED`    | Target vendor                                                                                       |
+| `PENDING`                            | `CANCELLED`   | Creating customer or target vendor                                                                  |
+| `PENDING`                            | `EXPIRED`     | Server after pending deadline, initially 5 minutes                                                  |
+| `ACCEPTED`                           | `APPROACHING` | Vendor's explicit action or backend distance evaluation using fresh accurate GPS                    |
+| `APPROACHING`                        | `ARRIVED`     | Server only; confirmed arrival rule below                                                           |
+| `ARRIVED`                            | `COMPLETED`   | Target vendor confirms visit finished                                                               |
+| `ACCEPTED`, `APPROACHING`, `ARRIVED` | `CANCELLED`   | Customer or target vendor; store actor/reason                                                       |
+| `ACCEPTED`, `APPROACHING`, `ARRIVED` | `EXPIRED`     | Server after active visit deadline, initially 60 minutes from acceptance                            |
 
 `DECLINED`, `CANCELLED`, `EXPIRED`, and `COMPLETED` are terminal. A new visit needs a new request. No other transition is accepted. If there is a safety/support intervention, use an explicit audited admin cancellation operation rather than arbitrary status edits.
 
@@ -163,23 +163,23 @@ Business event envelope:
 }
 ```
 
-| Event type | Audience | Minimal data |
-|---|---|---|
-| `VENDOR_ONLINE`, `VENDOR_OFFLINE` | Own vendor session and eligible request participants | Vendor ID and availability; no public exact point |
-| `REQUEST_CREATED` | Target vendor and creating customer | Request ID, status, version; fetch authorized details by REST |
-| `REQUEST_ACCEPTED`, `REQUEST_DECLINED`, `REQUEST_CANCELLED`, `REQUEST_EXPIRED`, `REQUEST_COMPLETED` | Request participants | Status/version, safe reason if applicable |
-| `VENDOR_LOCATION_UPDATED` | Active request customer and own vendor session | Coordinates, accuracy, observation time; only while tracking is authorized |
-| `VENDOR_ARRIVED` | Request participants | Status/version and arrival time |
-| `REQUEST_APPROACHING` | Request participants | Status/version; approaching alert |
+| Event type                                                                                          | Audience                                             | Minimal data                                                               |
+| --------------------------------------------------------------------------------------------------- | ---------------------------------------------------- | -------------------------------------------------------------------------- |
+| `VENDOR_ONLINE`, `VENDOR_OFFLINE`                                                                   | Own vendor session and eligible request participants | Vendor ID and availability; no public exact point                          |
+| `REQUEST_CREATED`                                                                                   | Target vendor and creating customer                  | Request ID, status, version; fetch authorized details by REST              |
+| `REQUEST_ACCEPTED`, `REQUEST_DECLINED`, `REQUEST_CANCELLED`, `REQUEST_EXPIRED`, `REQUEST_COMPLETED` | Request participants                                 | Status/version, safe reason if applicable                                  |
+| `VENDOR_LOCATION_UPDATED`                                                                           | Active request customer and own vendor session       | Coordinates, accuracy, observation time; only while tracking is authorized |
+| `VENDOR_ARRIVED`                                                                                    | Request participants                                 | Status/version and arrival time                                            |
+| `REQUEST_APPROACHING`                                                                               | Request participants                                 | Status/version; approaching alert                                          |
 
 Event IDs deduplicate delivery; request versions prevent an older event overwriting newer state. Location events use observation time as a further ordering key. Reconnect with exponential backoff and jitter, capped around 30 seconds. After reconnect/authentication, refetch REST inbox and active request details before resubscribing. In-memory sockets are a live hint channel, not a durable replay log; there is no promise of delivery while disconnected. A future replay endpoint can use persisted request events with actor-scoped cursors. Redis pub/sub is introduced only when running multiple API instances; it does not replace database state or authorization.
 
 ## Device notifications — Phase 7 planned
 
-| Method and path | Actor | Input / validation | Success |
-|---|---|---|---|
-| `PUT /api/v1/devices/{installation_id}` | Active account | `app_kind` (`customer`/`vendor`), platform, provider token; validate ownership and project/provider format | `200` own device registration |
-| `DELETE /api/v1/devices/{installation_id}` | Installation owner | None | `204`; idempotent removal |
+| Method and path                            | Actor              | Input / validation                                                                                         | Success                       |
+| ------------------------------------------ | ------------------ | ---------------------------------------------------------------------------------------------------------- | ----------------------------- |
+| `PUT /api/v1/devices/{installation_id}`    | Active account     | `app_kind` (`customer`/`vendor`), platform, provider token; validate ownership and project/provider format | `200` own device registration |
+| `DELETE /api/v1/devices/{installation_id}` | Installation owner | None                                                                                                       | `204`; idempotent removal     |
 
 Register tokens after explicit OS permission. Bind ownership to the authenticated account and app; a token moving accounts cannot remain attached to both. Remove association on logout and clean invalid tokens on provider receipts. Notification payloads contain a notification ID and request ID, without precise coordinates or credentials. Fetch authorized current details when opening the notification.
 
@@ -188,3 +188,18 @@ Committed events create durable outbox jobs, one per eligible device. Delivery r
 ## Contract validation by phase
 
 Phase 1 tests verify `/health` and database/migrations. Later phase tests must cover authorization on every route, token/session expiry, refresh races/reuse, invalid transitions, concurrent acceptance/cancellation, stale GPS, privacy, socket authorization, reconnect synchronization and duplicate notifications. Do not describe these later tests as passing before they exist.
+
+# Operational error responses
+
+Every HTTP response includes a server-generated `X-Request-ID`. Error envelopes
+use that same value in `error.request_id`; clients cannot choose the identifier.
+An unexpected SQLAlchemy failure returns HTTP 503 with `DATABASE_UNAVAILABLE`,
+without SQL, connection details or submitted values. Closing the request session
+rolls back unfinished work. A failed event/outbox insert therefore leaves the visit
+state/version unchanged. Retry writes only through their existing idempotency or
+version rules; a 503 is not permission to repeat an arbitrary action.
+
+Production request logs contain JSON with the route template, method, status,
+duration and request ID. They omit raw URLs/query strings, request/response bodies,
+tokens, email addresses and GPS points. `/health` retains its documented readiness
+body, including safe 503 responses when PostgreSQL or PostGIS is unavailable.
