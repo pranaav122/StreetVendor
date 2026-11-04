@@ -31,3 +31,5 @@ Updated 4 November 2026. The full remaining MVP was approved on 2 November. Earl
 | Design artifact | Correct the Figma draft's known layout defects when quota permits; local implementation is the current reference |
 
 Invented credentials or successful simulations cannot replace those inputs. Local checks establish their own scope. Payments, inventory, sales accounting, public OTP, group requests, route optimization, demand aggregation and multi-city tooling remain later product work. Visit completion never implies a purchase.
+
+One Minor from final review is deferred: concurrent point deletion between tracking reads can return a temporary dependency error/socket reconnect, requiring retry/resynchronization. Combining those reads and adding a controlled database-race regression is follow-up. The two Important review findings have failing-to-passing regressions and the complete final local check passed.

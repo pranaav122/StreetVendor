@@ -79,3 +79,26 @@ The independent whole-project reviewer found that a five-second feed could need 
 The reviewer reproduced `ONLINE` while a delayed permission check was unresolved. Four new regressions failed before the change. Resume now pauses synchronously before any permission/network await, stopping callbacks and invalidating late uploads. It rechecks permission/account state, waits for canceled writes and requests a new first fix only when the same generation was previously sharing. Explicit offline/STOPPING and newer consent remain authoritative; failed fresh GPS attempts server erasure. Partner now passes **29 policy tests**, shared client **22**, and Partner strict TypeScript. Native scheduling itself remains unverified.
 
 The one final independent review reported no Critical findings, two Important findings (GPS budget and resume visibility, now fixed with regressions), and one deferred Minor: eligibility and coordinates are read in separate tracking queries. Concurrent point deletion can therefore produce a safe 503/socket reconnect instead of `TRACKING_UNAVAILABLE`. No unauthorized point was demonstrated; the reviewer validated source/control flow, not a fresh real-PostGIS race. Combining those reads is deferred follow-up, with transient retry/resynchronization as the current practical limit. There is no second reviewer cycle; the complete post-fix suite is the final gate.
+
+## Final post-review gate — passed
+
+The complete command `./infrastructure/scripts/Test-Stack.ps1 -Browser -Production -NativeBundles` exited **0** after the fixes, with its final success message. A separate complete Linux run also exited **0**.
+
+| Final check | Actual result |
+|---|---|
+| Windows backend, real database/container/backup tests enabled | **209 passed in 419.38 seconds** |
+| Rebuilt Linux backend | **198 passed, 11 explicitly skipped in 339.52 seconds**; host-only cases covered on Windows |
+| Client / Customer / Partner / Staff policy suites | **22 / 6 / 29 / 14 passed**, no skips |
+| Shared and all app strict TypeScript | Passed |
+| Text contrast / touch dimensions | All seven pairs and minimum dimensions passed |
+| Next production build | Passed |
+| Expo dependency alignment and Doctor | Both aligned; **20/20 each** |
+| Android, iOS and web JavaScript exports | Completed for both independent apps; not signed builds |
+| Current compiled-dashboard/Expo browser journeys | **32 passed in 4.7 minutes**; isolated database removed |
+| Production Linux images, runtime authority and proxy | Built; six privilege denials, runtime HTTP, secure staff protocol, separate client limits and forged-header overwrite passed |
+| Request log privacy / PostgreSQL recovery / staff restart | Passed; old staff cookie required sign-in |
+| Production binary dump / isolated restore | PostGIS and revision `0006_notifications`, two synthetic users and four categories queried; target removed |
+| Cleanup / development readiness | Generated production containers/networks/volumes removed; zero disposable test databases remained; development health/database/PostGIS `ok` |
+| Documentation | 399 local links exist, all 312 files mapped, 44 REST operations indexed; diff whitespace checks passed |
+
+The final reviewed source fixes are `f283e70` (bounded GPS allowance) and `950ebdb` (pause before resume validation), after the earlier sealed-scan fixes. No critical or important review finding remains unaddressed in this pass. One Minor and the external/dependency/privacy release gates remain explicitly documented. This is local software verification, not a public release or exhaustive proof of security.
