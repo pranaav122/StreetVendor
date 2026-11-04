@@ -9,11 +9,14 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from app.auth.security import utcnow
 from app.models.accounts import RateLimitBucket
+from app.models.locations import VendorLocation
 from app.models.mail_tokens import MailToken
-from app.models.visits import VisitRequest
-from app.visits.state import ACTIVE, TERMINAL
 from app.models.notifications import DeviceToken, NotificationOutbox
+from app.models.vendors import VendorProfile
+from app.models.visits import VisitRequest
 from app.notifications.dispatcher import dispatch_batch
+from app.realtime.signals import notify_vendor
+from app.visits.state import ACTIVE, TERMINAL
 
 logger = logging.getLogger(__name__)
 
@@ -165,6 +168,30 @@ def retain_data(session, now, limit=100):
         .limit(limit)
     )
     session.execute(delete(DeviceToken).where(DeviceToken.id.in_(old_devices)))
+    session.commit()
+    # A disconnected phone cannot send "offline". Erase its last exact fix once
+    # it is too old to serve. Coordinate with all sharing writers on the vendor
+    # lock, in a new transaction so visit/device cleanup cannot invert lock order.
+    cutoff = now - timedelta(seconds=90)
+    stale_vendors = list(session.scalars(
+        select(VendorProfile.id)
+        .join(VendorLocation, VendorLocation.vendor_id == VendorProfile.id)
+        .where(VendorLocation.captured_at < cutoff)
+        .order_by(VendorProfile.id)
+        .limit(limit)
+        .with_for_update(of=VendorProfile, skip_locked=True)
+    ))
+    if stale_vendors:
+        # Recheck at deletion: a writer may have committed a fresh replacement
+        # between candidate selection and acquisition of its vendor lock.
+        erased = session.scalars(
+            delete(VendorLocation)
+            .where(VendorLocation.vendor_id.in_(stale_vendors),
+                   VendorLocation.captured_at < cutoff)
+            .returning(VendorLocation.vendor_id)
+        ).all()
+        for vendor_id in erased:
+            notify_vendor(session, vendor_id)
     session.commit()
     return {"redacted": len(redact), "purged": len(purge)}
 

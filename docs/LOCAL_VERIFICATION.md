@@ -45,3 +45,9 @@ The production probe runs inside local containers. Public DNS/TLS, a real server
 ## Windows operator checks in Linux
 
 Running the new backup guard module inside the Linux API image initially produced seven failures: that image intentionally has neither host PowerShell nor the infrastructure scripts. The module now explicitly skips on non-Windows hosts. Rechecking produced **7 passed on Windows in 6.42 seconds**, including real Docker archive/cleanup checks, and **7 explicitly skipped in Linux**. This changes test selection, not production behavior or backup safeguards.
+
+## Abandoned GPS cleanup
+
+The security scan identified that stale coordinates were hidden from readers but remained stored after a phone disconnected. A real database regression first failed because a 91-second-old point remained present. The maintenance loop now physically deletes bounded batches older than the 90-second freshness window. It takes the same vendor lock as location writers, skips busy vendors, and rechecks freshness at deletion. This transaction follows the other cleanup transactions so it cannot reverse their lock order. A committed deletion sends an ID-only refresh hint; sharing consent itself stays unchanged.
+
+The retention, notification-retention and location suites passed **27 tests in 62.43 seconds**. They include fresh-point preservation, stale-point erasure, bounded cleanup and a concurrent writer. The cleanup depends on the maintenance worker running; an outage or backlog delays physical erasure, while read-time freshness checks remain enforced. Backups made before deletion have their own retention and access policy.
