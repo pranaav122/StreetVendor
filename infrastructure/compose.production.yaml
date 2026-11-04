@@ -1,0 +1,150 @@
+name: mystreetvendor-production
+
+x-api-build: &api-build
+  context: ../backend
+  target: production
+
+services:
+  db:
+    image: postgis/postgis:18-3.6
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?Set POSTGRES_DB}
+      POSTGRES_USER: msv_bootstrap
+      POSTGRES_PASSWORD: ${BOOTSTRAP_PASSWORD:?Set BOOTSTRAP_PASSWORD}
+      MIGRATION_PASSWORD: ${MIGRATION_PASSWORD:?Set MIGRATION_PASSWORD}
+      RUNTIME_PASSWORD: ${RUNTIME_PASSWORD:?Set RUNTIME_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql
+      - ./scripts/bootstrap-roles.sh:/docker-entrypoint-initdb.d/20-msv-roles.sh:ro
+    networks: [database]
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+    mem_limit: 1g
+    logging: &bounded-logs
+      driver: json-file
+      options: {max-size: "10m", max-file: "3"}
+
+  migrate:
+    image: mystreetvendor-api:${MSV_IMAGE_TAG:-local}
+    build: *api-build
+    profiles: [tools]
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?Set POSTGRES_DB}
+      POSTGRES_USER: msv_migrator
+      POSTGRES_PASSWORD: ${MIGRATION_PASSWORD:?Set MIGRATION_PASSWORD}
+      POSTGRES_HOST: db
+      RUNTIME_ROLE: msv_runtime
+    volumes:
+      - ./scripts/migrate.sh:/operations/migrate.sh:ro
+    entrypoint: [sh, /operations/migrate.sh]
+    networks: [database]
+    depends_on:
+      db: {condition: service_healthy}
+    restart: "no"
+    logging: *bounded-logs
+
+  api:
+    image: mystreetvendor-api:${MSV_IMAGE_TAG:-local}
+    build: *api-build
+    environment:
+      ENVIRONMENT: production
+      API_WORKERS: "1"
+      POSTGRES_DB: ${POSTGRES_DB:?Set POSTGRES_DB}
+      POSTGRES_USER: msv_runtime
+      POSTGRES_PASSWORD: ${RUNTIME_PASSWORD:?Set RUNTIME_PASSWORD}
+      POSTGRES_HOST: db
+      JWT_SECRET: ${JWT_SECRET:?Set a random JWT_SECRET}
+      ALLOWED_ORIGINS: '["https://${ADMIN_DOMAIN:?Set ADMIN_DOMAIN}"]'
+      PUBLIC_CUSTOMER_URL: ${PUBLIC_CUSTOMER_URL:?Set PUBLIC_CUSTOMER_URL}
+      PUBLIC_VENDOR_URL: ${PUBLIC_VENDOR_URL:?Set PUBLIC_VENDOR_URL}
+      SERVICE_AREA_GEOJSON: ${SERVICE_AREA_GEOJSON:?Set the approved SERVICE_AREA_GEOJSON}
+      SMTP_HOST: ${SMTP_HOST:?Set SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_FROM: ${SMTP_FROM:?Set SMTP_FROM}
+      SMTP_USERNAME: ${SMTP_USERNAME:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_STARTTLS: "true"
+      EXPO_ACCESS_TOKEN: ${EXPO_ACCESS_TOKEN:-}
+      EXPO_CUSTOMER_PROJECT_ID: ${EXPO_CUSTOMER_PROJECT_ID:-}
+      EXPO_VENDOR_PROJECT_ID: ${EXPO_VENDOR_PROJECT_ID:-}
+      JOBS_ENABLED: "true"
+    # Trust only Caddy's fixed private address, never arbitrary client headers.
+    command: [uvicorn, "app.main:create_app", --factory, --host, "0.0.0.0", --port, "8000", --workers, "1", --proxy-headers, --forwarded-allow-ips, "172.30.60.2", --no-access-log, --ws-max-size, "8192", --ws-max-queue, "8"]
+    networks: [database, edge]
+    depends_on:
+      db: {condition: service_healthy}
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=8).close()"]
+      interval: 15s
+      timeout: 10s
+      retries: 6
+    restart: unless-stopped
+    init: true
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 768m
+    logging: *bounded-logs
+
+  admin:
+    image: mystreetvendor-admin:${MSV_IMAGE_TAG:-local}
+    build:
+      context: ..
+      dockerfile: apps/admin-dashboard/Dockerfile
+      target: production
+    environment:
+      ADMIN_APP_ENV: production
+      ADMIN_API_URL: http://api:8000
+      ADMIN_PUBLIC_ORIGIN: https://${ADMIN_DOMAIN:?Set ADMIN_DOMAIN}
+    networks: [edge]
+    depends_on:
+      api: {condition: service_healthy}
+    healthcheck:
+      test: [CMD, node, -e, "fetch('http://127.0.0.1:3000').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 6
+    restart: unless-stopped
+    init: true
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 512m
+    logging: *bounded-logs
+
+  caddy:
+    image: caddy:2.11.7
+    environment:
+      API_DOMAIN: ${API_DOMAIN:?Set API_DOMAIN}
+      ADMIN_DOMAIN: ${ADMIN_DOMAIN:?Set ADMIN_DOMAIN}
+    ports: ["80:80", "443:443", "443:443/udp"]
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      edge: {ipv4_address: 172.30.60.2}
+    depends_on:
+      api: {condition: service_healthy}
+      admin: {condition: service_healthy}
+    restart: unless-stopped
+    mem_limit: 256m
+    logging: *bounded-logs
+
+networks:
+  database:
+    internal: true
+  edge:
+    ipam:
+      config: [{subnet: 172.30.60.0/24}]
+
+volumes:
+  postgres_data:
+  caddy_data:
+  caddy_config:

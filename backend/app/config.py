@@ -62,6 +62,14 @@ class Settings(BaseSettings):
     public_vendor_url: str = "http://127.0.0.1:8082"
     service_area_geojson: str | None = Field(default=None, max_length=65536)
 
+    @field_validator(
+        "expo_customer_project_id", "expo_vendor_project_id", mode="before"
+    )
+    @classmethod
+    def optional_project_id(cls, value):
+        # Compose passes an empty string for optional, unset provider settings.
+        return None if value == "" else value
+
     @model_validator(mode="after")
     def production_configuration(self):
         if self.environment != "production":

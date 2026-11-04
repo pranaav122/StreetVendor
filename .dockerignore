@@ -1,0 +1,17 @@
+.git
+.env
+**/.env
+**/.env.*
+**/node_modules
+**/.next
+**/.expo
+**/__pycache__
+.venv
+.superpowers
+backups
+output
+test-results
+playwright-report
+**/dist
+**/build
+**/*.log

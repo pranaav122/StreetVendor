@@ -73,10 +73,24 @@ review/controls, reports, audited visit inspection/cancellation and account
 suspension/restoration. All nine admin browser cases passed against the compiled
 Next server and a real isolated API/database on 4 November, alongside 12 passing
 session/proxy unit cases and strict checking. Its 390-pixel review preview was
-visually inspected. The combined all-app run is still being evaluated.
+visually inspected. The first combined run finished 30 passed/2 failed because
+synthetic businesses leaked between cases. After guarded per-case isolation,
+**all 32 combined browser cases passed in 5.7 minutes** against compiled Next,
+both Expo web apps and a real isolated API/database. The fresh backend baseline
+passed **176 tests in 469.18 seconds** before production error/configuration changes.
+Those changes then passed configuration/health and 11 real database recovery/
+rollback checks. Current production configuration/health/Compose tests passed
+**26 cases in 3.44 seconds**.
 
-Production configuration; exercised backups/restore; final security/dependency
-review and the updated whole-project learning guide remain in progress. Public
+The production package is implemented and locally exercised: real migrator
+upgrades to `0006_notifications`, six runtime privilege denials, working runtime
+registration/login, standalone admin secure cookies/forwarding, absent production
+test dependencies, PostgreSQL restart recovery and admin restart invalidating
+staff sessions. Both images built on Linux; Caddy 2.11.7 validated its configuration
+without public TLS. See [production operations](PRODUCTION.md).
+
+Exercised backups/restore, final security/dependency review and the updated
+whole-project learning guide remain in progress. Public
 hosting, signed installs, actual native background/resume/link behavior and live
 push delivery remain owner/provider/device verification gates.
 

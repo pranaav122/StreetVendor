@@ -54,6 +54,12 @@ def test_complete_production_configuration_can_be_constructed_without_network():
     assert production().environment == "production"
 
 
+def test_optional_provider_fields_can_be_blank_in_compose():
+    settings = production(expo_customer_project_id="", expo_vendor_project_id="")
+    assert settings.expo_customer_project_id is None
+    assert settings.expo_vendor_project_id is None
+
+
 def test_request_id_is_server_generated_and_database_errors_are_safe(settings, caplog):
     caplog.set_level("INFO", logger="app.requests")
     app = create_app(settings)

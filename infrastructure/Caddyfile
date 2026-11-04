@@ -1,0 +1,40 @@
+{
+    admin off
+    # Proxy failures can include the original request even with access logs off.
+    log {
+        format filter {
+            wrap json
+            fields {
+                request delete
+                resp_headers delete
+            }
+        }
+    }
+}
+
+{$API_DOMAIN} {
+    # Bound incoming bodies, including unauthenticated requests. WebSocket
+    # frame limits are enforced separately by Uvicorn and the protocol parser.
+    request_body {
+        max_size 64KB
+    }
+    header {
+        Strict-Transport-Security "max-age=31536000"
+        X-Content-Type-Options nosniff
+        Referrer-Policy no-referrer
+        -Server
+    }
+    reverse_proxy api:8000
+    # Access logging is deliberately off: discovery URLs can contain GPS points.
+}
+
+{$ADMIN_DOMAIN} {
+    request_body {
+        max_size 64KB
+    }
+    header {
+        Strict-Transport-Security "max-age=31536000"
+        -Server
+    }
+    reverse_proxy admin:3000
+}

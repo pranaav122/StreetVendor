@@ -6,5 +6,6 @@
 *.ini text eol=lf
 *.mako text eol=lf
 *.lock text eol=lf
+*.sh text eol=lf
 Dockerfile text eol=lf
 *.pdf binary

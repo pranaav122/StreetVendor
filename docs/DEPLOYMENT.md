@@ -1,6 +1,10 @@
 # Development and deployment
 
-Status: Phase 0 design and implemented Phase 1 local foundation. See [VERIFICATION.md](VERIFICATION.md) for executed checks. Production deployment is a Phase 10 design, not a currently provisioned service.
+The commands below retain the original foundation workflow. The full MVP also has
+a [separate production package](PRODUCTION.md) with restricted database roles,
+private API/admin containers and Caddy configuration. It is locally tested;
+no public server or certificate has been provisioned. See
+[implementation status](IMPLEMENTATION_STATUS.md) for current results.
 
 ## Windows prerequisites
 
