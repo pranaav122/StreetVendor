@@ -154,3 +154,39 @@ Try these with synthetic local data:
 5. Find the six denied SQL operations and two simulated client IPs in the production probe.
 
 Answers: connections are borrowed lazily; constraints and services guard different boundaries; hiding and erasing data have different deadlines; simulations prove only their tested scope; forwarding identity is trusted only across the configured private proxy chain. Use the [file guide](FILE_GUIDE.md) to locate the source and [verification record](LOCAL_VERIFICATION.md) to check your conclusions.
+
+## 13. Build decisions and their costs
+
+These decisions explain the tradeoffs behind the code and the execution record. They also collect the implementation-plan rulings so you can change them deliberately later.
+
+| Decision | Why it was chosen | Cost or limit |
+|---|---|---|
+| Continue in the requested folder and `main`, pushing small verified checkpoints | The owner explicitly selected that workflow; it was reaffirmed for applications and operations | Less branch/worktree isolation; each checkpoint needs careful staging and remote confirmation |
+| Invoke plan bookkeeping through Git Bash while product commands remain PowerShell | The supplied skill helpers are shell scripts | Git Bash is needed for those development helpers, not to run the product |
+| Add `0003_mail_tokens` after published account migration | Preserve already-pushed upgrade history | One extra migration and shifted later revision numbers |
+| Coarsen discovery membership, ordering and bands on a 0.01-degree grid | Display-only rounding would still expose exact-radius boundaries to probing | Approximately kilometre-scale discovery; accepted-visit tracking remains separate |
+| Require five seconds in both capture and server-receipt timing for arrival | Batched phone timestamps cannot prove dwelling | At least five real seconds and two usable fixes before arrival |
+| Cap active visits per vendor at 100, configurable downward | Bound per-fix arrival work and inbox load in one process | Further work is rejected at capacity |
+| Add an audited reinstatement/summary checkpoint | Staff need recovery from suspension and accurate visit counts | Additional code/checkpoint; reinstatement returns to pending review rather than automatic approval |
+| Use transactional PostgreSQL ID hints and a bounded listener | HTTP and jobs can signal after commit without another broker | One listener connection while used; REST resynchronization after reconnect; one API process |
+| Bind installations to session families and cap active devices at ten by default, maximum twenty | Prevent post-logout delivery and bound fanout | Older-device logout can be required; five-minute alert relevance drops stale alerts |
+| Link outbox recipient ownership through the composite device/recipient foreign key | Preserve ownership without reversing account/visit lock ordering | Indirect user linkage in schema; service and FK rules must be maintained together |
+| Use local visual tokens while Figma correction is quota-blocked | Continue functional implementation from readable checked layouts | The eight-frame Figma draft remains imperfect; no pixel-faithfulness claim |
+| Headless callbacks read access credentials without refresh rotation | Separate runtimes cannot share a memory refresh mutex safely | Background-only sharing ends by the remaining 600-second token lifetime |
+| Keep Staff API credentials behind an opaque cookie in one server | Avoid bearer/refresh tokens in browser storage; bounded 256 sessions for eight hours | Server restart requires staff sign-in; replicas need shared coordination |
+| Reserve Caddy/Node addresses outside the dynamic pool and trust only those peers | Preserve individual client abuse limits without trusting browser forwarding claims | Node/API must remain private; changing the subnet requires changing reservations and trust together |
+| Preserve Expo SDK alignment while five moderate tooling alerts remain | Unverified overrides had no effect on the installed tree; force audit proposed incompatible SDK downgrades | Tooling exposure remains an explicit release gate until a compatible patch is verified |
+| Raise GPS allowance to 240 per fifteen minutes | A normal five-second feed needs 180, with finite room for timing/retries | Allows more bounded per-vendor writes than the earlier broken 120 limit |
+| Pause before asynchronous resume checks and get a fresh fix afterward | Unknown permission/account state must not look live or accept stale callbacks | Sensor interruption/restart on resume; canceled writes settle before a current generation can restart |
+
+The final reviewer also separated local software from these unverified boundaries:
+
+- Public VPS/DNS/TLS needs actual authorized resources and hostname tests. Keeping that gate closed avoids claiming a deployment that does not exist.
+- SMTP/Expo, signing/stores, maps and native scheduling need real credentials/devices. Local capture, simulations and exports cannot establish those outcomes.
+- The production polygon needs owner approval. The synthetic development rectangle is not an approved public service boundary.
+- Shift-long headless sharing is outside the accepted token-lifetime design. Users must foreground/revalidate or deliberately restart after expiry.
+- Dependency resolution, expired-refresh/audit retention, admin MFA/access policy and encrypted scheduled off-server backups remain release decisions. Collecting real data before addressing them carries the documented security/operational risk.
+- Figma correction is quota-blocked; the code and local layouts are the current reference.
+- Payments, inventory/sales, group requests and route optimization remain outside this MVP. A visit cannot be treated as a purchase record.
+
+One Minor from the final review is deferred: a tracking read can pass eligibility, then lose the point to concurrent offline/cleanup before its second coordinate query. It returns a safe dependency error/socket reconnect rather than the expected tracking-unavailable response. Current clients need retry/resynchronization in that narrow interleaving. Combining the queries with a controlled database regression is follow-up; adding a vendor lock after the visit lock would reverse existing lock order.
