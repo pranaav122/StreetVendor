@@ -105,7 +105,7 @@ Each `app/` folder defines routes; screens live under `src/features/`. `_layout.
 
 Customer maps disclose providers and offer manual/list fallbacks. Web uses Leaflet; native maps require platform configuration. Partner navigation opens external maps after explicit choice.
 
-Partner sharing has a controller, foreground provider and module-scope background task. Generation/nonce checks prevent old callbacks restarting sharing after offline/logout. Stopping sensors and confirming server offline state are separate steps, with visible degraded states on failure.
+Partner sharing has a controller, foreground provider and module-scope background task. Resume pauses synchronously before permission/account reads and restarts only with current authority and a fresh fix. Generation/nonce checks prevent old callbacks restarting sharing after offline/logout. Stopping sensors and confirming server offline state are separate steps, with visible degraded states on failure.
 
 Headless callbacks do not rotate credentials. Background-only updates stop by the current access token's remaining expiry, at most 600 seconds. Foreground sessions can refresh. Shift-long unattended sharing needs a separate design and physical-device proof. Web previews cannot establish OS background scheduling or push delivery.
 

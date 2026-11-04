@@ -149,6 +149,22 @@ export class SharingController {
     this.stop = undefined;
     this.change("PAUSED", message, null);
   }
+  async resumeAfterValidation(generation: number) {
+    // Finish canceled writes before requesting a new first fix. A newer user
+    // choice (including offline) wins over this delayed resume operation.
+    await Promise.allSettled([this.starting, this.uploading]);
+    if (generation !== this.epoch || this.state.status !== "PAUSED") return;
+    const restarting = this.online();
+    const epoch = this.epoch;
+    try {
+      await restarting;
+    } catch (error) {
+      // Validation can succeed while fresh GPS subsequently fails. Attempt
+      // erasure of the old server point without stopping a newer consent epoch.
+      if (epoch === this.epoch) await this.offline().catch(() => {});
+      throw error;
+    }
+  }
   checkFreshness() {
     if (
       this.state.status === "ONLINE" &&

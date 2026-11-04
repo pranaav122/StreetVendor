@@ -228,3 +228,7 @@ minutes** after this follow-up, including the joint GPS workflow and failed-read
 offline controls. The preceding complete suite passed 23 cases in 3.5 minutes.
 Injected-policy tests establish the decision rules; actual OS resume/permission
 dispatch still needs a physical development build.
+
+## Resume follow-up after final review
+
+Before awaiting permission/business checks, the controller now stops callbacks and displays an unavailable checking state. A valid current check restarts through a fresh fix after canceled writes settle. It preserves deliberate offline/STOPPING and newer consent; a failed fresh fix attempts server erasure. The expanded Partner policy suite passed 29 cases and strict TypeScript passed. This is a controlled lifecycle regression, not a physical OS scheduling test.

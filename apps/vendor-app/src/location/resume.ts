@@ -6,6 +6,13 @@ export async function revalidateSharing(options: {
   business(): Promise<{ is_available: boolean }>;
   disableBackground(): void;
 }) {
+  const wasSharing = ["ONLINE", "DEGRADED", "STARTING"].includes(
+    options.controller.state.status,
+  );
+  // Stop callbacks and invalidate late uploads before any OS/network await.
+  // A resumed screen must not claim live sharing while authority is unknown.
+  if (wasSharing)
+    options.controller.pause("Checking location permission and account.");
   const generation = options.controller.generation;
   const current = () => generation === options.controller.generation;
   try {
@@ -21,8 +28,11 @@ export async function revalidateSharing(options: {
       return;
     }
     const business = await options.business();
-    if (current() && !business.is_available)
+    if (!current()) return;
+    if (!business.is_available)
       await options.controller.offline().catch(() => {});
+    else if (wasSharing)
+      await options.controller.resumeAfterValidation(generation);
   } catch {
     if (!current()) return;
     // Unknown permission/account state fails closed. Attempt immediate server
