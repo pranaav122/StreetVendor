@@ -41,3 +41,7 @@ The full command reached its final success message on 4 November:
 | Separate demo entry point | 1 passed in 6.61 seconds |
 
 The production probe runs inside local containers. Public DNS/TLS, a real server, signed installations, physical-device background behavior, real Expo delivery and real SMTP delivery are separate release gates. This baseline predates the security follow-up; later entries must identify the changed checks rather than imply the baseline covered future code.
+
+## Windows operator checks in Linux
+
+Running the new backup guard module inside the Linux API image initially produced seven failures: that image intentionally has neither host PowerShell nor the infrastructure scripts. The module now explicitly skips on non-Windows hosts. Rechecking produced **7 passed on Windows in 6.42 seconds**, including real Docker archive/cleanup checks, and **7 explicitly skipped in Linux**. This changes test selection, not production behavior or backup safeguards.

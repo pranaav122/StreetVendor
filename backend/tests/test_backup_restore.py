@@ -9,6 +9,11 @@ from uuid import uuid4
 import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
+# These checks drive Windows operator scripts and the host Docker CLI. The API
+# image deliberately contains neither PowerShell nor host infrastructure files.
+pytestmark = pytest.mark.skipif(
+    os.name != "nt", reason="Run Windows operator-script checks on the Windows host."
+)
 
 
 def test_restore_refuses_missing_backup_before_contacting_docker(tmp_path):
