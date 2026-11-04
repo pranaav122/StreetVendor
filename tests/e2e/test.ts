@@ -3,18 +3,18 @@ import { resolve } from "node:path";
 import { test as base } from "@playwright/test";
 export { expect, type APIRequestContext } from "@playwright/test";
 
-export const test = base.extend<{ isolatedRateLimits: void }>({
-  isolatedRateLimits: [
+export const test = base.extend<{ isolatedCase: void }>({
+  isolatedCase: [
     async ({}, use) => {
       if (!process.env.BROWSER_FIXTURE_DB || !process.env.BROWSER_PYTHON)
         throw new Error(
           "Use scripts/Test-Applications.ps1 for isolated UI checks.",
         );
-      // Each test gets a fresh abuse-counter window, while production keeps its
-      // unchanged protection. The Python helper refuses non-generated databases.
+      // Each case gets independent users/businesses and an abuse-counter window.
+      // The Python helper refuses non-generated databases before connecting.
       execFileSync(
         process.env.BROWSER_PYTHON,
-        [resolve("backend/scripts/browser_fixture.py"), "reset-rate-limits"],
+        [resolve("backend/scripts/browser_fixture.py"), "reset-case"],
         { stdio: "pipe" },
       );
       await use();

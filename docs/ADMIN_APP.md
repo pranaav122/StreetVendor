@@ -165,3 +165,12 @@ On 4 November the compiled-server run passed all nine admin browser cases
 against the real isolated API/database. The remaining Customer/Partner cases
 continue in the same run; their final result is recorded separately. The current
 admin core suite passed all 12 cases, and shared/Next strict checking passed.
+
+The first combined run finished **30 passed, 2 failed in 8.7 minutes**. Both
+failures expected an empty discovery list after earlier admin cases had left
+synthetic businesses online. The guarded fixture now clears users and dependent
+business/visit data before each sequential case, preserving the seeded categories.
+It also resets abuse counters for the shared test IP. The helper rejects the real
+development database name before connecting. With this isolation, both failing
+Customer cases passed after all nine admin cases in the next run, including the
+38.6-second automatic offline-removal check. No production behavior was loosened.

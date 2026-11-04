@@ -1,7 +1,7 @@
 """Manage privileged fixtures only inside the guarded browser-test database.
 
-The test runner captures operator credentials in memory. Rate-counter reset is
-only for sequential, independent UI cases; never use either action on a real database.
+The test runner captures operator credentials in memory. Case reset is only for
+sequential, independent UI cases; never use either action on a real database.
 """
 
 import argparse
@@ -13,7 +13,7 @@ import secrets
 from uuid import uuid4
 
 from sqlalchemy.orm import Session
-from sqlalchemy import delete
+from sqlalchemy import delete, text
 
 from app.auth.schemas import RegisterInput
 from app.auth.service import register_user
@@ -27,7 +27,7 @@ def main():
     parser.add_argument(
         "operation",
         nargs="?",
-        choices=["operator", "reset-rate-limits"],
+        choices=["operator", "reset-case"],
         default="operator",
     )
     args = parser.parse_args()
@@ -42,10 +42,12 @@ def main():
     )
     engine = create_db_engine(settings)
     try:
-        if args.operation == "reset-rate-limits":
-            # Sequential UI cases are independent clients sharing one loopback IP.
-            # Reset only this guarded disposable database, never application limits.
+        if args.operation == "reset-case":
+            # Cases share an IP/database, but must not discover a previous case's
+            # still-online businesses. Preserve seeded categories, reset test users
+            # and their dependent rows only inside this guarded disposable database.
             with engine.begin() as connection:
+                connection.execute(text("TRUNCATE TABLE public.users CASCADE"))
                 connection.execute(delete(RateLimitBucket))
             return
         email, password = (

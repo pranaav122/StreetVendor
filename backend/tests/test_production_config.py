@@ -10,19 +10,19 @@ from sqlalchemy.exc import OperationalError
 
 
 def production(**changes):
-    values = dict(
-        _env_file=None,
-        environment="production",
-        postgres_user="msv_runtime",
-        postgres_password="isolated-runtime-password-for-unit-tests",
-        jwt_secret="0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_-",
-        service_area_geojson='{"type":"Polygon","coordinates":[[[80.15,13],[80.35,13],[80.35,13.2],[80.15,13.2],[80.15,13]]]}',
-        allowed_origins=["https://admin.example.com"],
-        public_customer_url="https://customer.example.com",
-        public_vendor_url="https://partner.example.com",
-        smtp_host="smtp.example.com",
-        smtp_from="noreply@example.com",
-    )
+    values = {
+        "_env_file": None,
+        "environment": "production",
+        "postgres_user": "msv_runtime",
+        "postgres_password": "isolated-runtime-password-for-unit-tests",
+        "jwt_secret": "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_-",
+        "service_area_geojson": '{"type":"Polygon","coordinates":[[[80.15,13],[80.35,13],[80.35,13.2],[80.15,13.2],[80.15,13]]]}',
+        "allowed_origins": ["https://admin.example.com"],
+        "public_customer_url": "https://customer.example.com",
+        "public_vendor_url": "https://partner.example.com",
+        "smtp_host": "smtp.example.com",
+        "smtp_from": "noreply@example.com",
+    }
     values.update(changes)
     return Settings(**values)
 
