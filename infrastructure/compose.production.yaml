@@ -72,8 +72,9 @@ services:
       EXPO_CUSTOMER_PROJECT_ID: ${EXPO_CUSTOMER_PROJECT_ID:-}
       EXPO_VENDOR_PROJECT_ID: ${EXPO_VENDOR_PROJECT_ID:-}
       JOBS_ENABLED: "true"
-    # Trust only Caddy's fixed private address, never arbitrary client headers.
-    command: [uvicorn, "app.main:create_app", --factory, --host, "0.0.0.0", --port, "8000", --workers, "1", --proxy-headers, --forwarded-allow-ips, "172.30.60.2", --no-access-log, --ws-max-size, "8192", --ws-max-queue, "8"]
+    # Caddy and the admin login proxy preserve end-client abuse-limit identity.
+    # Only their reserved private addresses may supply forwarding headers.
+    command: [uvicorn, "app.main:create_app", --factory, --host, "0.0.0.0", --port, "8000", --workers, "1", --proxy-headers, --forwarded-allow-ips, "172.30.60.2,172.30.60.3", --no-access-log, --ws-max-size, "8192", --ws-max-queue, "8"]
     networks: [database, edge]
     depends_on:
       db: {condition: service_healthy}
@@ -101,7 +102,8 @@ services:
       ADMIN_APP_ENV: production
       ADMIN_API_URL: http://api:8000
       ADMIN_PUBLIC_ORIGIN: https://${ADMIN_DOMAIN:?Set ADMIN_DOMAIN}
-    networks: [edge]
+    networks:
+      edge: {ipv4_address: 172.30.60.3}
     depends_on:
       api: {condition: service_healthy}
     healthcheck:
@@ -142,7 +144,9 @@ networks:
     internal: true
   edge:
     ipam:
-      config: [{subnet: 172.30.60.0/24}]
+      # Dynamic API addresses cannot consume a reserved proxy address before
+      # Caddy starts. Choose a different private subnet if the host overlaps it.
+      config: [{subnet: 172.30.60.0/24, ip_range: 172.30.60.128/25}]
 
 volumes:
   postgres_data:

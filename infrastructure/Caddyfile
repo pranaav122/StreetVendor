@@ -36,5 +36,8 @@
         Strict-Transport-Security "max-age=31536000"
         -Server
     }
-    reverse_proxy admin:3000
+    reverse_proxy admin:3000 {
+        # Overwrite any caller-supplied identity before the private admin hop.
+        header_up X-Msv-Client-IP {remote_host}
+    }
 }

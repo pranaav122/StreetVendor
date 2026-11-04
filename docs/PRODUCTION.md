@@ -21,10 +21,16 @@ flowchart LR
 Only Caddy publishes TCP 80/443 and UDP 443. Database/API/admin have no host ports.
 PostgreSQL uses an internal network; Caddy is absent from that network. API also
 joins the outbound-capable edge network for SMTP and Expo. Forwarded client IPs
-are trusted only from Caddy's fixed private address `172.30.60.2`. Caddy replaces
-untrusted client forwarding headers by default. If subnet `172.30.60.0/24` overlaps
-your server's networks, change its subnet, Caddy address and Uvicorn trust address
-together. A CDN/additional proxy needs an explicit review of that trust chain.
+are trusted only from Caddy (`172.30.60.2`) and the admin login proxy
+(`172.30.60.3`). Caddy overwrites `X-Msv-Client-IP` with its actual peer address;
+production Node requires a single valid IP there and forwards it only for login.
+This keeps an attacker's failed logins from consuming every operator's IP limit.
+Browser forwarding claims never select the identity. Never publish Node's port or
+allow untrusted containers onto this network: the private hop is a trust boundary.
+Dynamic allocation uses `172.30.60.128/25`, excluding both reserved addresses.
+If subnet `172.30.60.0/24` overlaps your server's networks, change the subnet,
+dynamic range, both proxy addresses and Uvicorn trust list together. A CDN or
+additional proxy needs an explicit review of that trust chain.
 
 | Role | Purpose | Authority |
 |---|---|---|
@@ -108,10 +114,13 @@ resolved Compose output contains secrets.
 
 The exercise generates a random `msv_prod_check_*` project/database, synthetic HTTPS
 origins and independent secrets; migrates through the real restricted migrator;
-starts API/admin privately; checks runtime DML and six privilege denials; confirms
+starts API/admin and the actual Caddyfile privately over HTTP, with public ports
+removed by a generated override; checks runtime DML and six privilege denials; confirms
 test dependencies are absent and real admin forwarding/cookie attributes; restarts
 services and checks recovery. Cleanup removes only that generated project's
-containers/networks/volume. It does not start public Caddy or contact SMTP/Expo.
+containers/networks/volumes. It exhausts one simulated client's login limit and
+confirms another can log in, then checks that Caddy overwrites forged identity
+headers. It does not publish Caddy, request certificates or contact SMTP/Expo.
 Sending a Secure cookie manually over private HTTP checks its protocol attributes,
 not browser TLS.
 

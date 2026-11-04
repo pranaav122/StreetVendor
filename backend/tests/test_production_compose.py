@@ -1,6 +1,7 @@
 """Inspect Docker's resolved model without writing or printing test secrets."""
 
 import json
+import ipaddress
 import os
 import secrets
 import shutil
@@ -79,6 +80,22 @@ def test_production_model_keeps_database_and_apps_private(tmp_path):
     assert services["api"]["build"]["target"] == "production"
     assert {row["target"] for row in services["caddy"]["ports"]} == {80, 443}
     assert services["migrate"]["profiles"] == ["tools"]
+
+
+def test_only_reserved_proxy_addresses_are_trusted_and_dynamic_ips_cannot_collide(tmp_path):
+    result = compose(tmp_path)
+    assert result.returncode == 0
+    model = json.loads(result.stdout)
+    services = model["services"]
+    caddy = services["caddy"]["networks"]["edge"]["ipv4_address"]
+    admin = (services["admin"]["networks"]["edge"] or {}).get("ipv4_address")
+    assert admin is not None, "The admin proxy must have a reserved trusted address."
+    assert caddy != admin
+    command = services["api"]["command"]
+    assert set(command[command.index("--forwarded-allow-ips") + 1].split(",")) == {caddy, admin}
+    pool = ipaddress.ip_network(model["networks"]["edge"]["ipam"]["config"][0]["ip_range"])
+    assert ipaddress.ip_address(caddy) not in pool
+    assert ipaddress.ip_address(admin) not in pool
 
 
 def test_production_model_refuses_missing_owner_settings(tmp_path):

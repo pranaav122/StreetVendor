@@ -164,7 +164,7 @@ within the screen without horizontal overflow.
 On 4 November the compiled-server run passed all nine admin browser cases
 against the real isolated API/database. The remaining Customer/Partner cases
 continue in the same run; their final result is recorded separately. The current
-admin core suite passed all 12 cases, and shared/Next strict checking passed.
+admin core suite at that checkpoint passed all 12 cases, and shared/Next strict checking passed.
 
 The first combined run finished **30 passed, 2 failed in 8.7 minutes**. Both
 failures expected an empty discovery list after earlier admin cases had left
@@ -174,3 +174,10 @@ It also resets abuse counters for the shared test IP. The helper rejects the rea
 development database name before connecting. With this isolation, both failing
 Customer cases passed after all nine admin cases in the next run, including the
 38.6-second automatic offline-removal check. No production behavior was loosened.
+
+The later complete run passed all **32 browser cases in 12.2 minutes**. Security
+follow-up expanded the core suite to **14 passing cases**. Production login now
+requires Caddy's overwritten, valid `X-Msv-Client-IP` on the private Node hop;
+only the reserved Node address may forward that identity to the API. Missing or
+malformed ingress identity fails closed. Keep Node unpublished. See
+[production networking](PRODUCTION.md) and [current evidence](LOCAL_VERIFICATION.md).

@@ -1,4 +1,5 @@
 import { createHash, randomBytes } from "node:crypto";
+import { isIP } from "node:net";
 import { z } from "zod";
 import {
   ApiClient,
@@ -242,6 +243,17 @@ export class AdminServer {
         "INVALID_FORM",
         "Enter a valid email and password.",
       );
+    // Production Node has no public port. Caddy overwrites this private header
+    // with its peer address; browser X-Forwarded-For is never used as identity.
+    const clientAddress = this.config.production
+      ? request.headers.get("X-Msv-Client-IP")
+      : null;
+    if (this.config.production && (!clientAddress || !isIP(clientAddress)))
+      throw new ApiError(
+        503,
+        "PROXY_IDENTITY_REQUIRED",
+        "The administration proxy needs operator attention.",
+      );
     const raw = randomBytes(32).toString("base64url"),
       key = digest(raw);
     let saved: TokenPair | null = null;
@@ -269,6 +281,11 @@ export class AdminServer {
           await client.request("/auth/login", {
             method: "POST",
             authenticated: false,
+            // The API trusts this container's reserved address only. Keeping
+            // client identities separate preserves its existing abuse limits.
+            headers: clientAddress
+              ? { "X-Forwarded-For": clientAddress }
+              : undefined,
             body: {
               ...parsed.data,
               device_name: "MyStreetVendor administration",

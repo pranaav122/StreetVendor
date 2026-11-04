@@ -4,8 +4,9 @@ $taskRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $taskId = [guid]::NewGuid().ToString('N').Substring(0, 12)
 $taskProject = "msv_prod_check_$taskId"
 $taskEnvFile = Join-Path ([IO.Path]::GetTempPath()) "$taskProject.env"
+$taskOverride = Join-Path ([IO.Path]::GetTempPath()) "$taskProject.proxy.yaml"
 $taskCompose = @('compose', '--project-name', $taskProject, '--env-file', $taskEnvFile,
-    '-f', (Join-Path $taskRoot 'infrastructure/compose.production.yaml'))
+    '-f', (Join-Path $taskRoot 'infrastructure/compose.production.yaml'), '-f', $taskOverride)
 function New-CheckSecret {
     [Convert]::ToBase64String([Security.Cryptography.RandomNumberGenerator]::GetBytes(64)).Replace('+', '-').Replace('/', '_').TrimEnd('=')
 }
@@ -15,6 +16,16 @@ function Invoke-CheckCompose {
     if ($LASTEXITCODE -ne 0) { throw 'Production container check failed. Read the safe output above.' }
 }
 try {
+    # Exercise the real Caddyfile over private HTTP without DNS, ACME or public
+    # ports. This proves routing/header handling, not public TLS deployment.
+    @'
+services:
+  caddy:
+    environment:
+      API_DOMAIN: http://api.example.invalid
+      ADMIN_DOMAIN: http://admin.example.invalid
+    ports: !reset []
+'@ | Set-Content -LiteralPath $taskOverride -Encoding utf8NoBOM
     # Generated settings are deliberately synthetic and never copied to a pilot.
     @"
 POSTGRES_DB=$taskProject
@@ -35,7 +46,7 @@ SERVICE_AREA_GEOJSON='{"type":"Polygon","coordinates":[[[80.15,13],[80.35,13],[8
     if (-not $SkipBuild) { Invoke-CheckCompose build api admin }
     Invoke-CheckCompose up -d --wait db
     Invoke-CheckCompose run --rm migrate
-    Invoke-CheckCompose up -d --wait api admin
+    Invoke-CheckCompose up -d --wait api admin caddy
     # Text source is safe to pipe; database dump bytes are never piped in PowerShell.
     Get-Content -LiteralPath (Join-Path $PSScriptRoot 'check_production.py') -Raw |
         & docker @taskCompose exec -T -e MSV_PRODUCTION_CHECK=1 api python -
@@ -81,4 +92,5 @@ finally {
     & docker @taskCompose down --volumes --remove-orphans
     if ($LASTEXITCODE -ne 0) { Write-Warning "Cleanup failed for generated project $taskProject; inspect it manually." }
     if (Test-Path -LiteralPath $taskEnvFile) { Remove-Item -LiteralPath $taskEnvFile }
+    if (Test-Path -LiteralPath $taskOverride) { Remove-Item -LiteralPath $taskOverride }
 }

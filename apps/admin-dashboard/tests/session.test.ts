@@ -15,6 +15,7 @@ const operator = {
 };
 function setup(role = "admin", maximum = 256) {
   const calls: string[] = [];
+  const loginAddresses: (string | null)[] = [];
   let clock = Date.now();
   let liveRole = role;
   const server = new AdminServer({
@@ -30,13 +31,15 @@ function setup(role = "admin", maximum = 256) {
       if (path !== "/api/v1/auth/login")
         assert.equal(headers.get("Authorization"), "Bearer private-api-access");
       calls.push(`${options?.method ?? "GET"} ${path}`);
-      if (path === "/api/v1/auth/login")
+      if (path === "/api/v1/auth/login") {
+        loginAddresses.push(headers.get("X-Forwarded-For"));
         return Response.json({
           access_token: "private-api-access",
           refresh_token: "private-api-refresh",
           token_type: "bearer",
           expires_in: 600,
         });
+      }
       if (path === "/api/v1/users/me")
         return Response.json({ ...operator, role: liveRole });
       if (path === "/api/v1/auth/logout")
@@ -49,6 +52,7 @@ function setup(role = "admin", maximum = 256) {
   return {
     server,
     calls,
+    loginAddresses,
     expire: () => {
       clock += 8 * 3600000 + 1;
     },
@@ -61,7 +65,11 @@ function login(server: AdminServer, suppliedOrigin = origin) {
   return server.session(
     new Request(`${origin}/api/session`, {
       method: "POST",
-      headers: { Origin: suppliedOrigin, "Content-Type": "application/json" },
+      headers: {
+        Origin: suppliedOrigin,
+        "Content-Type": "application/json",
+        "X-Msv-Client-IP": "198.51.100.20",
+      },
       body: JSON.stringify({
         email: "operator@example.com",
         password: "Synthetic-password-with-length",
@@ -71,6 +79,59 @@ function login(server: AdminServer, suppliedOrigin = origin) {
 }
 const cookie = (response: Response) =>
   response.headers.get("Set-Cookie")!.split(";")[0]!;
+
+test("production login forwards only the validated ingress address, ignoring browser forwarding claims", async () => {
+  const { server, loginAddresses } = setup();
+  for (const address of ["198.51.100.20", "2001:db8::20"]) {
+    const response = await server.session(
+      new Request(`${origin}/api/session`, {
+        method: "POST",
+        headers: {
+          Origin: origin,
+          "Content-Type": "application/json",
+          "X-Msv-Client-IP": address,
+          "X-Forwarded-For": "198.51.100.99",
+        },
+        body: JSON.stringify({
+          email: "operator@example.com",
+          password: "Synthetic-password",
+        }),
+      }),
+    );
+    assert.equal(response.status, 200);
+  }
+  assert.deepEqual(loginAddresses, ["198.51.100.20", "2001:db8::20"]);
+});
+
+test("production login fails closed when its private proxy address is missing or malformed", async () => {
+  for (const address of [
+    null,
+    "unknown",
+    "198.51.100.1, 198.51.100.2",
+    "https://example.com",
+  ]) {
+    const { server, calls } = setup();
+    const headers = new Headers({
+      Origin: origin,
+      "Content-Type": "application/json",
+      "X-Forwarded-For": "198.51.100.99",
+    });
+    if (address !== null) headers.set("X-Msv-Client-IP", address);
+    const response = await server.session(
+      new Request(`${origin}/api/session`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          email: "operator@example.com",
+          password: "Synthetic-password",
+        }),
+      }),
+    );
+    assert.equal(response.status, 503);
+    assert.equal((await response.json()).error.code, "PROXY_IDENTITY_REQUIRED");
+    assert.equal(calls.length, 0);
+  }
+});
 
 test("staff cookie is opaque, HttpOnly, Secure and strict; API tokens never reach the browser", async () => {
   const { server } = setup();

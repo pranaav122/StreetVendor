@@ -105,13 +105,42 @@ def main():
         code, user, _ = http("/api/v1/users/me", headers=auth)
         assert code == 200 and user["role"] == "customer"
         assert http("/api/v1/admin/summary", headers=auth)[0] == 403
+        staff_origin = "https://admin.example.invalid"
+        staff_login = {"email": "operator@example.com", "password": password}
+        # Private protocol probes explicitly supply an ingress identity. Node is
+        # unpublished; real requests receive this header only from Caddy.
+        blocked_ip = "198.51.100.10"
+        for attempt in range(31):
+            code, _, _ = http(
+                "/api/session",
+                {"email": f"invalid-{attempt}@example.com", "password": "invalid"},
+                origin="http://admin:3000",
+                headers={"Origin": staff_origin, "X-Msv-Client-IP": blocked_ip},
+            )
+            assert code == (401 if attempt < 30 else 429), (attempt, code)
+        assert http(
+            "/api/session", staff_login, origin="http://admin:3000",
+            headers={"Origin": staff_origin, "X-Msv-Client-IP": blocked_ip},
+        )[0] == 429
+        assert http(
+            "/api/session", staff_login, origin="http://admin:3000",
+            headers={"Origin": staff_origin, "X-Forwarded-For": "198.51.100.20"},
+        )[0] == 503
         code, body, headers = http(
             "/api/session",
-            {"email": "operator@example.com", "password": password},
+            staff_login,
             origin="http://admin:3000",
-            headers={"Origin": "https://admin.example.invalid"},
+            headers={"Origin": staff_origin, "X-Msv-Client-IP": "198.51.100.20"},
         )
         assert code == 200 and body["user"]["role"] == "admin"
+        # The actual Caddyfile must override both forged public identity headers.
+        # If it accepted blocked_ip, this login would inherit its exhausted bucket.
+        assert http("/health", origin="http://caddy", headers={"Host": "api.example.invalid"})[0] == 200
+        assert http(
+            "/api/session", staff_login, origin="http://caddy",
+            headers={"Host": "admin.example.invalid", "Origin": staff_origin,
+                     "X-Msv-Client-IP": blocked_ip, "X-Forwarded-For": blocked_ip},
+        )[0] == 200
         cookie = headers["Set-Cookie"]
         for flag in (
             "__Host-msv_admin=",
@@ -145,6 +174,8 @@ def main():
                     "denied_privileged_operations": len(denied),
                     "runtime_registration_login": "ok",
                     "standalone_admin_secure_session": "ok",
+                    "admin_client_limit_isolation": "ok",
+                    "caddy_identity_header_override": "ok",
                     "production_test_dependencies": "absent",
                 }
             )
