@@ -22,6 +22,13 @@ def production(**changes):
         "public_vendor_url": "https://partner.example.com",
         "smtp_host": "smtp.example.com",
         "smtp_from": "noreply@example.com",
+        # Constructor values take precedence over the development container's
+        # Mailpit environment. This fixture must exercise production rules.
+        "smtp_port": 587,
+        "smtp_starttls": True,
+        "smtp_ssl": False,
+        "smtp_username": None,
+        "smtp_password": None,
     }
     values.update(changes)
     return Settings(**values)
@@ -52,6 +59,14 @@ def test_production_refuses_incomplete_or_unsafe_configuration(changes):
 
 def test_complete_production_configuration_can_be_constructed_without_network():
     assert production().environment == "production"
+
+
+def test_production_fixture_is_independent_of_development_mail_environment(monkeypatch):
+    monkeypatch.setenv("SMTP_STARTTLS", "false")
+    monkeypatch.setenv("SMTP_USERNAME", "development-only-user")
+    settings = production()
+    assert settings.smtp_starttls is True
+    assert settings.smtp_username is None
 
 
 def test_optional_provider_fields_can_be_blank_in_compose():
