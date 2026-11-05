@@ -38,6 +38,42 @@ test("customer can register in Tamil and read a narrow-screen interface", async 
     await page.screenshot({
       path: ".superpowers/sdd/2026-11-02-applications/customer-tamil-live.png",
     });
+    // Stress translated text independently of the physical-device font-scale check.
+    await page.evaluate(() => {
+      const labels = [
+        ...document.querySelectorAll<HTMLElement>('[dir="auto"]'),
+      ].map((node) => ({
+        node,
+        size: parseFloat(getComputedStyle(node).fontSize),
+        line: parseFloat(getComputedStyle(node).lineHeight),
+      }));
+      for (const { node, size, line } of labels) {
+        node.style.fontSize = `${size * 2}px`;
+        if (Number.isFinite(line)) node.style.lineHeight = `${line * 2}px`;
+      }
+    });
+    const navigation = page.getByRole("navigation");
+    await expect(navigation).toBeVisible();
+    expect(
+      await navigation.getByRole("link").evaluateAll((links) =>
+        links.flatMap((link) => {
+          const label = link.querySelector('[dir="auto"]');
+          if (!label) return ["Missing label"];
+          const bounds = link.getBoundingClientRect(),
+            text = label.getBoundingClientRect();
+          return text.left < bounds.left - 1 || text.right > bounds.right + 1
+            ? [link.textContent]
+            : [];
+        }),
+      ),
+    ).toEqual([]);
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth),
+    ).toBeLessThanOrEqual(390);
+    await page.screenshot({
+      path: ".superpowers/sdd/2026-11-05-simple-mobile-ui/customer-tamil-large-live.png",
+      fullPage: true,
+    });
   } finally {
     const login = await request.post(`${API}/api/v1/auth/login`, {
       data: { email, password },

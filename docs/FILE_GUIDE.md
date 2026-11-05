@@ -2,7 +2,7 @@
 
 Updated 5 November 2026. This inventory explains every maintained Git file and the current handbook. Private `.env`, installed dependencies, databases, backups and generated test/export output are deliberately excluded. Start with [PROJECT_HANDBOOK.md](PROJECT_HANDBOOK.md), then use this map to follow an actual feature.
 
-Inventory: **317 files**. Paths are repository-relative and linked from this guide. Tests describe the behavior they protect; their existence alone is not a passing result. Actual runs are in [LOCAL_VERIFICATION.md](LOCAL_VERIFICATION.md).
+Inventory: **324 files**. Paths are repository-relative and linked from this guide. Tests describe the behavior they protect; their existence alone is not a passing result. Actual runs are in [LOCAL_VERIFICATION.md](LOCAL_VERIFICATION.md).
 
 ## Root settings
 
@@ -344,6 +344,13 @@ Inventory: **317 files**. Paths are repository-relative and linked from this gui
 | [packages/design-tokens/check-contrast.mjs](../packages/design-tokens/check-contrast.mjs) | Compute seven text contrast pairs and minimum touch-size assertions. |
 | [packages/design-tokens/index.ts](../packages/design-tokens/index.ts) | Typed export of shared visual tokens. |
 | [packages/design-tokens/package.json](../packages/design-tokens/package.json) | Workspace dependencies, entry point and commands for packages\design-tokens. |
+| [packages/design-tokens/icons/home.png](../packages/design-tokens/icons/home.png) | Original monochrome vendor Home pictogram; 48-pixel transparent asset displayed at 24 points, tinted by shared palette, always accompanied by a text label. |
+| [packages/design-tokens/icons/nearby.png](../packages/design-tokens/icons/nearby.png) | Original monochrome nearby meeting-place pictogram; 48-pixel transparent asset displayed at 24 points, tinted by shared palette, always accompanied by a text label. |
+| [packages/design-tokens/icons/customers.png](../packages/design-tokens/icons/customers.png) | Original monochrome customer visits pictogram; 48-pixel transparent asset displayed at 24 points, tinted by shared palette, always accompanied by a text label. |
+| [packages/design-tokens/icons/shop.png](../packages/design-tokens/icons/shop.png) | Original monochrome shop pictogram; 48-pixel transparent asset displayed at 24 points, tinted by shared palette, always accompanied by a text label. |
+| [packages/design-tokens/icons/account.png](../packages/design-tokens/icons/account.png) | Original monochrome account pictogram; 48-pixel transparent asset displayed at 24 points, tinted by shared palette, always accompanied by a text label. |
+| [packages/design-tokens/icons/visits.png](../packages/design-tokens/icons/visits.png) | Original monochrome visit list pictogram; 48-pixel transparent asset displayed at 24 points, tinted by shared palette, always accompanied by a text label. |
+| [packages/design-tokens/icons/more.png](../packages/design-tokens/icons/more.png) | Original monochrome More settings pictogram; 48-pixel transparent asset displayed at 24 points, tinted by shared palette, always accompanied by a text label. |
 | [packages/design-tokens/tokens.json](../packages/design-tokens/tokens.json) | Shared palette, spacing, type and minimum touch dimensions. |
 | [packages/shared-types/package.json](../packages/shared-types/package.json) | Workspace dependencies, entry point and commands for packages\shared-types. |
 | [packages/shared-types/src/index.ts](../packages/shared-types/src/index.ts) | Strict Zod input/response/event contracts and shared TypeScript types. |

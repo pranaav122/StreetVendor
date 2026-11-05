@@ -1,5 +1,13 @@
 # Local verification
 
+## Navigation finish and integrated checks — 5 November 2026
+
+Both apps now use original local monochrome destination pictograms alongside visible translated labels. Colours are unchanged; no runtime dependencies were added. Customer and Vendor doubled-text Tamil screenshots were inspected after the browser bounds checks passed.
+
+All policy suites passed: **23 client, 6 customer, 29 vendor, 14 staff**. Shared and all three app strict TypeScript checks passed; all seven contrast pairs passed. Both apps completed **Android, iOS and web JavaScript exports** using a placeholder HTTPS API URL; these are compilation checks, not signed builds or device/provider tests. All 324 maintained files were mapped and 329 local documentation links existed.
+
+The first complete browser run passed **33/34 in 7.1 minutes**. The staff sign-out assertion ran after local UI cleanup but before its asynchronous DELETE response, returning 200. This test must wait for the committed sign-out response before checking revocation; the failure is recorded, not counted as a pass. Final review also identified three specification gaps: vendor New/Active/Past groups, approval guidance on My shop and arrival troubleshooting in visit help. Their regression/fix pass is pending. Historical full-MVP checks below remain separate.
+
 ## Customer workflow checkpoint — 5 November 2026
 
 Customer discovery now starts with a public meeting label and optional GPS; manual coordinates remain under Enter coordinates. Categories appear after selection. Visit screens explain committed progress and group detailed coordinates, cancellation and reporting behind named controls. Account deletion and notifications are optional sections; their confirmations remain unchanged. No place-search provider, fake results or dependencies were added.

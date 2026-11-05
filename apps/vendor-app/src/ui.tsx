@@ -1,6 +1,7 @@
 import { useState, type PropsWithChildren, type ReactElement } from "react";
 import {
   ActivityIndicator,
+  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -41,10 +42,26 @@ export function Page({
   const { text } = useCopy();
   const pathname = usePathname();
   const destinations = [
-    { href: "/", label: "Home" },
-    { href: "/visits", label: "Customers" },
-    { href: "/profile", label: "My shop" },
-    { href: "/account", label: "More" },
+    {
+      href: "/",
+      label: "Home",
+      icon: require("../../../packages/design-tokens/icons/home.png"),
+    },
+    {
+      href: "/visits",
+      label: "Customers",
+      icon: require("../../../packages/design-tokens/icons/customers.png"),
+    },
+    {
+      href: "/profile",
+      label: "My shop",
+      icon: require("../../../packages/design-tokens/icons/shop.png"),
+    },
+    {
+      href: "/account",
+      label: "More",
+      icon: require("../../../packages/design-tokens/icons/more.png"),
+    },
   ] as const;
   return (
     <SafeAreaView
@@ -93,6 +110,20 @@ export function Page({
                   accessibilityState={{ selected: active }}
                   aria-selected={active}
                 >
+                  {/* Visible labels carry meaning; icons are redundant for screen readers. */}
+                  <Image
+                    source={destination.icon}
+                    accessible={false}
+                    accessibilityElementsHidden
+                    importantForAccessibility="no"
+                    style={{
+                      width: 24,
+                      height: 24,
+                      tintColor: active
+                        ? tokens.color.primary
+                        : tokens.color.muted,
+                    }}
+                  />
                   <Text
                     style={[
                       styles.navText,

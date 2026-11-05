@@ -1,6 +1,6 @@
 # Familiar workflows and explainable code
 
-Research checkpoint: 5 November 2026. This document connects the requested Uber, Rapido, Swiggy and Zomato references to MyStreetVendor's existing modules and proposed redesign. Colours are provisional; choose them later through the shared tokens.
+Research checkpoint: 5 November 2026. This document connects the requested Uber, Rapido, Swiggy and Zomato references to MyStreetVendor's existing modules and approved redesign. Colours are provisional; choose them later through the shared tokens.
 
 ## What the evidence establishes
 
@@ -17,7 +17,7 @@ Public guides describe product behaviour. Engineering articles explain implement
 
 ## Reasons, code ownership and acceptance checks
 
-“Existing” below means source was inspected, not that every scenario was rerun for this documentation checkpoint. Named tests are coverage to retain; see the verification record for actual execution results. Proposed UI work remains subject to the design review.
+“Existing” below means source was inspected, not that every scenario was rerun for this documentation checkpoint. Named tests are coverage to retain; see the verification record for actual execution results. The user approved applying the previews; scoped implementation evidence is recorded in LOCAL_VERIFICATION.md.
 
 | Reason and user problem | MyStreetVendor decision | Code that owns it | Coverage and remaining work |
 | --- | --- | --- | --- |
@@ -27,13 +27,13 @@ Public guides describe product behaviour. Engineering articles explain implement
 | R4. An unexplained wait makes users repeat actions. | Show pending, accepted, approaching, arrived and terminal states using actual server responses. Make the active visit easy to reopen. | Both visit screens/lists, `packages/api-client/src/realtime.ts`, `backend/app/visits/state.py` | Plain current progress is implemented; active reopening, acceptance, cancellation and terminal tracking cleanup passed. Retain `tests/e2e/customer-visits.test.ts` and `partner-visits.test.ts`. No made-up ETA or automatic acceptance. |
 | R5. Partners need deliberate control over work and location. Rapido's duty boundary is relevant. | Explicit Go online / Go offline; separate optional background consent. An unreadable status must not remove the offline escape. | Vendor `location/controller.ts`, `provider.tsx`, `resume.ts`, `background.ts`, `background-policy.ts` | Existing safeguards. Retain `tests/e2e/partner-location.test.ts` and vendor sharing/resume/background tests. Native background execution still needs device verification. |
 | R6. Travelling should not require retyping a meeting point. | Offer directions for an authorised meeting, explaining the transfer to a map provider. | Vendor `features/visits/VisitScreen.tsx` | Existing Apple/Google Maps handoff. Check failure feedback and real-device handoff; do not add an embedded navigation engine. |
-| R7. Fast readers need short, familiar language. The Zomato retrospective highlights this problem. | Short action labels, English/Tamil, locally bundled font, wrapping and text scaling. Keep user-entered names unchanged. | Both `copy.ts`, `language.tsx`, `ui.tsx`; `packages/design-tokens/tokens.json` | Translation and sizing exist; new labels need translation. Retain `tests/e2e/customer-tamil.test.ts`, `partner-tamil.test.ts` and language tests. Pilot review of Tamil wording remains open. |
+| R7. Fast readers need short, familiar language. The Zomato retrospective highlights this problem. | Short action labels, English/Tamil, locally bundled font, wrapping and text scaling. Keep user-entered names unchanged. | Both `copy.ts`, `language.tsx`, `ui.tsx`; `packages/design-tokens/tokens.json` | New labels are translated; both apps retain the existing bundled font and text scaling. Retain `tests/e2e/customer-tamil.test.ts`, `partner-tamil.test.ts` and language tests. Pilot review of Tamil wording remains open. |
 | R8. A beautiful screen still feels difficult if it hangs or fails silently. Swiggy's accounts support attention to this. | Keep device work outside screen components, bounded requests and visible loading/error/retry states. | Vendor location modules, shared `ApiClient`, React Query usage in screens. | Existing structure. Preserve unit tests and failed-refresh flows. Measure real-device response times before claiming performance gains; do not import Swiggy's infrastructure. |
 | R9. Retries must not create duplicate visits or apply an outdated decision. This is our distributed-system requirement. | Reuse the request intent key after an uncertain response; use expected versions for decisions. | Customer `features/visits/intent.ts`, backend `visits/service.py`, both visit screens. | Existing protections. Retain customer unit tests and the concurrent-decision case in `tests/e2e/partner-visits.test.ts`. A disabled button alone is insufficient. |
 | R10. Progress must not expose old or unauthorised location. This is our privacy requirement. | Validate freshness and access; clear private caches on logout, account change and terminal visits. | Customer `intent.ts`, both `session.tsx`, shared `realtime.ts`, backend `visits/tracking.py` and `privacy.py`. | Existing rules. Retain session, tracking and completion tests. Never replace a stale position with a fake live state. |
 | R11. Rare settings and problems should remain accessible without crowding daily work. | Put settings/history in More or Account; keep visit help/reporting close to the active visit. | Both account screens and visit screens; vendor profile screen. | Vendor disclosures are implemented; visit, deletion, recovery and language cases passed. Customer grouping is implemented; cancellation, reporting, deletion and notifications passed. |
 
-All identified reasons have an owner and an acceptance check here. This is traceability, not a claim that all proposed changes are implemented or proven usable.
+All identified reasons have an owner and an acceptance check here. Implementation and verification are recorded separately from the real-user pilot; no usability success rate is claimed.
 
 ## Explain a module in your own words
 
@@ -81,3 +81,7 @@ Ask a vendor to find their approval state, go online, accept a visit, open direc
 The changes are this guide, reading links and responsibility comments in 12 existing TypeScript modules. No executable statements, dependencies, API contracts or UI layouts changed. A TypeScript scanner comparison against the preceding commit confirmed identical executable tokens in those modules.
 
 Actual PowerShell checks: shared `npm run typecheck` and both app-workspace type checks passed; `npm run test:client` passed 22 tests, `npm run test:customer` passed 6, and `npm run test:partner` passed 29, with zero failures. `git diff --cached --check` passed before commit. Explicit source/test paths in this guide were checked for existence. Browser, backend, physical-device and usability-pilot checks were not rerun for this comments/documentation checkpoint. Earlier results remain historical evidence, not new verification of the proposed redesign.
+
+## Navigation assets
+
+The seven PNG pictograms in packages/design-tokens/icons are original simple line drawings created for this project. They are transparent 48-pixel assets displayed at 24 points, bundled locally and tinted from the current palette. They need no icon package, remote request or third-party licence. Visible translated destination labels remain authoritative; redundant icons are hidden from accessibility announcements.

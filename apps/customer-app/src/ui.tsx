@@ -1,6 +1,7 @@
 import { useState, type PropsWithChildren, type ReactElement } from "react";
 import {
   ActivityIndicator,
+  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -41,9 +42,21 @@ export function Page({
   const { text } = useCopy();
   const pathname = usePathname();
   const destinations = [
-    { href: "/", label: "Nearby" },
-    { href: "/visits", label: "Your visits" },
-    { href: "/account", label: "Account" },
+    {
+      href: "/",
+      label: "Nearby",
+      icon: require("../../../packages/design-tokens/icons/nearby.png"),
+    },
+    {
+      href: "/visits",
+      label: "Your visits",
+      icon: require("../../../packages/design-tokens/icons/visits.png"),
+    },
+    {
+      href: "/account",
+      label: "Account",
+      icon: require("../../../packages/design-tokens/icons/account.png"),
+    },
   ] as const;
   return (
     <SafeAreaView
@@ -92,6 +105,20 @@ export function Page({
                   accessibilityState={{ selected: active }}
                   aria-selected={active}
                 >
+                  {/* Visible labels carry meaning; icons are redundant for screen readers. */}
+                  <Image
+                    source={destination.icon}
+                    accessible={false}
+                    accessibilityElementsHidden
+                    importantForAccessibility="no"
+                    style={{
+                      width: 24,
+                      height: 24,
+                      tintColor: active
+                        ? tokens.color.primary
+                        : tokens.color.muted,
+                    }}
+                  />
                   <Text
                     style={[
                       styles.navText,
