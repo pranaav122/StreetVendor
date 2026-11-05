@@ -1,5 +1,7 @@
 # MyStreetVendor interface design
 
+The approved 5 November simplification is specified in [root DESIGN.md](../DESIGN.md). It governs new Customer and Vendor UI work; the historical implementation notes below remain context. Colours are unchanged pending a later choice.
+
 The Customer and Partner apps have separate navigation and screens. They share colour, spacing and type tokens in `packages/design-tokens/tokens.json`. These are initial product choices, not an existing brand identity.
 
 ## Visual rules
