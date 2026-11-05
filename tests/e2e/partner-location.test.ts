@@ -43,9 +43,7 @@ test("a failed business refresh keeps the offline control and committed offline 
   await page.getByLabel("Email", { exact: true }).fill(vendor.email);
   await page.getByLabel("Password", { exact: true }).fill(vendor.password);
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
-  await page
-    .getByRole("button", { name: "Go online and share location", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Go online", exact: true }).click();
   await expect(
     page.getByText("Location sharing is active on this device.", {
       exact: true,
@@ -97,15 +95,25 @@ test("approved partner explicitly shares a location and removes it when going of
   await page.getByLabel("Email", { exact: true }).fill(vendor.email);
   await page.getByLabel("Password", { exact: true }).fill(vendor.password);
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Go online", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", {
+      name: "Allow background location",
+      exact: true,
+    }),
+  ).toHaveCount(0);
+  await page
+    .getByRole("button", { name: "Location settings", exact: true })
+    .click();
   await page
     .getByRole("button", { name: "Allow background location", exact: true })
     .click();
   await expect(
     page.getByRole("alert").filter({ hasText: "native development build" }),
   ).toContainText("native development build");
-  await page
-    .getByRole("button", { name: "Go online and share location", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Go online", exact: true }).click();
   await expect(
     page.getByText("Location sharing is active on this device.", {
       exact: true,

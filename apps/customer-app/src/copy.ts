@@ -163,9 +163,9 @@ const tamil: Readonly<Record<string, string>> = {
   "Enable notifications": "அறிவிப்புகளை இயக்கு",
   "Visit notifications are optional. Your inbox remains available without them.":
     "சந்திப்பு அறிவிப்புகள் விருப்பமானவை. அறிவிப்புகள் இல்லாமலும் சந்திப்புகளைச் செயலியில் பார்க்கலாம்.",
-  "Remote notifications are unavailable in this preview. Check Visits for updates.":
+  "Remote notifications are unavailable in this preview. Check Your visits for updates.":
     "இந்த முன்னோட்டத்தில் அறிவிப்புகள் கிடைக்காது. புதுப்பிப்புகளுக்குச் சந்திப்புகளைப் பார்க்கவும்.",
-  "Notifications are unavailable in this version. Check Visits for updates.":
+  "Notifications are unavailable in this version. Check Your visits for updates.":
     "இந்தப் பதிப்பில் அறிவிப்புகள் கிடைக்காது. புதுப்பிப்புகளுக்குச் சந்திப்புகளைப் பார்க்கவும்.",
   "Notification permission is off. You can change it in device settings.":
     "அறிவிப்பு அனுமதி அணைக்கப்பட்டுள்ளது. சாதன அமைப்புகளில் அதை மாற்றலாம்.",

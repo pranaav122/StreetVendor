@@ -34,7 +34,7 @@ test("Customer and Partner arrange and complete a visit through both interfaces 
     .getByRole("button", { name: "Sign in", exact: true })
     .click();
   await partnerPage
-    .getByRole("button", { name: "Go online and share location", exact: true })
+    .getByRole("button", { name: "Go online", exact: true })
     .click();
   await expect(
     partnerPage.getByText("Location sharing is active on this device.", {
@@ -81,7 +81,7 @@ test("Customer and Partner arrange and complete a visit through both interfaces 
     customerPage.getByText("Vendor location is available.", { exact: true }),
   ).toBeVisible();
   await partnerPage
-    .getByRole("button", { name: "Mark approaching", exact: true })
+    .getByRole("button", { name: "I’m on my way", exact: true })
     .click();
 
   // The browser supplies real geolocation events; application code sends each fix

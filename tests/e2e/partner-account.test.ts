@@ -16,17 +16,20 @@ test("Partner account saves a name, reports browser push limits and hides the bu
   await page.getByRole("button", { name: "Save name", exact: true }).click();
   await expect(page.getByText("Name saved.", { exact: true })).toBeVisible();
   await page
+    .getByRole("button", { name: "Notifications", exact: true })
+    .click();
+  await page
     .getByRole("button", { name: "Enable notifications", exact: true })
     .click();
   await expect(
     page.getByText(
-      "Remote notifications are unavailable in this preview. Check Visits for updates.",
+      "Remote notifications are unavailable in this preview. Check Customers for updates.",
       { exact: true },
     ),
   ).toBeVisible();
   await page.getByRole("button", { name: "Sign out", exact: true }).click();
   await expect(
-    page.getByRole("heading", { name: "Run your local business", exact: true }),
+    page.getByRole("heading", { name: "Sign in to your shop", exact: true }),
   ).toBeVisible();
   const profile = await request.get(`${API}/api/v1/vendors/me`, {
     headers: vendor.headers,
@@ -43,6 +46,9 @@ test("Partner account deletion requires the phrase and revokes access", async ({
   await page.getByLabel("Password", { exact: true }).fill(vendor.password);
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await page.getByRole("link", { name: "More", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Account deletion", exact: true })
+    .click();
   await expect(
     page.getByRole("button", { name: "Delete account", exact: true }),
   ).toBeDisabled();
@@ -53,7 +59,7 @@ test("Partner account deletion requires the phrase and revokes access", async ({
     .getByRole("button", { name: "Delete account", exact: true })
     .click();
   await expect(
-    page.getByRole("heading", { name: "Run your local business", exact: true }),
+    page.getByRole("heading", { name: "Sign in to your shop", exact: true }),
   ).toBeVisible();
   const denied = await request.get(`${API}/api/v1/users/me`, {
     headers: vendor.headers,

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Linking, Platform } from "react-native";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -14,6 +14,7 @@ import {
   Button,
   Card,
   Field,
+  Disclosure,
   Loading,
   Page,
   Problem,
@@ -24,9 +25,9 @@ type Action = Visit["allowed_actions"][number];
 const labels: Record<Action, string> = {
   accept: "Accept visit",
   decline: "Decline visit",
-  approach: "Mark approaching",
+  approach: "I’m on my way",
   complete: "Complete visit",
-  cancel: "Cancel visit",
+  cancel: "Confirm cancellation",
 };
 export function VisitScreen({ id }: { id: string }) {
   const { client } = useSession();
@@ -48,6 +49,10 @@ export function VisitScreen({ id }: { id: string }) {
         ? 5000
         : false,
   });
+  useEffect(() => {
+    // A new committed version is a new decision: never reuse a reason from an older state.
+    setReason("");
+  }, [visit.data?.version]);
   const change = useMutation({
     mutationFn: async (action: Action) => {
       const row = visit.data;
@@ -128,13 +133,16 @@ export function VisitScreen({ id }: { id: string }) {
       setMapProblem(errorMessage(error));
     }
   }
+  const reasonAction = row.allowed_actions.find(
+    (action) => action === "decline" || action === "cancel",
+  );
+  const mainActions = row.allowed_actions.filter(
+    (action) => action !== "decline" && action !== "cancel",
+  );
   return (
     <Page title={`Visit ${row.status.toLowerCase()}`}>
       <Card>
         <Body>{row.customer_name}</Body>
-        <Body>
-          {text("Status")}: {text(row.status)}
-        </Body>
         <Body>
           {text("Meeting point")}:{" "}
           {row.meeting_label ?? text("Selected public point")}
@@ -147,50 +155,65 @@ export function VisitScreen({ id }: { id: string }) {
         </Body>
         {row.reason ? <Body>{row.reason}</Body> : null}
       </Card>
+      {row.status === "PENDING" ? (
+        <Body copy>
+          Accepting lets this customer see your exact location during the visit.
+        </Body>
+      ) : null}
+      {mainActions.map((action) => (
+        <Button
+          key={action}
+          label={change.isPending ? "Please wait…" : labels[action]}
+          disabled={change.isPending}
+          onPress={() => change.mutate(action)}
+        />
+      ))}
       {meeting ? (
         <Card>
-          <Body>
-            {text("Latitude")}: {meeting.latitude} · {text("Longitude")}:{" "}
-            {meeting.longitude}
-          </Body>
+          <Disclosure title="Meeting details">
+            <Body>
+              {text("Latitude")}: {meeting.latitude} · {text("Longitude")}:{" "}
+              {meeting.longitude}
+            </Body>
+          </Disclosure>
           <Body copy>
             Opening maps shares this meeting point with the map provider.
           </Body>
           <Button
-            label="Open meeting point in maps"
+            label="Open directions"
+            secondary={mainActions.length > 0}
             onPress={() => {
               void openMaps();
             }}
           />
           <Problem message={mapProblem} />
           <Body copy>
-            Arrival needs two accurate server-received location fixes at least
-            five seconds apart near the meeting point. Keep sharing on while
-            travelling.
+            Keep location sharing on while travelling. Arrival is checked
+            automatically.
           </Body>
         </Card>
       ) : null}
-      {row.allowed_actions.includes("decline") ||
-      row.allowed_actions.includes("cancel") ? (
-        <Field
-          label="Reason"
-          value={reason}
-          onChangeText={setReason}
-          maxLength={500}
-        />
-      ) : null}
-      {row.allowed_actions.map((action) => (
-        <Button
-          key={action}
-          label={change.isPending ? "Please wait…" : labels[action]}
-          secondary={action === "cancel" || action === "decline"}
-          disabled={
-            change.isPending ||
-            ((action === "decline" || action === "cancel") && !reason.trim())
+      {reasonAction ? (
+        <Disclosure
+          key={reasonAction}
+          title={
+            reasonAction === "decline" ? "I can’t make it" : "Cancel visit"
           }
-          onPress={() => change.mutate(action)}
-        />
-      ))}
+        >
+          <Field
+            label="Reason"
+            value={reason}
+            onChangeText={setReason}
+            maxLength={500}
+          />
+          <Button
+            label={change.isPending ? "Please wait…" : labels[reasonAction]}
+            secondary
+            disabled={change.isPending || !reason.trim()}
+            onPress={() => change.mutate(reasonAction)}
+          />
+        </Disclosure>
+      ) : null}
       <Problem message={change.error ? errorMessage(change.error) : null} />
       <Button
         label="Refresh visit"
@@ -204,7 +227,7 @@ export function VisitScreen({ id }: { id: string }) {
           This visit is complete. No purchase or payment was recorded.
         </Body>
       ) : null}
-      <Card>
+      <Disclosure title="Need help with this visit?">
         <Body copy>Report a problem with this visit</Body>
         <Button
           label="Safety"
@@ -237,7 +260,7 @@ export function VisitScreen({ id }: { id: string }) {
           message={sendReport.error ? errorMessage(sendReport.error) : null}
         />
         {notice ? <Body copy>{notice}</Body> : null}
-      </Card>
+      </Disclosure>
     </Page>
   );
 }

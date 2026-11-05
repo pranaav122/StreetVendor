@@ -47,9 +47,9 @@ Files: vendor dashboard, visit detail/list, profile, account, authentication and
 
 Interface: continue consuming useSharing controller/state, ownBusiness and server allowed_actions. Use an explicit labelled state and conditional next action. Group background-sharing controls behind a disclosure without hiding the offline escape. Request cancellation/decline reveals a reason field before submission. Keep report controls reachable through help; do not introduce another state machine.
 
-- [ ] Add failing interaction checks for simplified online action, on-demand decline reason, active visit action and approval next steps. Preserve failed-read offline coverage.
-- [ ] Reorder and simplify screens, replace nested presentation ternaries with named decisions, translate all new copy. Keep actual expiry and conflict feedback.
-- [ ] Run partner unit/type/browser checks, inspect phone/Tamil/large-text states; commit/push/verify.
+- [x] Add failing interaction checks for simplified online action, on-demand decline reason, active visit action and approval next steps. Preserve failed-read offline coverage.
+- [x] Reorder and simplify screens, replace nested presentation ternaries with named decisions, translate all new copy. Keep actual expiry and conflict feedback.
+- [x] Run partner unit/type/browser checks, inspect phone/Tamil/large-text states; commit/push/verify.
 
 ## Task 4: Customer discovery and visit workflow
 

@@ -9,6 +9,7 @@ import {
   Button,
   Card,
   Field,
+  Disclosure,
   Page,
   Problem,
   errorMessage,
@@ -115,7 +116,7 @@ export function AccountScreen() {
           />
         ) : null}
       </Card>
-      <Card>
+      <Disclosure title="Notifications">
         <Body copy>
           Visit notifications are optional. Your inbox remains available without
           them.
@@ -130,9 +131,10 @@ export function AccountScreen() {
             });
           }}
         />
-      </Card>
+      </Disclosure>
       <Button
         label="Sign out"
+        secondary
         disabled={busy}
         onPress={() => {
           void run(async () => {
@@ -144,7 +146,7 @@ export function AccountScreen() {
           });
         }}
       />
-      <Card>
+      <Disclosure title="Account deletion">
         <Body copy>
           Account deletion removes your profile, stops sharing and revokes your
           sessions. Minimal anonymous workflow history may remain until
@@ -191,7 +193,7 @@ export function AccountScreen() {
             });
           }}
         />
-      </Card>
+      </Disclosure>
     </Page>
   );
 }

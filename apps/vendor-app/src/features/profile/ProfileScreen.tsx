@@ -68,7 +68,7 @@ export function ProfileScreen() {
     },
     onSuccess: (row) => {
       queries.setQueryData(["vendor", "own"], row);
-      setNotice("Business profile saved.");
+      setNotice("Shop details saved.");
     },
   });
   const review = useMutation({
@@ -86,7 +86,7 @@ export function ProfileScreen() {
     },
     onSuccess: () => {
       setSent(true);
-      setNotice("Review requested.");
+      setNotice("Sent for approval.");
       void queries.invalidateQueries({ queryKey: ["vendor"] });
     },
   });
@@ -99,13 +99,13 @@ export function ProfileScreen() {
   }
   if (profile.isPending || categories.isPending)
     return (
-      <Page title="Your business profile">
+      <Page title="My shop">
         <Loading />
       </Page>
     );
   if (profile.error || categories.error)
     return (
-      <Page title="Your business profile">
+      <Page title="My shop">
         <Problem message={errorMessage(profile.error ?? categories.error)} />
         <Button
           label="Retry"
@@ -117,13 +117,13 @@ export function ProfileScreen() {
       </Page>
     );
   return (
-    <Page title="Your business profile">
+    <Page title="My shop">
       <Controller
         control={control}
         name="name"
         render={({ field }) => (
           <Field
-            label="Business name"
+            label="Shop name"
             value={field.value}
             onChangeText={field.onChange}
             onBlur={field.onBlur}
@@ -137,7 +137,7 @@ export function ProfileScreen() {
         name="description"
         render={({ field }) => (
           <Field
-            label="Business description"
+            label="About your shop"
             multiline
             value={field.value}
             onChangeText={field.onChange}
@@ -160,7 +160,7 @@ export function ProfileScreen() {
       ) : null}
       <Problem message={save.error ? errorMessage(save.error) : null} />
       <Button
-        label={save.isPending ? "Saving…" : "Save business profile"}
+        label={save.isPending ? "Saving…" : "Save shop details"}
         disabled={save.isPending}
         onPress={handleSubmit((values) => save.mutate(values))}
       />
@@ -178,7 +178,7 @@ export function ProfileScreen() {
             name="review"
             render={({ field }) => (
               <Field
-                label="Review details"
+                label="Public stall details"
                 multiline
                 value={field.value}
                 onChangeText={field.onChange}
@@ -189,7 +189,7 @@ export function ProfileScreen() {
           />
           <Problem message={review.error ? errorMessage(review.error) : null} />
           <Button
-            label="Request staff review"
+            label="Send for approval"
             disabled={review.isPending || sent}
             onPress={() => review.mutate()}
           />

@@ -20,19 +20,18 @@ export async function registerInstallation(
   appKind: "customer" | "vendor",
   askPermission: boolean,
 ): Promise<Registration> {
+  const visitsDestination = appKind === "vendor" ? "Customers" : "Your visits";
   if (device.platform === "web" || !device.physical || !device.nativeBuild)
     return {
       state: "UNAVAILABLE",
-      message:
-        "Remote notifications are unavailable in this preview. Check Visits for updates.",
+      message: `Remote notifications are unavailable in this preview. Check ${visitsDestination} for updates.`,
     };
   const project = z.string().uuid().safeParse(device.projectId);
   // Avoid a permission prompt when this build cannot obtain a usable address.
   if (!project.success)
     return {
       state: "UNAVAILABLE",
-      message:
-        "Notifications are unavailable in this version. Check Visits for updates.",
+      message: `Notifications are unavailable in this version. Check ${visitsDestination} for updates.`,
     };
   if (!(await device.permission(askPermission)))
     return {

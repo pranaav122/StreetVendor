@@ -1,4 +1,4 @@
-import type { PropsWithChildren } from "react";
+import { useState, type PropsWithChildren, type ReactElement } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -146,6 +146,31 @@ export function Button({
     </Pressable>
   );
 }
+/** Keeps occasional explanations and forms available without crowding the current task. */
+export function Disclosure({
+  title,
+  children,
+}: PropsWithChildren<{ title: string }>): ReactElement {
+  const { text } = useCopy();
+  const [expanded, setExpanded] = useState(false);
+  return (
+    <View style={{ gap: 12 }}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={text(title)}
+        accessibilityState={{ expanded }}
+        aria-expanded={expanded}
+        onPress={() => setExpanded(!expanded)}
+        style={styles.disclosure}
+      >
+        <Text style={styles.disclosureText}>
+          {text(title)} {expanded ? "−" : "+"}
+        </Text>
+      </Pressable>
+      {expanded ? children : null}
+    </View>
+  );
+}
 export function Field({ label, ...props }: TextInputProps & { label: string }) {
   const { text } = useCopy();
   return (
@@ -239,7 +264,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   navSelected: { backgroundColor: tokens.color.subtle },
+  // A centred label needs a width bound; otherwise long translations can cover adjacent targets.
   navText: {
+    width: "100%",
     fontFamily: tokens.font.regular,
     fontSize: 14,
     lineHeight: 22,
@@ -261,6 +288,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   buttonText: {
+    width: "100%",
     fontFamily: tokens.font.bold,
     color: tokens.color.onPrimary,
     fontSize: 18,
@@ -269,6 +297,13 @@ const styles = StyleSheet.create({
   },
   secondary: { backgroundColor: tokens.color.subtle },
   disabled: { opacity: 0.5 },
+  disclosure: { minHeight: 48, paddingVertical: 12, justifyContent: "center" },
+  disclosureText: {
+    fontFamily: tokens.font.bold,
+    fontSize: 16,
+    lineHeight: 26,
+    color: tokens.color.primary,
+  },
   field: { gap: 8 },
   input: {
     minHeight: 56,

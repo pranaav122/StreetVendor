@@ -67,7 +67,7 @@ export function VisitListScreen() {
         <Card key={visit.id}>
           <Body>{visit.customer_name}</Body>
           <Body muted>
-            {text(visit.status)} ·{" "}
+            {text(`Visit ${visit.status.toLowerCase()}`)} ·{" "}
             {new Date(visit.created_at).toLocaleString(
               language === "ta" ? "ta-IN" : "en-IN",
             )}

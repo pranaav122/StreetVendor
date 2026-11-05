@@ -1,5 +1,15 @@
 # Local verification
 
+## Vendor workflow checkpoint — 5 November 2026
+
+Vendor Home now prioritises availability and recent active visits; background settings and statistics are disclosures. First-time vendors get a large setup action. Visits reveal decline/cancellation reasons and reports only when requested; map coordinates are secondary to directions. Profile and sign-in copy is simpler. Account deletion and optional notifications remain available behind named controls. The API still owns approval, allowed actions, versions and arrival.
+
+Regression evidence: the first 15-case vendor/cross-app run passed 14 cases and exposed one outdated shared notification hint. After its correction, account/Tamil checks passed 3/3 (48.1 seconds). First-time setup was watched fail before the new button; the corrected setup/location/customer-auth run passed 7/7 (1.1 minutes). The shared unavailable-notification test was also watched fail before its app-specific destination fix. Final unit counts: client 23, customer 6, partner 29, all passed. Shared and both app strict type checks passed; seven contrast pairs passed.
+
+Visual inspection then exposed overlapping Tamil navigation labels despite the older page-width assertion passing. A stronger label-boundary regression was watched fail, then corrected by constraining centred labels in both apps. The final navigation/Tamil run passed 3/3 in 43.0 seconds, including doubled rendered text sizes. Normal and enlarged screenshots were visually inspected. This is a browser text-size stress check, not an iPhone screen-reader or native font-scale test. Seventeen replaced translation entries were removed only after checking for remaining vendor-source references; translations were retested.
+
+Customer screen simplification and full integrated/native export checks are still pending. These scoped results do not replace the historical full-MVP checks below.
+
 ## Mobile navigation checkpoint — 5 November 2026
 
 Both apps now keep labelled navigation outside scrolling screen content, identify the selected destination and respect safe areas. Vendor destinations are Home, Customers, My shop and More; Customer destinations are Nearby, Your visits and Account. Colours are unchanged. Daily screen simplification is still in progress under the approved root DESIGN.md.

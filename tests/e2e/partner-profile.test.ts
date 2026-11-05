@@ -10,39 +10,41 @@ test("partner registers, creates a business and submits minimal review details",
     password = `Synthetic-${randomUUID()}`;
   await page.goto("http://127.0.0.1:8082");
   await page
-    .getByRole("button", { name: "Create partner account", exact: true })
+    .getByRole("button", { name: "Create account", exact: true })
     .click();
   await page.getByLabel("Name", { exact: true }).fill("Synthetic partner");
   await page.getByLabel("Email", { exact: true }).fill(email);
   await page.getByLabel("Password", { exact: true }).fill(password);
   await page
-    .getByRole("button", { name: "Create partner account", exact: true })
+    .getByRole("button", { name: "Create account", exact: true })
     .click();
   await expect(
-    page.getByRole("heading", { name: "Your business today", exact: true }),
+    page.getByRole("heading", { name: "Set up your shop", exact: true }),
   ).toBeVisible();
-  await page.getByRole("link", { name: "My shop", exact: true }).click();
   await page
-    .getByLabel("Business name", { exact: true })
+    .getByRole("button", { name: "Set up my shop", exact: true })
+    .click();
+  await page
+    .getByLabel("Shop name", { exact: true })
     .fill("Synthetic fresh produce");
   await page
-    .getByLabel("Business description", { exact: true })
+    .getByLabel("About your shop", { exact: true })
     .fill("Seasonal produce for a local browser check.");
   await page.getByRole("button", { name: "Vegetables", exact: true }).click();
   await page
-    .getByRole("button", { name: "Save business profile", exact: true })
+    .getByRole("button", { name: "Save shop details", exact: true })
     .click();
   await expect(
-    page.getByText("Business profile saved.", { exact: true }),
+    page.getByText("Shop details saved.", { exact: true }),
   ).toBeVisible();
   await page
-    .getByLabel("Review details", { exact: true })
+    .getByLabel("Public stall details", { exact: true })
     .fill("Staff can check my synthetic stall at the public market.");
   await page
-    .getByRole("button", { name: "Request staff review", exact: true })
+    .getByRole("button", { name: "Send for approval", exact: true })
     .click();
   await expect(
-    page.getByText("Review requested.", { exact: true }),
+    page.getByText("Sent for approval.", { exact: true }),
   ).toBeVisible();
   const login = await request.post(`${API}/api/v1/auth/login`, {
     data: { email, password },

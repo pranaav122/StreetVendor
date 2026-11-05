@@ -21,10 +21,10 @@ export function AuthScreen() {
     formState: { isSubmitting },
   } = useForm<Values>({ defaultValues: { name: "", email: "", password: "" } });
   const copy = {
-    login: { title: "Run your local business", label: "Sign in" },
+    login: { title: "Sign in to your shop", label: "Sign in" },
     register: {
-      title: "Create your partner account",
-      label: "Create partner account",
+      title: "Create your shop account",
+      label: "Create account",
     },
     recover: { title: "Reset your password", label: "Send reset link" },
   }[mode];
@@ -99,8 +99,7 @@ export function AuthScreen() {
         />
       </View>
       <Body muted copy>
-        Manage your business, choose when to share your location and arrange
-        customer visits.
+        Go online, meet customers and manage your shop.
       </Body>
       {mode === "register" ? (
         <Controller
@@ -161,7 +160,7 @@ export function AuthScreen() {
       />
       {mode !== "register" ? (
         <Button
-          label="Create partner account"
+          label="Create account"
           secondary
           onPress={() => change("register")}
         />

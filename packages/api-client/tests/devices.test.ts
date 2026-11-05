@@ -50,6 +50,37 @@ test("missing native configuration never prompts for permission or contacts the 
   );
 });
 
+test("unavailable notifications name the visits destination in each application", async () => {
+  const api = client(async () => {
+    throw new Error("Unavailable notifications must not contact the API");
+  });
+  for (const [kind, destination] of [
+    ["vendor", "Customers"],
+    ["customer", "Your visits"],
+  ] as const) {
+    for (const configuration of [
+      { platform: "web" as const },
+      { projectId: null },
+    ]) {
+      const result = await registerInstallation(
+        api,
+        driver({
+          ...configuration,
+          permission: async () => {
+            throw new Error(
+              "Unavailable notifications must not ask permission",
+            );
+          },
+        }),
+        kind,
+        true,
+      );
+      assert.equal(result.state, "UNAVAILABLE");
+      assert.ok(result.message.includes(`Check ${destination} for updates.`));
+    }
+  }
+});
+
 test("permission denial does not obtain or register a push address", async () => {
   const api = client(async () => {
     throw new Error("Unexpected API call");

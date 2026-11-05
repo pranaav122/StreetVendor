@@ -22,6 +22,9 @@ test("a concurrent partner decision shows a conflict and reloads server state", 
   await page.getByRole("link", { name: "Customers", exact: true }).click();
   await page.getByRole("link", { name: "View visit", exact: true }).click();
   await page
+    .getByRole("button", { name: "I can’t make it", exact: true })
+    .click();
+  await page
     .getByLabel("Reason", { exact: true })
     .fill("Synthetic competing decision");
   await page.route(
@@ -78,12 +81,12 @@ test("partner accepts a real visit, progresses through arrival and finds complet
   ).toBeVisible();
   await expect(
     page.getByRole("button", {
-      name: "Open meeting point in maps",
+      name: "Open directions",
       exact: true,
     }),
   ).toBeVisible();
   await page
-    .getByRole("button", { name: "Mark approaching", exact: true })
+    .getByRole("button", { name: "I’m on my way", exact: true })
     .click();
   await expect(
     page.getByRole("heading", { name: "Visit approaching", exact: true }),
@@ -116,7 +119,7 @@ test("partner accepts a real visit, progresses through arrival and finds complet
   ).toBeVisible();
   await expect(
     page.getByRole("button", {
-      name: "Open meeting point in maps",
+      name: "Open directions",
       exact: true,
     }),
   ).toHaveCount(0);
@@ -130,7 +133,9 @@ test("partner accepts a real visit, progresses through arrival and finds complet
     .last()
     .click();
   await expect(
-    page.getByText("COMPLETED", { exact: false }).filter({ visible: true }),
+    page
+      .getByText("Visit completed", { exact: false })
+      .filter({ visible: true }),
   ).toBeVisible();
 });
 
@@ -155,6 +160,13 @@ test("partner decline requires a reason and persists the decision", async ({
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await page.getByRole("link", { name: "Customers", exact: true }).click();
   await page.getByRole("link", { name: "View visit", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Accept visit", exact: true }),
+  ).toBeVisible();
+  await expect(page.getByLabel("Reason", { exact: true })).toHaveCount(0);
+  await page
+    .getByRole("button", { name: "I can’t make it", exact: true })
+    .click();
   await expect(
     page.getByRole("button", { name: "Decline visit", exact: true }),
   ).toBeDisabled();

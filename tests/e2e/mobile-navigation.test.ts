@@ -39,6 +39,10 @@ for (const application of applications) {
     await navigation
       .getByRole("link", { name: application.settings, exact: true })
       .click();
+    if (application.role === "vendor")
+      await page
+        .getByRole("button", { name: "Account deletion", exact: true })
+        .click();
     await page
       .getByLabel("Type DELETE to delete your account", { exact: true })
       .scrollIntoViewIfNeeded();

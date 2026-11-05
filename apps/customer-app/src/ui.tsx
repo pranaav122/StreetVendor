@@ -238,7 +238,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   navSelected: { backgroundColor: tokens.color.subtle },
+  // A centred label needs a width bound; otherwise long translations can cover adjacent targets.
   navText: {
+    width: "100%",
     fontFamily: tokens.font.regular,
     fontSize: 14,
     lineHeight: 22,
@@ -260,6 +262,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   buttonText: {
+    width: "100%",
     fontFamily: tokens.font.bold,
     color: tokens.color.onPrimary,
     fontSize: 18,

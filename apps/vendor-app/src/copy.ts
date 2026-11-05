@@ -1,5 +1,45 @@
 export type Language = "en" | "ta";
 const tamil: Readonly<Record<string, string>> = {
+  "Set up your shop": "உங்கள் கடையை அமைக்கவும்",
+  "Location updates are interrupted. Retry sharing or go offline.":
+    "இருப்பிடப் புதுப்பிப்புகள் தடைப்பட்டுள்ளன. மீண்டும் பகிரவும் அல்லது ஆஃப்லைனில் செல்லவும்.",
+  "Checking your location permission and account.":
+    "உங்கள் இருப்பிட அனுமதியும் கணக்கும் சரிபார்க்கப்படுகின்றன.",
+  "Shop name": "கடையின் பெயர்",
+  "About your shop": "உங்கள் கடையைப் பற்றி",
+  "Save shop details": "கடை விவரங்களைச் சேமிக்கவும்",
+  "Shop details saved.": "கடை விவரங்கள் சேமிக்கப்பட்டன.",
+  "Public stall details": "பொதுக் கடை விவரங்கள்",
+  "Send for approval": "ஒப்புதலுக்கு அனுப்பவும்",
+  "Sent for approval.": "ஒப்புதலுக்கு அனுப்பப்பட்டது.",
+  "Save your shop details, then send them for approval.":
+    "உங்கள் கடை விவரங்களைச் சேமித்து ஒப்புதலுக்கு அனுப்பவும்.",
+  "Location settings": "இருப்பிட அமைப்புகள்",
+  "Set up my shop": "என் கடையை அமைக்கவும்",
+  "Recent customer requests": "சமீபத்திய வாடிக்கையாளர் கோரிக்கைகள்",
+  "Loading visits…": "சந்திப்புகள் ஏற்றப்படுகின்றன…",
+  "No recent active visits. Check Customers for older visits.":
+    "சமீபத்திய செயலில் உள்ள சந்திப்புகள் இல்லை. பழைய சந்திப்புகளுக்கு வாடிக்கையாளர்கள் பகுதியைப் பார்க்கவும்.",
+  "View all customer visits":
+    "அனைத்து வாடிக்கையாளர் சந்திப்புகளையும் பார்க்கவும்",
+  "Today’s visit summary": "இன்றைய சந்திப்பு விவரம்",
+  "I’m on my way": "நான் வந்து கொண்டிருக்கிறேன்",
+  "I can’t make it": "என்னால் வர முடியாது",
+  "Meeting details": "சந்திப்பு விவரங்கள்",
+  "Open directions": "வழியைத் திறக்கவும்",
+  "Keep location sharing on while travelling. Arrival is checked automatically.":
+    "பயணத்தின் போது இருப்பிடப் பகிர்வை இயக்கி வைக்கவும். வந்தடைந்தது தானாகச் சரிபார்க்கப்படும்.",
+  "Accepting lets this customer see your exact location during the visit.":
+    "ஏற்றுக்கொண்டால் சந்திப்பின் போது இந்த வாடிக்கையாளர் உங்கள் துல்லியமான இருப்பிடத்தைப் பார்க்கலாம்.",
+  "Need help with this visit?": "இந்தச் சந்திப்புக்கு உதவி வேண்டுமா?",
+  "Confirm cancellation": "ரத்து செய்வதை உறுதிசெய்",
+  "Account deletion": "கணக்கை நீக்குதல்",
+  Notifications: "அறிவிப்புகள்",
+  "Sign in to your shop": "உங்கள் கடைக்குள் உள்நுழையவும்",
+  "Create your shop account": "உங்கள் கடைக் கணக்கை உருவாக்கவும்",
+  "Create account": "கணக்கை உருவாக்கவும்",
+  "Go online, meet customers and manage your shop.":
+    "ஆன்லைனில் சென்று வாடிக்கையாளர்களைச் சந்தித்து உங்கள் கடையை நிர்வகிக்கவும்.",
   "Main navigation": "முதன்மை வழிசெலுத்தல்",
   Customers: "வாடிக்கையாளர்கள்",
   "My shop": "என் கடை",
@@ -58,9 +98,9 @@ const tamil: Readonly<Record<string, string>> = {
   "Enable notifications": "அறிவிப்புகளை இயக்கு",
   "Visit notifications are optional. Your inbox remains available without them.":
     "சந்திப்பு அறிவிப்புகள் விருப்பமானவை. அறிவிப்புகள் இல்லாமலும் சந்திப்புகளைச் செயலியில் பார்க்கலாம்.",
-  "Remote notifications are unavailable in this preview. Check Visits for updates.":
+  "Remote notifications are unavailable in this preview. Check Customers for updates.":
     "இந்த முன்னோட்டத்தில் அறிவிப்புகள் கிடைக்காது. புதுப்பிப்புகளுக்குச் சந்திப்புகளைப் பார்க்கவும்.",
-  "Notifications are unavailable in this version. Check Visits for updates.":
+  "Notifications are unavailable in this version. Check Customers for updates.":
     "இந்தப் பதிப்பில் அறிவிப்புகள் கிடைக்காது. புதுப்பிப்புகளுக்குச் சந்திப்புகளைப் பார்க்கவும்.",
   "Notification permission is off. You can change it in device settings.":
     "அறிவிப்பு அனுமதி அணைக்கப்பட்டுள்ளது. சாதன அமைப்புகளில் அதை மாற்றலாம்.",
@@ -115,13 +155,9 @@ const tamil: Readonly<Record<string, string>> = {
   Longitude: "தீர்க்கரேகை",
   "Opening maps shares this meeting point with the map provider.":
     "வரைபடத்தைத் திறந்தால் இந்தச் சந்திப்பு இடம் வரைபட வழங்குநருடன் பகிரப்படும்.",
-  "Open meeting point in maps": "சந்திப்பு இடத்தை வரைபடத்தில் திறக்கவும்",
-  "Arrival needs two accurate server-received location fixes at least five seconds apart near the meeting point. Keep sharing on while travelling.":
-    "வந்தடைந்ததை உறுதிசெய்ய சந்திப்பு இடத்திற்கு அருகில் குறைந்தது ஐந்து நொடிகள் இடைவெளியில் இரண்டு துல்லியமான இருப்பிடங்கள் சேவையகத்தை அடைய வேண்டும். பயணிக்கும்போது இருப்பிடப் பகிர்வை இயக்கி வைக்கவும்.",
   Reason: "காரணம்",
   "Accept visit": "சந்திப்பை ஏற்கவும்",
   "Decline visit": "சந்திப்பை மறுக்கவும்",
-  "Mark approaching": "நெருங்குவதாகக் குறிக்கவும்",
   "Complete visit": "சந்திப்பை நிறைவு செய்யவும்",
   "Cancel visit": "சந்திப்பை ரத்து செய்யவும்",
   "Refresh visit": "சந்திப்பைப் புதுப்பிக்கவும்",
@@ -145,7 +181,6 @@ const tamil: Readonly<Record<string, string>> = {
   "Report sent.": "புகார் அனுப்பப்பட்டது.",
   "Use at least 10 characters to describe the problem.":
     "சிக்கலைக் குறைந்தது 10 எழுத்துகளில் விவரிக்கவும்.",
-  "Go online and share location": "ஆன்லைனில் சென்று இருப்பிடத்தைப் பகிரவும்",
   "Go offline": "ஆஃப்லைனில் செல்லவும்",
   "Getting your location…": "உங்கள் இருப்பிடம் பெறப்படுகிறது…",
   "Allow background location": "பின்னணி இருப்பிடத்தை அனுமதிக்கவும்",
@@ -181,9 +216,6 @@ const tamil: Readonly<Record<string, string>> = {
   Visits: "சந்திப்புகள்",
   Profile: "வணிக விவரம்",
   Account: "கணக்கு",
-  "Run your local business": "உங்கள் உள்ளூர் வணிகத்தை நிர்வகிக்கவும்",
-  "Create your partner account": "உங்கள் விற்பனையாளர் கணக்கை உருவாக்கவும்",
-  "Create partner account": "விற்பனையாளர் கணக்கை உருவாக்கவும்",
   "Sign in": "உள்நுழையவும்",
   "Forgot password?": "கடவுச்சொல்லை மறந்துவிட்டீர்களா?",
   Name: "பெயர்",
@@ -195,8 +227,6 @@ const tamil: Readonly<Record<string, string>> = {
   "Retry saved session": "உள்நுழைவை மீண்டும் முயற்சிக்கவும்",
   "Loading…": "ஏற்றப்படுகிறது…",
   "Restoring session…": "உள்நுழைவு மீட்டெடுக்கப்படுகிறது…",
-  "Manage your business, choose when to share your location and arrange customer visits.":
-    "உங்கள் வணிகத்தை நிர்வகித்து, இருப்பிடப் பகிர்வைத் தேர்வு செய்து, வாடிக்கையாளர் சந்திப்புகளை ஏற்பாடு செய்யவும்.",
   "Enter a valid email address.": "சரியான மின்னஞ்சல் முகவரியை உள்ளிடவும்.",
   "Enter your name and a password with 15 to 128 characters.":
     "உங்கள் பெயரையும் 15 முதல் 128 எழுத்துகள் கொண்ட கடவுச்சொல்லையும் உள்ளிடவும்.",
@@ -204,21 +234,13 @@ const tamil: Readonly<Record<string, string>> = {
   "If your account is eligible, a reset link will be sent.":
     "தகுதியான கணக்காக இருந்தால் மீட்டமைப்பு இணைப்பு அனுப்பப்படும்.",
   "Your business today": "இன்றைய உங்கள் வணிகம்",
-  "Your business profile": "உங்கள் வணிக விவரம்",
   "Your account": "உங்கள் கணக்கு",
   "Create your business profile to request staff review.":
     "பணியாளர் சரிபார்ப்பைக் கோர உங்கள் வணிக விவரத்தை உருவாக்கவும்.",
   "Open business profile": "வணிக விவரத்தைத் திறக்கவும்",
-  "Business name": "வணிகப் பெயர்",
-  "Business description": "வணிக விளக்கம்",
   "Choose the categories you sell.":
     "நீங்கள் விற்கும் பொருள் வகைகளைத் தேர்வு செய்யவும்.",
-  "Save business profile": "வணிக விவரத்தைச் சேமிக்கவும்",
   "Saving…": "சேமிக்கப்படுகிறது…",
-  "Business profile saved.": "வணிக விவரம் சேமிக்கப்பட்டது.",
-  "Review details": "சரிபார்ப்பு விவரங்கள்",
-  "Request staff review": "பணியாளர் சரிபார்ப்பைக் கோரவும்",
-  "Review requested.": "சரிபார்ப்பு கோரப்பட்டது.",
   "Share public business details only. Do not send identity documents, passwords or private customer information.":
     "பொது வணிக விவரங்களை மட்டும் பகிரவும். அடையாள ஆவணங்கள், கடவுச்சொற்கள் அல்லது வாடிக்கையாளரின் தனிப்பட்ட விவரங்களை அனுப்ப வேண்டாம்.",
   "Enter a business name and choose at least one category.":
