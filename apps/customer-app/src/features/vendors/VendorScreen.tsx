@@ -85,9 +85,6 @@ export function VendorScreen({ id }: { id: string }) {
             <Body>
               {text("Meeting point")}: {meeting.label}
             </Body>
-            <Body muted>
-              {meeting.point.latitude}, {meeting.point.longitude}
-            </Body>
           </>
         ) : (
           <Body copy>Choose a public meeting point first.</Body>

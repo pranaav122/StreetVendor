@@ -1,5 +1,13 @@
 # Local verification
 
+## Customer workflow checkpoint — 5 November 2026
+
+Customer discovery now starts with a public meeting label and optional GPS; manual coordinates remain under Enter coordinates. Categories appear after selection. Visit screens explain committed progress and group detailed coordinates, cancellation and reporting behind named controls. Account deletion and notifications are optional sections; their confirmations remain unchanged. No place-search provider, fake results or dependencies were added.
+
+The updated manual-entry journey failed on the old screen before implementation (1 failed, 2 passed). The corrected customer/auth/visits/freshness/Tamil/cross-app/navigation run passed **10/10 in 2.5 minutes**, using the isolated API and real PostgreSQL database; the generated database was removed. Customer/client unit suites passed **6/23**, and Customer strict TypeScript passed. The Tamil 390-pixel screenshot was inspected: wrapped controls and persistent navigation were visible without horizontal overflow. Device font scaling and VoiceOver remain separate checks.
+
+Full integrated verification and native exports remain pending for this UI change. Historical backend/production results below are not reruns for this checkpoint.
+
 ## Vendor workflow checkpoint — 5 November 2026
 
 Vendor Home now prioritises availability and recent active visits; background settings and statistics are disclosures. First-time vendors get a large setup action. Visits reveal decline/cancellation reasons and reports only when requested; map coordinates are secondary to directions. Profile and sign-in copy is simpler. Account deletion and optional notifications remain available behind named controls. The API still owns approval, allowed actions, versions and arrival.

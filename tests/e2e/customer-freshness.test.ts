@@ -10,6 +10,9 @@ test("nearby refresh removes a vendor who stopped sharing", async ({
   await page.getByLabel("Email", { exact: true }).fill(customer.email);
   await page.getByLabel("Password", { exact: true }).fill(customer.password);
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Enter coordinates", exact: true })
+    .click();
   await page.getByLabel("Meeting latitude").fill("13.0827");
   await page.getByLabel("Meeting longitude").fill("80.2707");
   await page.getByLabel("Meeting label").fill("Synthetic public market");

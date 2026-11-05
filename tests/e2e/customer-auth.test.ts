@@ -22,12 +22,16 @@ test("customer registers, chooses a manual point and signs out", async ({
     await expect(
       page.getByRole("heading", { name: "Around your meeting point" }),
     ).toBeVisible();
+    await expect(page.getByLabel("Meeting latitude")).toHaveCount(0);
     await page
       .getByRole("button", { name: "Use current location", exact: true })
       .click();
     await expect(page.getByRole("alert")).toContainText(
       "Location permission is off",
     );
+    await page
+      .getByRole("button", { name: "Enter coordinates", exact: true })
+      .click();
     await page.getByLabel("Meeting latitude").fill("13.0827");
     await page.getByLabel("Meeting longitude").fill("80.2707");
     await page.getByLabel("Meeting label").fill("Public test entrance");
@@ -56,6 +60,9 @@ test("customer registers, chooses a manual point and signs out", async ({
       fullPage: true,
     });
     await page.getByRole("link", { name: "Account", exact: true }).click();
+    await page
+      .getByRole("button", { name: "Optional notifications", exact: true })
+      .click();
     await page
       .getByRole("button", { name: "Enable notifications", exact: true })
       .click();
@@ -124,6 +131,9 @@ test("account deletion needs typed confirmation and revokes the account", async 
     await page.getByLabel("Password", { exact: true }).fill(password);
     await page.getByRole("button", { name: "Sign in", exact: true }).click();
     await page.getByRole("link", { name: "Account", exact: true }).click();
+    await page
+      .getByRole("button", { name: "Account deletion", exact: true })
+      .click();
     await expect(
       page.getByRole("button", { name: "Delete account", exact: true }),
     ).toBeDisabled();

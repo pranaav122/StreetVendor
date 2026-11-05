@@ -14,6 +14,7 @@ import {
   Body,
   Button,
   Card,
+  Disclosure,
   Field,
   Loading,
   Page,
@@ -165,23 +166,11 @@ export function NearbyScreen() {
   return (
     <Page title="Around your meeting point">
       <Body copy muted>
-        Choose a public place. Your home address is not required. This
-        development build uses the Chennai test area.
+        Choose a public place where the vendor can meet you. Your home address
+        is not required.
       </Body>
       {editing || !meeting ? (
         <Card>
-          <Field
-            label="Meeting latitude"
-            keyboardType="decimal-pad"
-            value={latitude}
-            onChangeText={setLatitude}
-          />
-          <Field
-            label="Meeting longitude"
-            keyboardType="decimal-pad"
-            value={longitude}
-            onChangeText={setLongitude}
-          />
           <Field
             label="Meeting label"
             value={label}
@@ -189,7 +178,6 @@ export function NearbyScreen() {
             autoCapitalize="sentences"
             maxLength={250}
           />
-          <Button label="Set meeting point" onPress={choosePoint} />
           <Button
             label={locating ? "Finding location…" : "Use current location"}
             secondary
@@ -198,6 +186,25 @@ export function NearbyScreen() {
               void locate();
             }}
           />
+          <Disclosure title="Enter coordinates">
+            <Body copy muted>
+              Use coordinates for a public place if location access is
+              unavailable.
+            </Body>
+            <Field
+              label="Meeting latitude"
+              keyboardType="decimal-pad"
+              value={latitude}
+              onChangeText={setLatitude}
+            />
+            <Field
+              label="Meeting longitude"
+              keyboardType="decimal-pad"
+              value={longitude}
+              onChangeText={setLongitude}
+            />
+          </Disclosure>
+          <Button label="Set meeting point" onPress={choosePoint} />
         </Card>
       ) : null}
       <Problem message={problem} />
@@ -217,25 +224,27 @@ export function NearbyScreen() {
       ) : (
         <Body copy>Select a meeting point to find nearby vendors.</Body>
       )}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator
-        contentContainerStyle={{ gap: 8, paddingVertical: 8 }}
-      >
-        <Button
-          label="All categories"
-          secondary={category !== null}
-          onPress={() => setCategory(null)}
-        />
-        {categories.data?.items.map((item) => (
+      {meeting ? (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator
+          contentContainerStyle={{ gap: 8, paddingVertical: 8 }}
+        >
           <Button
-            key={item.id}
-            label={language === "ta" ? item.name_ta : item.name_en}
-            secondary={category !== item.id}
-            onPress={() => setCategory(item.id)}
+            label="All categories"
+            secondary={category !== null}
+            onPress={() => setCategory(null)}
           />
-        ))}
-      </ScrollView>
+          {categories.data?.items.map((item) => (
+            <Button
+              key={item.id}
+              label={language === "ta" ? item.name_ta : item.name_en}
+              secondary={category !== item.id}
+              onPress={() => setCategory(item.id)}
+            />
+          ))}
+        </ScrollView>
+      ) : null}
       {meeting ? (
         <>
           <Body copy muted>

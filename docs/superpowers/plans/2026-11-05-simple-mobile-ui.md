@@ -57,9 +57,9 @@ Files: customer NearbyScreen, VendorScreen, VisitScreen, VisitListScreen, AuthSc
 
 Interface: retain MeetingProvider, VisitIntent, server category filtering and location freshness. Promote the optional Use current location action and meeting label; put raw coordinate entry in a manual alternative. Keep list default, optional map, and pagination. Present actual visit states as a readable progress sequence with one main allowed action.
 
-- [ ] Add failing cases for accessible manual meeting alternative, active visit reopening and current status presentation.
-- [ ] Implement with existing components; preserve customer permission denial, stale discovery, terminal privacy and retry behaviour.
-- [ ] Run customer/client unit and type checks and customer browser flows; inspect empty/loading/error/long-text states; commit/push/verify.
+- [x] Add failing cases for accessible manual meeting alternative, active visit reopening and current status presentation.
+- [x] Implement with existing components; preserve customer permission denial, stale discovery, terminal privacy and retry behaviour.
+- [x] Run customer/client unit and type checks and customer browser flows; inspect empty/loading/error/long-text states; commit/push/verify.
 
 ## Task 5: Integrated verification and learning guide
 

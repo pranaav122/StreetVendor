@@ -12,6 +12,7 @@ import {
   Body,
   Button,
   Card,
+  Disclosure,
   Field,
   Loading,
   Page,
@@ -86,6 +87,10 @@ export function VisitScreen({ id }: { id: string }) {
     }
     return () => realtime.unsubscribe(id);
   }, [trackable, id, realtime, queries]);
+  useEffect(() => {
+    // A new committed state needs a new cancellation decision, not a leftover reason.
+    setReason("");
+  }, [visit.data?.version]);
   const cancel = useMutation({
     mutationFn: async () => {
       if (!visit.data || !reason.trim())
@@ -138,6 +143,16 @@ export function VisitScreen({ id }: { id: string }) {
       </Page>
     );
   const row = visit.data;
+  const progress: Record<string, string> = {
+    PENDING: "Waiting for the vendor to accept.",
+    ACCEPTED: "The vendor accepted your visit.",
+    APPROACHING: "The vendor is on the way to your meeting point.",
+    ARRIVED: "The vendor has reached your meeting point.",
+    COMPLETED: "Your visit is complete.",
+    CANCELLED: "This visit was cancelled.",
+    DECLINED: "The vendor could not accept this visit.",
+    EXPIRED: "This visit expired. You can browse nearby vendors again.",
+  };
   const fresh =
     trackable &&
     tracking.data &&
@@ -147,9 +162,7 @@ export function VisitScreen({ id }: { id: string }) {
     <Page title={`Visit ${row.status.toLowerCase()}`}>
       <Card>
         <Body>{row.vendor_name}</Body>
-        <Body>
-          {text("Status")}: {text(row.status)}
-        </Body>
+        <Body copy>{progress[row.status] ?? row.status}</Body>
         <Body>
           {text("Meeting point")}:{" "}
           {row.meeting_label ?? "Selected public point"}
@@ -164,17 +177,19 @@ export function VisitScreen({ id }: { id: string }) {
       {fresh ? (
         <Card>
           <Body copy>Vendor location is available.</Body>
-          <Body>
-            {text("Latitude")}: {tracking.data.latitude} · {text("Longitude")}:{" "}
-            {tracking.data.longitude}
-          </Body>
-          <Body muted>
-            {text("Captured")}{" "}
-            {new Date(tracking.data.captured_at).toLocaleTimeString(
-              language === "ta" ? "ta-IN" : "en-IN",
-            )}{" "}
-            · {text("accuracy")} {Math.round(tracking.data.accuracy_m)} m
-          </Body>
+          <Disclosure title="Location details">
+            <Body>
+              {text("Latitude")}: {tracking.data.latitude} · {text("Longitude")}
+              : {tracking.data.longitude}
+            </Body>
+            <Body muted>
+              {text("Captured")}{" "}
+              {new Date(tracking.data.captured_at).toLocaleTimeString(
+                language === "ta" ? "ta-IN" : "en-IN",
+              )}{" "}
+              · {text("accuracy")} {Math.round(tracking.data.accuracy_m)} m
+            </Body>
+          </Disclosure>
           <Body copy muted>
             Opening the map shares the viewed area with the map provider.
           </Body>
@@ -207,7 +222,7 @@ export function VisitScreen({ id }: { id: string }) {
         }}
       />
       {row.allowed_actions.includes("cancel") ? (
-        <Card>
+        <Disclosure key={row.version} title="Cancel this visit">
           <Field
             label="Cancellation reason"
             value={reason}
@@ -220,14 +235,14 @@ export function VisitScreen({ id }: { id: string }) {
             onPress={() => cancel.mutate()}
           />
           <Problem message={cancel.error ? errorMessage(cancel.error) : null} />
-        </Card>
+        </Disclosure>
       ) : null}
       {row.status === "COMPLETED" ? (
         <Body copy muted>
           This visit is complete. No purchase or payment was recorded.
         </Body>
       ) : null}
-      <Card>
+      <Disclosure title="Need help with this visit?">
         <Body copy>Report a problem with this visit</Body>
         <Button
           label="Safety"
@@ -260,7 +275,7 @@ export function VisitScreen({ id }: { id: string }) {
           message={sendReport.error ? errorMessage(sendReport.error) : null}
         />
         {notice ? <Body copy>{notice}</Body> : null}
-      </Card>
+      </Disclosure>
     </Page>
   );
 }

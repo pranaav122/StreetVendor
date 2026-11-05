@@ -41,7 +41,9 @@ test("Customer and Partner arrange and complete a visit through both interfaces 
       exact: true,
     }),
   ).toBeVisible();
-  await partnerPage.getByRole("link", { name: "Customers", exact: true }).click();
+  await partnerPage
+    .getByRole("link", { name: "Customers", exact: true })
+    .click();
 
   await customerPage.goto("/");
   await customerPage.getByLabel("Email", { exact: true }).fill(customer.email);
@@ -50,6 +52,9 @@ test("Customer and Partner arrange and complete a visit through both interfaces 
     .fill(customer.password);
   await customerPage
     .getByRole("button", { name: "Sign in", exact: true })
+    .click();
+  await customerPage
+    .getByRole("button", { name: "Enter coordinates", exact: true })
     .click();
   await customerPage.getByLabel("Meeting latitude").fill("13.0827");
   await customerPage.getByLabel("Meeting longitude").fill("80.2707");

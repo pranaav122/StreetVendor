@@ -11,6 +11,9 @@ test("customer requests a visit, tracks acceptance and loses tracking at complet
   await page.getByLabel("Email", { exact: true }).fill(customer.email);
   await page.getByLabel("Password", { exact: true }).fill(customer.password);
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Enter coordinates", exact: true })
+    .click();
   await page.getByLabel("Meeting latitude").fill("13.0827");
   await page.getByLabel("Meeting longitude").fill("80.2707");
   await page.getByLabel("Meeting label").fill("Synthetic market entrance");
@@ -37,6 +40,9 @@ test("customer requests a visit, tracks acceptance and loses tracking at complet
   const visit = await response.json();
   await expect(
     page.getByRole("heading", { name: "Visit pending", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Waiting for the vendor to accept.", { exact: true }),
   ).toBeVisible();
   await expect(
     page.getByText("Vendor location is available.", { exact: true }),
@@ -89,6 +95,9 @@ test("customer requests a visit, tracks acceptance and loses tracking at complet
     page.getByRole("region", { name: "Visit tracking map", exact: true }),
   ).toHaveCount(0);
   await page
+    .getByRole("button", { name: "Need help with this visit?", exact: true })
+    .click();
+  await page
     .getByLabel("Report details")
     .fill("Synthetic report to verify participant reporting.");
   await page.getByRole("button", { name: "Send report", exact: true }).click();
@@ -121,6 +130,10 @@ test("customer can cancel a pending visit only after entering a reason", async (
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await page.getByRole("link", { name: "Your visits", exact: true }).click();
   await page.getByRole("link", { name: "View visit", exact: true }).click();
+  await expect(page.getByLabel("Cancellation reason")).toHaveCount(0);
+  await page
+    .getByRole("button", { name: "Cancel this visit", exact: true })
+    .click();
   await expect(
     page.getByRole("button", { name: "Cancel visit", exact: true }),
   ).toBeDisabled();

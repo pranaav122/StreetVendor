@@ -1,5 +1,28 @@
 export type Language = "en" | "ta";
 const tamil: Readonly<Record<string, string>> = {
+  "Enter coordinates": "ஆயத்தொலைவுகளை உள்ளிடவும்",
+  "Use coordinates for a public place if location access is unavailable.":
+    "இருப்பிட அனுமதி இல்லையெனில் பொது இடத்தின் ஆயத்தொலைவுகளை உள்ளிடவும்.",
+  "Choose a public place where the vendor can meet you. Your home address is not required.":
+    "விற்பனையாளர் உங்களைச் சந்திக்க ஒரு பொது இடத்தைத் தேர்ந்தெடுக்கவும். வீட்டு முகவரி தேவையில்லை.",
+  "Location details": "இருப்பிட விவரங்கள்",
+  "Cancel this visit": "இந்தச் சந்திப்பை ரத்து செய்ய",
+  "Need help with this visit?": "இந்தச் சந்திப்பிற்கு உதவி தேவையா?",
+  "Optional notifications": "விருப்ப அறிவிப்புகள்",
+  "Account deletion": "கணக்கை நீக்குதல்",
+  "Waiting for the vendor to accept.": "விற்பனையாளர் ஏற்கக் காத்திருக்கிறது.",
+  "The vendor accepted your visit.": "விற்பனையாளர் உங்கள் சந்திப்பை ஏற்றார்.",
+  "The vendor is on the way to your meeting point.":
+    "விற்பனையாளர் உங்கள் சந்திப்பு இடத்திற்கு வருகிறார்.",
+  "The vendor has reached your meeting point.":
+    "விற்பனையாளர் உங்கள் சந்திப்பு இடத்தை அடைந்தார்.",
+  "Your visit is complete.": "உங்கள் சந்திப்பு முடிந்தது.",
+  "This visit was cancelled.": "இந்தச் சந்திப்பு ரத்து செய்யப்பட்டது.",
+  "The vendor could not accept this visit.":
+    "விற்பனையாளரால் இந்தச் சந்திப்பை ஏற்க முடியவில்லை.",
+  "This visit expired. You can browse nearby vendors again.":
+    "இந்தச் சந்திப்பின் நேரம் முடிந்தது. அருகிலுள்ள விற்பனையாளர்களை மீண்டும் காணலாம்.",
+
   "Main navigation": "முதன்மை வழிசெலுத்தல்",
   "Cached results are out of date. Refresh to check availability.":
     "சேமிக்கப்பட்ட முடிவுகள் பழையவை. கிடைக்கும் விற்பனையாளர்களைக் காண புதுப்பிக்கவும்.",
