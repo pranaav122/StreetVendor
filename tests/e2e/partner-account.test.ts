@@ -9,7 +9,7 @@ test("Partner account saves a name, reports browser push limits and hides the bu
   await page.getByLabel("Email", { exact: true }).fill(vendor.email);
   await page.getByLabel("Password", { exact: true }).fill(vendor.password);
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
-  await page.getByRole("link", { name: "Account", exact: true }).click();
+  await page.getByRole("link", { name: "More", exact: true }).click();
   await page
     .getByLabel("Display name", { exact: true })
     .fill("Synthetic Partner renamed");
@@ -42,7 +42,7 @@ test("Partner account deletion requires the phrase and revokes access", async ({
   await page.getByLabel("Email", { exact: true }).fill(vendor.email);
   await page.getByLabel("Password", { exact: true }).fill(vendor.password);
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
-  await page.getByRole("link", { name: "Account", exact: true }).click();
+  await page.getByRole("link", { name: "More", exact: true }).click();
   await expect(
     page.getByRole("button", { name: "Delete account", exact: true }),
   ).toBeDisabled();

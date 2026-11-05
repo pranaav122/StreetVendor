@@ -28,8 +28,8 @@
 
 ## Task 1: Record the approved design
 
-- [ ] Save root DESIGN.md, CLAUDE.md guidance and this plan; link existing design documentation and update file inventory.
-- [ ] Check local links, token consistency and git diff; commit/push/verify.
+- [x] Save root DESIGN.md, CLAUDE.md guidance and this plan; link existing design documentation and update file inventory.
+- [x] Check local links, token consistency and git diff; commit/push/verify.
 
 ## Task 2: Persistent labelled navigation and controls
 
@@ -37,9 +37,9 @@ Files: both apps' src/ui.tsx and src/copy.ts; tests/e2e/mobile-navigation.test.t
 
 Interface: retain Page({title, children, navigation?, translateTitle?}); consume usePathname to mark the active destination. Keep navigation outside the content ScrollView. Use existing safe-area support and labelled links. Keep navigation hidden on authentication screens. Vendor labels: Home, Customers, My shop, More. Customer labels: Nearby, Your visits, Account.
 
-- [ ] Write real browser cases asserting destinations, active state and navigation visibility after scrolling a long screen; verify failure on old layout.
-- [ ] Update Page and translations without changing screen business logic. Preserve links and keyboard access; avoid duplicate screen headings from retained routes.
-- [ ] Verify type checks, contrast, navigation tests and affected profile/account/Tamil flows; inspect diff; commit/push/verify.
+- [x] Write real browser cases asserting destinations, active state and navigation visibility after scrolling a long screen; verify failure on old layout.
+- [x] Update Page and translations without changing screen business logic. Preserve links and keyboard access; avoid duplicate screen headings from retained routes.
+- [x] Verify type checks, contrast, navigation tests and affected profile/account/Tamil flows; inspect diff; commit/push/verify.
 
 ## Task 3: Vendor daily workflow
 

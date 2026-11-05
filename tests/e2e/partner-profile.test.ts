@@ -21,7 +21,7 @@ test("partner registers, creates a business and submits minimal review details",
   await expect(
     page.getByRole("heading", { name: "Your business today", exact: true }),
   ).toBeVisible();
-  await page.getByRole("link", { name: "Profile", exact: true }).click();
+  await page.getByRole("link", { name: "My shop", exact: true }).click();
   await page
     .getByLabel("Business name", { exact: true })
     .fill("Synthetic fresh produce");

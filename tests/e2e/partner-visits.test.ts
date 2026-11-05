@@ -19,7 +19,7 @@ test("a concurrent partner decision shows a conflict and reloads server state", 
   await page.getByLabel("Email", { exact: true }).fill(vendor.email);
   await page.getByLabel("Password", { exact: true }).fill(vendor.password);
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
-  await page.getByRole("link", { name: "Visits", exact: true }).click();
+  await page.getByRole("link", { name: "Customers", exact: true }).click();
   await page.getByRole("link", { name: "View visit", exact: true }).click();
   await page
     .getByLabel("Reason", { exact: true })
@@ -70,7 +70,7 @@ test("partner accepts a real visit, progresses through arrival and finds complet
   await page.getByLabel("Email", { exact: true }).fill(vendor.email);
   await page.getByLabel("Password", { exact: true }).fill(vendor.password);
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
-  await page.getByRole("link", { name: "Visits", exact: true }).click();
+  await page.getByRole("link", { name: "Customers", exact: true }).click();
   await page.getByRole("link", { name: "View visit", exact: true }).click();
   await page.getByRole("button", { name: "Accept visit", exact: true }).click();
   await expect(
@@ -124,7 +124,7 @@ test("partner accepts a real visit, progresses through arrival and finds complet
     headers: customer.headers,
   });
   expect((await stored.json()).status).toBe("COMPLETED");
-  await page.getByRole("link", { name: "Visits", exact: true }).click();
+  await page.getByRole("link", { name: "Customers", exact: true }).click();
   await page
     .getByRole("button", { name: "History", exact: true })
     .last()
@@ -153,7 +153,7 @@ test("partner decline requires a reason and persists the decision", async ({
   await page.getByLabel("Email", { exact: true }).fill(vendor.email);
   await page.getByLabel("Password", { exact: true }).fill(vendor.password);
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
-  await page.getByRole("link", { name: "Visits", exact: true }).click();
+  await page.getByRole("link", { name: "Customers", exact: true }).click();
   await page.getByRole("link", { name: "View visit", exact: true }).click();
   await expect(
     page.getByRole("button", { name: "Decline visit", exact: true }),

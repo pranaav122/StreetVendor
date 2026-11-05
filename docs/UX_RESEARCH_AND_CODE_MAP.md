@@ -76,7 +76,7 @@ Use existing components, Expo services, map applications and shared tokens. This
 
 Ask a vendor to find their approval state, go online, accept a visit, open directions and go offline. Ask a customer to choose a meeting point, select a vendor, request a visit and reopen its progress. Repeat with Tamil, larger text, denied location and a failed connection. Observe wrong taps, help requests and task completion; establish a baseline before setting improvement targets. We have not run this pilot, so no usability success rate is claimed.
 
-## This checkpoint's verification
+## Research/comment checkpoint verification (c6d38d4)
 
 The changes are this guide, reading links and responsibility comments in 12 existing TypeScript modules. No executable statements, dependencies, API contracts or UI layouts changed. A TypeScript scanner comparison against the preceding commit confirmed identical executable tokens in those modules.
 

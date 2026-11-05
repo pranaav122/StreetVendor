@@ -9,7 +9,8 @@ import {
   View,
   type TextInputProps,
 } from "react-native";
-import { Link } from "expo-router";
+import { Link, usePathname } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { tokens } from "@mystreetvendor/design-tokens";
 import { useCopy } from "./language";
 
@@ -26,6 +27,7 @@ export function Body({
     </Text>
   );
 }
+/** Keeps destinations outside scrolling content so a long form cannot hide the way back. */
 export function Page({
   title,
   children,
@@ -37,30 +39,74 @@ export function Page({
   translateTitle?: boolean;
 }>) {
   const { text } = useCopy();
+  const pathname = usePathname();
+  const destinations = [
+    { href: "/", label: "Nearby" },
+    { href: "/visits", label: "Your visits" },
+    { href: "/account", label: "Account" },
+  ] as const;
   return (
-    <ScrollView
-      keyboardShouldPersistTaps="handled"
-      contentContainerStyle={styles.page}
+    <SafeAreaView
+      style={styles.shell}
+      edges={["top", "bottom", "left", "right"]}
     >
-      <Text style={styles.eyebrow}>MYSTREETVENDOR</Text>
-      <Text accessibilityRole="header" style={styles.title}>
-        {translateTitle ? text(title) : title}
-      </Text>
+      <ScrollView
+        style={styles.scroll}
+        keyboardShouldPersistTaps="handled"
+        automaticallyAdjustKeyboardInsets
+        contentContainerStyle={styles.page}
+      >
+        {!navigation ? (
+          <Text style={styles.eyebrow}>MyStreetVendor</Text>
+        ) : null}
+        <Text accessibilityRole="header" style={styles.title}>
+          {translateTitle ? text(title) : title}
+        </Text>
+        {children}
+      </ScrollView>
       {navigation ? (
-        <View style={styles.navigation}>
-          <Link style={styles.link} href="/">
-            {text("Nearby")}
-          </Link>
-          <Link style={styles.link} href="/visits">
-            {text("Visits")}
-          </Link>
-          <Link style={styles.link} href="/account">
-            {text("Account")}
-          </Link>
+        <View
+          role="navigation"
+          accessibilityLabel={text("Main navigation")}
+          style={styles.navigation}
+        >
+          {destinations.map((destination) => {
+            const active =
+              pathname === destination.href ||
+              (destination.href === "/visits" &&
+                pathname.startsWith("/visit/"));
+            return (
+              // Link’s slot flattens styles; give it a plain object rather than a Pressable style callback.
+              <Link
+                key={destination.href}
+                href={destination.href}
+                replace
+                style={StyleSheet.flatten([
+                  styles.navItem,
+                  active ? styles.navSelected : null,
+                ])}
+                asChild
+              >
+                <Pressable
+                  accessibilityRole="link"
+                  accessibilityState={{ selected: active }}
+                  aria-selected={active}
+                >
+                  <Text
+                    style={[
+                      styles.navText,
+                      active ? styles.navTextSelected : null,
+                    ]}
+                  >
+                    {text(destination.label)}
+                  </Text>
+                </Pressable>
+              </Link>
+            );
+          })}
         </View>
       ) : null}
-      {children}
-    </ScrollView>
+    </SafeAreaView>
   );
 }
 export function Button({
@@ -140,10 +186,12 @@ export function errorMessage(error: unknown) {
 }
 
 const styles = StyleSheet.create({
+  shell: { flex: 1, backgroundColor: tokens.color.background },
+  scroll: { flex: 1 },
   page: {
     padding: 24,
-    paddingTop: 40,
-    paddingBottom: 48,
+    paddingTop: 24,
+    paddingBottom: 32,
     gap: 16,
     maxWidth: 680,
     width: "100%",
@@ -163,22 +211,47 @@ const styles = StyleSheet.create({
   },
   body: {
     fontFamily: tokens.font.regular,
-    fontSize: 16,
-    lineHeight: 26,
+    fontSize: 18,
+    lineHeight: 28,
     color: tokens.color.text,
   },
   muted: { color: tokens.color.muted },
-  navigation: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  link: {
-    fontFamily: tokens.font.bold,
-    fontSize: 16,
-    color: tokens.color.primary,
+  navigation: {
+    flexDirection: "row",
+    gap: 4,
+    padding: 8,
+    borderTopWidth: 1,
+    borderColor: tokens.color.border,
+    backgroundColor: tokens.color.surface,
+    width: "100%",
+    maxWidth: 680,
+    alignSelf: "center",
+  },
+  navItem: {
+    flex: 1,
+    minWidth: 0,
+    minHeight: 56,
     paddingVertical: 12,
-    paddingRight: 16,
-    minHeight: 48,
+    paddingHorizontal: 4,
+    borderRadius: 8,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  navSelected: { backgroundColor: tokens.color.subtle },
+  navText: {
+    fontFamily: tokens.font.regular,
+    fontSize: 14,
+    lineHeight: 22,
+    color: tokens.color.muted,
+    textAlign: "center",
+    flexShrink: 1,
+  },
+  navTextSelected: {
+    fontFamily: tokens.font.bold,
+    color: tokens.color.primary,
   },
   button: {
-    minHeight: 52,
+    minHeight: 56,
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 12,
@@ -189,7 +262,7 @@ const styles = StyleSheet.create({
   buttonText: {
     fontFamily: tokens.font.bold,
     color: tokens.color.onPrimary,
-    fontSize: 16,
+    fontSize: 18,
     lineHeight: 28,
     textAlign: "center",
   },
@@ -197,7 +270,7 @@ const styles = StyleSheet.create({
   disabled: { opacity: 0.5 },
   field: { gap: 8 },
   input: {
-    minHeight: 52,
+    minHeight: 56,
     padding: 12,
     borderWidth: 1,
     borderColor: tokens.color.border,
@@ -205,8 +278,8 @@ const styles = StyleSheet.create({
     backgroundColor: tokens.color.surface,
     color: tokens.color.text,
     fontFamily: tokens.font.regular,
-    fontSize: 16,
-    lineHeight: 26,
+    fontSize: 18,
+    lineHeight: 28,
   },
   card: {
     padding: 20,
@@ -218,8 +291,8 @@ const styles = StyleSheet.create({
   },
   error: {
     fontFamily: tokens.font.regular,
-    fontSize: 16,
-    lineHeight: 26,
+    fontSize: 18,
+    lineHeight: 28,
     color: tokens.color.danger,
   },
   loading: { gap: 12, padding: 24 },

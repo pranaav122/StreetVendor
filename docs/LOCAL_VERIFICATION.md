@@ -1,4 +1,18 @@
-# Local verification — 4 November 2026
+# Local verification
+
+## Mobile navigation checkpoint — 5 November 2026
+
+Both apps now keep labelled navigation outside scrolling screen content, identify the selected destination and respect safe areas. Vendor destinations are Home, Customers, My shop and More; Customer destinations are Nearby, Your visits and Account. Colours are unchanged. Daily screen simplification is still in progress under the approved root DESIGN.md.
+
+The new `mobile-navigation.test.ts` cases first failed against the old layout because the navigation landmark was absent. The first implementation exposed dropped Pressable styles through Expo Router's slot and missing browser selection attributes; those were corrected from installed framework-source evidence. Final targeted run:
+
+```powershell
+./scripts/Test-Applications.ps1 tests/e2e/mobile-navigation.test.ts tests/e2e/partner-profile.test.ts tests/e2e/partner-account.test.ts tests/e2e/customer-auth.test.ts tests/e2e/partner-tamil.test.ts tests/e2e/customer-tamil.test.ts --reporter=line
+```
+
+Result: **10 passed in 2.0 minutes**, against a generated disposable PostgreSQL database, removed after the run. Customer and Partner strict type checks passed; Customer unit tests passed 6 and Partner passed 29. Seven text contrast pairs and minimum control dimensions passed. Full browser/backend suites and native exports are not new results for this checkpoint; physical-device and screen-reader checks remain unverified.
+
+## Complete MVP baseline — 4 November 2026
 
 This records the complete MVP checks. [VERIFICATION.md](VERIFICATION.md) is the historical Phase 1 evidence from October; its limits describe that earlier milestone.
 

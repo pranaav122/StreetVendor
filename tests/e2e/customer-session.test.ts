@@ -10,7 +10,7 @@ test("remote session revocation removes the signed-in customer interface", async
   await page.getByLabel("Email", { exact: true }).fill(customer.email);
   await page.getByLabel("Password", { exact: true }).fill(customer.password);
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
-  await page.getByRole("link", { name: "Visits", exact: true }).click();
+  await page.getByRole("link", { name: "Your visits", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Your visits", exact: true }),
   ).toBeVisible();

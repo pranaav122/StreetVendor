@@ -1,5 +1,9 @@
 export type Language = "en" | "ta";
 const tamil: Readonly<Record<string, string>> = {
+  "Main navigation": "முதன்மை வழிசெலுத்தல்",
+  Customers: "வாடிக்கையாளர்கள்",
+  "My shop": "என் கடை",
+  More: "மேலும்",
   "Going offline…": "ஆஃப்லைனில் செல்லப்படுகிறது…",
   "Stopping location sharing…": "இருப்பிடப் பகிர்வு நிறுத்தப்படுகிறது…",
   "Wait for offline confirmation before going online again.":
