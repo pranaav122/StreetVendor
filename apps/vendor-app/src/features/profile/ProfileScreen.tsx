@@ -16,6 +16,14 @@ import {
   errorMessage,
 } from "../../ui";
 import { ownBusiness } from "./queries";
+const approvalGuidance: Record<string, string> = {
+  PENDING: "Your business needs staff approval before going online.",
+  REJECTED:
+    "Your business was not approved. Update your profile and request another review.",
+  SUSPENDED:
+    "Your business is suspended. Contact the operator before sharing again.",
+  VERIFIED: "Your shop is approved. Open Home to go online.",
+};
 type Values = { name: string; description: string; review: string };
 export function ProfileScreen() {
   const { client } = useSession();
@@ -118,6 +126,10 @@ export function ProfileScreen() {
     );
   return (
     <Page title="My shop">
+      <Body copy>
+        {approvalGuidance[profile.data?.verification_status ?? ""] ??
+          "Save your shop details, then send them for approval."}
+      </Body>
       <Controller
         control={control}
         name="name"

@@ -146,17 +146,20 @@ export function Button({
   onPress,
   disabled = false,
   secondary = false,
+  selected,
 }: {
   label: string;
   onPress: () => void;
   disabled?: boolean;
   secondary?: boolean;
+  selected?: boolean;
 }) {
   const { text } = useCopy();
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityState={{ disabled }}
+      accessibilityState={{ disabled, selected }}
+      aria-pressed={selected}
       disabled={disabled}
       onPress={onPress}
       style={({ pressed }) => [

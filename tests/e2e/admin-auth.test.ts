@@ -35,7 +35,14 @@ test("operator signs in through an HttpOnly cookie, reads real counts and signs 
   expect(session?.sameSite).toBe("Strict");
   expect(session?.value).toMatch(/^[A-Za-z0-9_-]{43}$/);
   expect(await page.evaluate(() => document.cookie)).not.toContain("msv_admin");
+  // Local UI clears first; assert server revocation only after its DELETE commits.
+  const signedOut = page.waitForResponse(
+    (response) =>
+      response.url() === `${admin}/api/session` &&
+      response.request().method() === "DELETE",
+  );
   await page.getByRole("button", { name: "Sign out", exact: true }).click();
+  expect((await signedOut).status()).toBe(204);
   await expect(
     page.getByRole("heading", { name: "Operator sign in", exact: true }),
   ).toBeVisible();

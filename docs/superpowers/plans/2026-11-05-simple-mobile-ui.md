@@ -63,8 +63,8 @@ Interface: retain MeetingProvider, VisitIntent, server category filtering and lo
 
 ## Task 5: Integrated verification and learning guide
 
-- [ ] Run all mobile unit suites, strict type checks, contrast and the complete application browser suite against its isolated database.
-- [ ] Run mobile platform exports appropriate to changed presentation and inspect both running apps at phone width. Report physical-device checks separately.
-- [ ] Review the final diff against every R1–R11 requirement and source comments. Update research coverage from proposed to implemented only with matching evidence; update file guide and verification record.
-- [ ] Perform final review, fix material findings with regression checks; commit/push/verify. Restore Wi-Fi previews with the phone-accessible API URL.
-- [ ] Mark the active goal complete only when the live interface meets the approved scope and verification supports it. Any device-only uncertainty remains explicitly reported.
+- [x] Run all mobile unit suites, strict type checks, contrast and the complete application browser suite against its isolated database.
+- [x] Run mobile platform exports appropriate to changed presentation and inspect both running apps at phone width. Report physical-device checks separately.
+- [x] Review the final diff against every R1–R11 requirement and source comments. Update research coverage from proposed to implemented only with matching evidence; update file guide and verification record.
+- [x] Perform final review, fix material findings with regression checks; commit/push/verify. Restore Wi-Fi previews with the phone-accessible API URL.
+- [x] Mark the active goal complete only when the live interface meets the approved scope and verification supports it. Any device-only uncertainty remains explicitly reported.

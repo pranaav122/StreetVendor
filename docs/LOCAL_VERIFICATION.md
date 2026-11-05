@@ -1,5 +1,17 @@
 # Local verification
 
+## Approved simple UI — final post-review result, 5 November 2026
+
+The approved Customer and Vendor layouts are implemented with the existing colours and dependencies. Vendor Home prioritises availability and the next customer; Customers separates New / Active / Past; My shop explains approval; optional controls and troubleshooting stay available through named disclosures. Customer discovery promotes a public meeting label and optional GPS, retains manual coordinates, and shows committed visit progress. Persistent labelled navigation has local monochrome icons. Necessary comments explain responsibilities, privacy, stale results and transaction/cleanup decisions; ordinary statements retain descriptive names.
+
+The final independent static review found three P2 specification gaps, all corrected in one fix pass. Before implementation, the six added browser cases failed: five exposed missing UI; the sixth revealed that its suspension fixture used the verification endpoint incorrectly. The fixture now uses the dedicated suspension endpoint. All six cases passed in the final full run. The older staff sign-out test now waits for the actual DELETE 204 response before checking session 401; application sign-out code was unchanged.
+
+**Final actual results:** the complete application browser suite passed **40/40 in 6.4 minutes**, against the real isolated PostgreSQL/API harness; the generated database was removed. All four policy suites passed **23 / 6 / 29 / 14** (72 total); shared and all app strict TypeScript passed; seven contrast pairs passed. After review fixes, Vendor's 29 policy tests, strict types and Android/iOS/web exports passed again. Customer's unchanged post-checkpoint exports had already passed all three platforms. Exports use a placeholder HTTPS API and prove compilation only. Normal and doubled-text Tamil screenshots were visually inspected for both apps.
+
+The every-file inventory maps all **325 maintained files**. R1–R11 reasons, source ownership, evidence and device/pilot limits are in UX_RESEARCH_AND_CODE_MAP.md. No API contracts, backend state transitions, provider integrations or new dependencies were added by the final UI pass. Backend/production verification below is historical, not a new full backend rerun.
+
+The two development previews were restored with the Wi-Fi API address. Both page roots returned HTTP 200 from this computer; API/database/PostGIS health returned ok, and the vendor Wi-Fi origin passed CORS preflight. Physical iPhone access is not confirmed. LAN HTTP previews do not prove iPhone GPS, secure random request creation, native background execution, maps handoff, notifications, VoiceOver or native font scaling; use a secure preview/native build for those checks. No real-user usability pilot or new Figma file is claimed.
+
 ## Navigation finish and integrated checks — 5 November 2026
 
 Both apps now use original local monochrome destination pictograms alongside visible translated labels. Colours are unchanged; no runtime dependencies were added. Customer and Vendor doubled-text Tamil screenshots were inspected after the browser bounds checks passed.

@@ -228,6 +228,15 @@ export function VisitScreen({ id }: { id: string }) {
         </Body>
       ) : null}
       <Disclosure title="Need help with this visit?">
+        <Body copy>
+          Arrival needs two accurate server-received location fixes at least
+          five seconds apart near the meeting point.
+        </Body>
+        <Body copy muted>
+          Keep location sharing on. Check location permission and your
+          connection. If arrival has not registered, wait for another accurate
+          update and refresh the visit.
+        </Body>
         <Body copy>Report a problem with this visit</Body>
         <Button
           label="Safety"

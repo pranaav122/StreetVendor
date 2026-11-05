@@ -2,7 +2,7 @@
 
 Updated 5 November 2026. This inventory explains every maintained Git file and the current handbook. Private `.env`, installed dependencies, databases, backups and generated test/export output are deliberately excluded. Start with [PROJECT_HANDBOOK.md](PROJECT_HANDBOOK.md), then use this map to follow an actual feature.
 
-Inventory: **324 files**. Paths are repository-relative and linked from this guide. Tests describe the behavior they protect; their existence alone is not a passing result. Actual runs are in [LOCAL_VERIFICATION.md](LOCAL_VERIFICATION.md).
+Inventory: **325 files**. Paths are repository-relative and linked from this guide. Tests describe the behavior they protect; their existence alone is not a passing result. Actual runs are in [LOCAL_VERIFICATION.md](LOCAL_VERIFICATION.md).
 
 ## Root settings
 
@@ -380,5 +380,6 @@ Inventory: **324 files**. Paths are repository-relative and linked from this gui
 | [tests/e2e/partner-profile.test.ts](../tests/e2e/partner-profile.test.ts) | Application regression checks for partner profile. |
 | [tests/e2e/partner-recovery.test.ts](../tests/e2e/partner-recovery.test.ts) | Application regression checks for partner recovery. |
 | [tests/e2e/partner-tamil.test.ts](../tests/e2e/partner-tamil.test.ts) | Application regression checks for partner tamil. |
+| [tests/e2e/partner-design-review.test.ts](../tests/e2e/partner-design-review.test.ts) | Verifies real approval states on My shop, New/Active/Past separation and arrival help without changing server rules. |
 | [tests/e2e/partner-visits.test.ts](../tests/e2e/partner-visits.test.ts) | Application regression checks for partner visits. |
 | [tests/e2e/test.ts](../tests/e2e/test.ts) | Isolated test setup, synthetic fixtures and shared cleanup/authorization helpers. |

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { View } from "react-native";
 import { Link } from "expo-router";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { z } from "zod";
@@ -22,7 +23,7 @@ const pageSchema = z.object({
 export function VisitListScreen() {
   const { client } = useSession();
   const { language, text } = useCopy();
-  const [history, setHistory] = useState(false);
+  const [section, setSection] = useState<"New" | "Active" | "Past">("New");
   const visits = useInfiniteQuery({
     queryKey: ["visits", "list"],
     initialPageParam: null as string | null,
@@ -36,32 +37,40 @@ export function VisitListScreen() {
     getNextPageParam: (last) => last.next_cursor ?? undefined,
     refetchInterval: 10000,
   });
+  // These are views of loaded server records; pagination still reaches older requests.
   const items = (visits.data?.pages.flatMap((page) => page.items) ?? []).filter(
-    (visit) =>
-      history
-        ? !activeVisitStatuses.has(visit.status)
-        : activeVisitStatuses.has(visit.status),
+    (visit) => {
+      if (section === "New") return visit.status === "PENDING";
+      if (section === "Active")
+        return (
+          visit.status !== "PENDING" && activeVisitStatuses.has(visit.status)
+        );
+      return !activeVisitStatuses.has(visit.status);
+    },
   );
+  const emptyMessages = {
+    New: "No new requests in the loaded results.",
+    Active: "No active visits in the loaded results.",
+    Past: "No past visits in the loaded results.",
+  };
   return (
     <Page title="Customer visits">
-      <Button
-        label="Active visits"
-        secondary={history}
-        onPress={() => setHistory(false)}
-      />
-      <Button
-        label="History"
-        secondary={!history}
-        onPress={() => setHistory(true)}
-      />
+      <View style={{ flexDirection: "row", gap: 8 }}>
+        {(["New", "Active", "Past"] as const).map((label) => (
+          <View key={label} style={{ flex: 1, minWidth: 0 }}>
+            <Button
+              label={label}
+              selected={section === label}
+              secondary={section !== label}
+              onPress={() => setSection(label)}
+            />
+          </View>
+        ))}
+      </View>
       {visits.isPending ? <Loading /> : null}
       <Problem message={visits.error ? errorMessage(visits.error) : null} />
       {visits.isSuccess && items.length === 0 ? (
-        <Body copy>
-          {history
-            ? "No past visits in the loaded results."
-            : "No active visits in the loaded results."}
-        </Body>
+        <Body copy>{emptyMessages[section]}</Body>
       ) : null}
       {items.map((visit) => (
         <Card key={visit.id}>

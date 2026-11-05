@@ -128,10 +128,7 @@ test("partner accepts a real visit, progresses through arrival and finds complet
   });
   expect((await stored.json()).status).toBe("COMPLETED");
   await page.getByRole("link", { name: "Customers", exact: true }).click();
-  await page
-    .getByRole("button", { name: "History", exact: true })
-    .last()
-    .click();
+  await page.getByRole("button", { name: "Past", exact: true }).last().click();
   await expect(
     page
       .getByText("Visit completed", { exact: false })

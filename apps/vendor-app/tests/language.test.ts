@@ -17,6 +17,11 @@ test("Partner visit and location controls translate without changing business da
     "Send for approval",
     "Customer visits",
     "Visit accepted",
+    "New",
+    "Active",
+    "Past",
+    "Your shop is approved. Open Home to go online.",
+    "Arrival needs two accurate server-received location fixes at least five seconds apart near the meeting point.",
   ])
     assert.notEqual(translate("ta", value), value);
   assert.equal(

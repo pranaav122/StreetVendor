@@ -1,5 +1,17 @@
 export type Language = "en" | "ta";
 const tamil: Readonly<Record<string, string>> = {
+  New: "புதியவை",
+  Active: "நடப்பவை",
+  Past: "முடிந்தவை",
+  "No new requests in the loaded results.":
+    "ஏற்றப்பட்ட முடிவுகளில் புதிய கோரிக்கைகள் இல்லை.",
+  "Your shop is approved. Open Home to go online.":
+    "உங்கள் கடைக்கு ஒப்புதல் கிடைத்தது. ஆன்லைனில் செல்ல முகப்பைத் திறக்கவும்.",
+  "Arrival needs two accurate server-received location fixes at least five seconds apart near the meeting point.":
+    "வருகையை உறுதி செய்ய, சந்திப்பு இடத்திற்கு அருகில் குறைந்தது ஐந்து விநாடி இடைவெளியில் இரண்டு துல்லியமான இருப்பிடப் பதிவுகள் சேவையகத்தை அடைய வேண்டும்.",
+  "Keep location sharing on. Check location permission and your connection. If arrival has not registered, wait for another accurate update and refresh the visit.":
+    "இருப்பிடப் பகிர்வை இயக்கத்தில் வைத்திருங்கள். இருப்பிட அனுமதியையும் இணைய இணைப்பையும் சரிபார்க்கவும். வருகை பதிவாகவில்லை என்றால் அடுத்த துல்லியமான புதுப்பிப்பிற்குக் காத்திருந்து சந்திப்பைப் புதுப்பிக்கவும்.",
+
   "Set up your shop": "உங்கள் கடையை அமைக்கவும்",
   "Location updates are interrupted. Retry sharing or go offline.":
     "இருப்பிடப் புதுப்பிப்புகள் தடைப்பட்டுள்ளன. மீண்டும் பகிரவும் அல்லது ஆஃப்லைனில் செல்லவும்.",
@@ -119,7 +131,6 @@ const tamil: Readonly<Record<string, string>> = {
   "Delete account": "கணக்கை நீக்கவும்",
   "Customer visits": "வாடிக்கையாளர் சந்திப்புகள்",
   "Active visits": "நடப்பு சந்திப்புகள்",
-  History: "வரலாறு",
   "No past visits in the loaded results.":
     "ஏற்றப்பட்ட முடிவுகளில் பழைய சந்திப்புகள் இல்லை.",
   "No active visits in the loaded results.":
